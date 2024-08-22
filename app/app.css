@@ -38,6 +38,11 @@ button {
   flex-direction: column;
   height: 100%;
 }
+.log-in {
+  cursor: pointer;
+  color: blue;
+  text-decoration: underline;
+}
 
 .top-bar {
   display: flex;

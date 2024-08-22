@@ -6,29 +6,63 @@ import {
 	usePlayer,
 	PlayerStatus,
 } from "../lib/spotify";
-import type { WrappedPlayer, PlayerStateCallback } from "../lib/spotify";
+import type {
+	WrappedPlayer,
+	PlayerStateCallback,
+	SpotifyAuthToken,
+} from "../lib/spotify";
 import { EntriesContext, useEntries, useEntry } from "../lib/entries";
 
-export default ({ token }: { token: string }) => {
+export default ({ token }: { token: SpotifyAuthToken }) => {
 	const { player, status } = useSpotifyPlayer(token);
 
-	return player ? (
-		<Editor player={player} />
+	return status === PlayerStatus.READY ? (
+		<Editor player={player as WrappedPlayer} />
 	) : (
-		<StatusMessage status={status} />
+		<StatusMessage status={status} reset={token.reset} />
 	);
 };
 
-const messageByStatus: Record<PlayerStatus, string> = {
-	[PlayerStatus.LOADING]: "Connecting to Spotify",
-	[PlayerStatus.NOT_CONNECTED]: `Please connect to the "Choreo" device on your Spotify player`,
-	[PlayerStatus.READY]: "not used",
+const messageByStatus: Record<
+	PlayerStatus,
+	(reset: () => void) => React.ReactNode
+> = {
+	[PlayerStatus.READY]: () => "shouldn't happen!",
+	[PlayerStatus.LOADING]: () => "Connecting to Spotify",
+	[PlayerStatus.NOT_CONNECTED]: () =>
+		`Please connect to the "Choreo" device on your Spotify player`,
+	[PlayerStatus.INIT_ERROR]: (reset: () => void) => (
+		<TryAgain message="Initialization Failed." reset={reset} />
+	),
+	[PlayerStatus.ACCT_ERROR]: (reset: () => void) => (
+		<TryAgain
+			message="There was a problem with your account. Spotify requires a premium account."
+			reset={reset}
+		/>
+	),
+	[PlayerStatus.AUTH_ERROR]: (reset: () => void) => (
+		<TryAgain message="Could not authorize access." reset={reset} />
+	),
 };
 
-const StatusMessage = ({ status }: { status: PlayerStatus }) => {
-	const message = messageByStatus[status];
+const TryAgain = ({
+	message,
+	reset,
+}: { message: string; reset: () => void }) => (
+	<p>
+		{message} Would you like to try to{" "}
+		<span className="log-in" onClick={reset}>
+			log in
+		</span>{" "}
+		again?
+	</p>
+);
 
-	return <div className="status-message">{message}</div>;
+const StatusMessage = ({
+	status,
+	reset,
+}: { status: PlayerStatus; reset: () => void }) => {
+	return <div className="status-message">{messageByStatus[status](reset)}</div>;
 };
 
 const Editor = ({ player }: { player: WrappedPlayer }) => {
