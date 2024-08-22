@@ -22,29 +22,44 @@ export const links: LinksFunction = () => [
 	},
 ];
 
-const useAuthToken = () => {
+enum AuthStatus {
+	LOADING = "loading",
+	NO_AUTH = "noAuth",
+}
+
+const useAuth = () => {
+	// Can't just grab the token from localStorage bc it's only available
+	// on the browser. Remix also renders this component on the server >:[
 	const [token, setToken] = useState<string>();
+	const [status, setStatus] = useState(AuthStatus.LOADING);
 	const location = useLocation();
 	const tokenInParams = new URLSearchParams(location.search).get("token");
 
 	useEffect(() => {
-		if (!tokenInParams) return;
-		setToken(tokenInParams);
-		const newUrl = new URL(window.location.href);
-		newUrl.searchParams.delete("token");
-		window.history.pushState(null, "", newUrl);
+		if (token) return;
+		if (tokenInParams) {
+			setToken(tokenInParams);
+			localStorage.setItem("authToken", tokenInParams);
+			const newUrl = new URL(window.location.href);
+			newUrl.searchParams.delete("token");
+			window.history.pushState(null, "", newUrl);
+			return;
+		}
+
+		const tokenFromLS = localStorage.getItem("authToken");
+		if (tokenFromLS) {
+			setToken(tokenFromLS);
+			return;
+		}
+
+		setStatus(AuthStatus.NO_AUTH);
 	}, [tokenInParams]);
 
-	return token;
+	return { status, token };
 };
 
 export default function App() {
-	useEffect(() => {
-		console.log("root mounted");
-		return () => console.log("root unmounted");
-	}, []);
-
-	const token = useAuthToken();
+	const { status, token } = useAuth();
 
 	return (
 		<html lang="en">
@@ -54,14 +69,20 @@ export default function App() {
 				<Links />
 			</head>
 			<body>
-				{token ? (
-					<Editor token={token} />
-				) : (
-					<Link to="auth/login">Please Log in!</Link>
-				)}
+				{token ? <Editor token={token} /> : <NotAuthorized status={status} />}
 				<Outlet />
 				<Scripts />
 			</body>
 		</html>
 	);
 }
+
+const NotAuthorized = ({ status }: { status: AuthStatus }) => (
+	<div className="status-message">
+		{status === AuthStatus.LOADING ? (
+			"Loading..."
+		) : (
+			<Link to="auth/login">Please Log in!</Link>
+		)}
+	</div>
+);
