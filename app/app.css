@@ -1,0 +1,128 @@
+:root {
+  --controls-bg-color: #a9d9d5;
+}
+
+html {
+  font-family: Arial, Helvetica, sans-serif;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  font-size: 16px;
+}
+
+.material-symbols-outlined {
+  font-size: 16px !important;
+}
+
+button {
+  cursor: pointer;
+}
+
+*,
+*:before,
+*:after {
+  box-sizing: inherit;
+}
+.status-message {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.editor {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.top-bar {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  background-color: var(--controls-bg-color);
+  padding: 0.5em;
+  border-bottom: solid black 1px;
+}
+.track-info {
+  font-size: 18px;
+  /* font-weight: bold; */
+}
+#csv-upload {
+  display: none;
+}
+.load-button {
+  cursor: pointer;
+  border-radius: 3px;
+  font-size: 0.875rem;
+  font-family: Arial, Helvetica, sans-serif;
+  appearance: auto;
+  text-rendering: auto;
+  color: buttontext;
+  letter-spacing: normal;
+  word-spacing: normal;
+  line-height: normal;
+  text-indent: 0px;
+  display: inline-block;
+  text-align: center;
+  align-items: flex-start;
+  box-sizing: border-box;
+  background-color: buttonface;
+  margin: 0;
+  padding-block: 1px;
+  padding-inline: 6px;
+  border-width: 1px;
+  border-style: outset;
+  border-color: buttonborder;
+  border-image: initial;
+}
+
+.entries {
+  position: relative;
+  flex: 1;
+  overflow-y: scroll;
+  padding-bottom: 2rem;
+}
+
+.entry {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+  gap: 0.5em;
+}
+.entry:nth-of-type(odd) {
+  background-color: lightgray;
+}
+.entry .meter {
+  width: 4rem;
+}
+.entry .note {
+  flex: 1;
+}
+
+.controls {
+  background-color: var(--controls-bg-color);
+  display: flex;
+  align-items: center;
+  gap: 0.25em;
+  padding: 0.5em 0;
+  border-top: solid black 1px;
+}
+.playback-button {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+}
+.playback-button.add-entry {
+  margin-left: 1rem;
+}
+.time-display {
+  text-align: right;
+  padding: 0 0.25rem;
+  background-color: white;
+  margin: 0 1rem;
+  width: 5rem;
+}
