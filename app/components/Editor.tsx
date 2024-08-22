@@ -20,7 +20,7 @@ export default ({ token }: { token: string }) => {
 };
 
 const messageByStatus: Record<PlayerStatus, string> = {
-	[PlayerStatus.LOADING]: "Loading...",
+	[PlayerStatus.LOADING]: "Connecting to Spotify",
 	[PlayerStatus.NOT_CONNECTED]: `Please connect to the "Choreo" device on your Spotify player`,
 	[PlayerStatus.READY]: "not used",
 };
@@ -95,16 +95,18 @@ const TopBar = () => {
 	return (
 		<div className="top-bar">
 			<span className="track-info">{info}</span>
-			{track && <button onClick={handleSaveCSV}>Save as CSV</button>}
-			<label
-				htmlFor="csv-upload"
-				className="load-button"
-				onClick={(e) => console.log(e.target)}
-			>
-				Load from CSV
-				<input id="csv-upload" type="file" onChange={handleLoadCSV} />
-			</label>
-			{!!entries.length && <button onClick={clearEntries}>Clear</button>}
+			<span className="actions">
+				{track && <button onClick={handleSaveCSV}>Save as CSV</button>}
+				<label
+					htmlFor="csv-upload"
+					className="load-button"
+					onClick={(e) => console.log(e.target)}
+				>
+					Load from CSV
+					<input id="csv-upload" type="file" onChange={handleLoadCSV} />
+				</label>
+				{!!entries.length && <button onClick={clearEntries}>Clear</button>}
+			</span>
 		</div>
 	);
 };
@@ -136,24 +138,30 @@ const Controls = () => {
 		<div className="controls">
 			<TrackTime />
 			<button className="playback-button" onClick={handleSeekDir(-5000)}>
-				<Icon n="fast_rewind" /> 5
+				<Icon name="fast_rewind" /> 5
 			</button>
 			<button className="playback-button" onClick={() => player.togglePlay()}>
-				{paused ? <Icon n="play_arrow" /> : <Icon n="pause" />}
+				{paused ? <Icon name="play_arrow" /> : <Icon name="pause" />}
 			</button>
 			<button className="playback-button" onClick={handleSeekDir(5000)}>
-				5 <Icon n="fast_forward" />
+				5 <Icon name="fast_forward" />
 			</button>
 			<button className="playback-button add-entry" onClick={handleAddEntry}>
-				<Icon style={{ position: "relative", top: "1px" }} n="playlist_add" />
+				<Icon
+					style={{ position: "relative", top: "1px" }}
+					name="playlist_add"
+				/>
 			</button>
 		</div>
 	);
 };
 
-const Icon = ({ n, ...props }: { n: string } & HTMLProps<HTMLSpanElement>) => (
+const Icon = ({
+	name,
+	...props
+}: { name: string } & HTMLProps<HTMLSpanElement>) => (
 	<span className="material-symbols-outlined" {...props}>
-		{n}
+		{name}
 	</span>
 );
 
@@ -198,7 +206,7 @@ const Entry = ({ index }: { index: number }) => {
 			</span>
 			<input className="note" value={note} onChange={handleNoteChange} />
 			<button onClick={() => removeEntry(index)}>
-				<Icon n="delete" />
+				<Icon name="delete" />
 			</button>
 		</div>
 	);

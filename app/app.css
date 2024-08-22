@@ -42,14 +42,18 @@ button {
 .top-bar {
   display: flex;
   align-items: center;
-  gap: 2rem;
   background-color: var(--controls-bg-color);
   padding: 0.5em;
   border-bottom: solid black 1px;
 }
 .track-info {
   font-size: 18px;
+  margin-right: 2rem;
   /* font-weight: bold; */
+}
+.actions {
+  display: flex;
+  gap: 0.5rem;
 }
 #csv-upload {
   display: none;
