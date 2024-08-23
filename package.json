@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "build": "remix vite:build",
     "dev": "remix vite:dev --port 5000",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "remix-serve build/server/index.js"
   },
   "type": "module",
   "keywords": [],
