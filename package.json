@@ -6,7 +6,7 @@
   "scripts": {
     "build": "remix vite:build",
     "dev": "remix vite:dev --port 5000",
-    "start": "remix-serve build/server/index.js"
+    "start": "dotenv -e .env remix-serve build/server/index.js"
   },
   "type": "module",
   "keywords": [],
@@ -28,6 +28,7 @@
     "@types/react": "^18.3.4",
     "@types/react-dom": "^18.3.0",
     "@types/spotify-web-playback-sdk": "^0.1.19",
+    "dotenv-cli": "^7.4.2",
     "typescript": "^5.5.4",
     "vite": "^5.4.2"
   }
