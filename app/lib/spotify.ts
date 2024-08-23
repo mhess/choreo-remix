@@ -79,11 +79,13 @@ export enum PlayerStatus {
 	INIT_ERROR = "initializationError",
 	AUTH_ERROR = "authError",
 	ACCT_ERROR = "accountError",
+	PLAYBACK_ERROR = "playbackError",
 	READY = "ready",
 }
 
-const playerEvents = [
+const playerEvents: Parameters<Spotify.Player["removeListener"]>[0][] = [
 	"player_state_changed",
+	"playback_error",
 	"initialization_error",
 	"authentication_error",
 	"account_error",
@@ -126,6 +128,10 @@ export const useSpotifyPlayer = (authToken: SpotifyAuthToken) => {
 			}
 
 			p.addListener("player_state_changed", setStatusFromState);
+			p.addListener("playback_error", (obj) => {
+				console.log(`playback error ${JSON.stringify(obj)}`);
+				setStatus(PlayerStatus.PLAYBACK_ERROR);
+			});
 			p.addListener("initialization_error", () =>
 				setStatus(PlayerStatus.INIT_ERROR),
 			);

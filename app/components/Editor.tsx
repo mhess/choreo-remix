@@ -29,8 +29,12 @@ const messageByStatus: Record<
 > = {
 	[PlayerStatus.READY]: () => "shouldn't happen!",
 	[PlayerStatus.LOADING]: () => "Connecting to Spotify",
+
 	[PlayerStatus.NOT_CONNECTED]: () =>
 		`Please connect to the "Choreo" device on your Spotify player`,
+	[PlayerStatus.PLAYBACK_ERROR]: (reset) => (
+		<TryAgain message="There was an error with playback." reset={reset} />
+	),
 	[PlayerStatus.INIT_ERROR]: (reset: () => void) => (
 		<TryAgain message="Initialization Failed." reset={reset} />
 	),

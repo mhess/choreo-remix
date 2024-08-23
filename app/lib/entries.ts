@@ -21,7 +21,7 @@ const debounced =
 	(fn: Function) =>
 	(...args) => {
 		clearTimeout(timeoutId);
-		timeoutId = setTimeout(() => fn(...args), 2000);
+		timeoutId = window.setTimeout(() => fn(...args), 2000);
 	};
 let entriesWithHighlight: EntryWithHighlight[] = [];
 const entriesSet: Set<number> = new Set<number>();
@@ -49,7 +49,6 @@ const loadFromCSVWithoutRender = async (file: File) => {
 	const result = Papa.parse(csv, { header: true, dynamicTyping: true });
 	if (result.errors.length) return alert(`CSV had errors ${result.errors}`);
 	loadEntries(result.data as Entry[]);
-	console.log(`after load ${entriesWithHighlight.length}`);
 	storeEntriesLocally();
 };
 
@@ -108,10 +107,7 @@ const debouncedStoreEntriesLocally = debounced(storeEntriesLocally);
 
 export const useEntries = (player: WrappedPlayer) => {
 	const scrollerRef = useRef<HTMLElement>();
-	const [renderState, render] = useRender(true);
-	console.log(
-		`useEntries rendered ${entriesWithHighlight.length}, ${renderState}`,
-	);
+	const [renderState, render] = useRender();
 
 	useEffect(() => {
 		loadEntriesFromLocalStorage();
@@ -159,9 +155,7 @@ export const useEntries = (player: WrappedPlayer) => {
 	};
 
 	const loadFromCSV = async (file: File) => {
-		console.log("here");
 		await loadFromCSVWithoutRender(file);
-		console.log(`calling render ${entriesWithHighlight.length}`);
 		render();
 	};
 
@@ -231,15 +225,11 @@ export const useEntry = (index: number) => {
 	return { ...entry, setMeter, setTimeMs, setNote, isHighlighted };
 };
 
-const useRender = (flag = false): [number, (input?: number) => void] => {
+const useRender = (): [number, (input?: number) => void] => {
 	const [state, setState] = useState(0);
-	flag && console.log(`render state ${state}`);
 
 	useEffect(() => {
-		flag && console.log("render mounted");
-		return () => {
-			flag && console.log("render unmounted");
-		};
+		return () => {};
 	}, []);
 
 	return [state, (input?: number) => setState(input ? input : (p) => p + 1)];
