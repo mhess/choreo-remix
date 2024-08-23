@@ -4,7 +4,7 @@ import { useLocation } from "@remix-run/react";
 
 declare global {
 	interface Window {
-		player: WrappedPlayer;
+		player?: WrappedPlayer;
 	}
 }
 
@@ -28,9 +28,12 @@ export const useSpotifyAuth = () => {
 			setToken(tokenInParams);
 			setStatus(AuthStatus.GOOD);
 			localStorage.setItem("authToken", tokenInParams);
+
+			// Even if the search string manimpulation here is removed, the app still
+			// mounts/unmounts/mounts the root component ¯\_(ツ)_/¯
 			const newUrl = new URL(window.location.href);
 			newUrl.searchParams.delete("token");
-			window.history.pushState(null, "", newUrl);
+			window.history.replaceState(null, "", newUrl);
 			return;
 		}
 
@@ -141,7 +144,7 @@ export const useSpotifyPlayer = (authToken: SpotifyAuthToken) => {
 			p.addListener("account_error", () => setStatus(PlayerStatus.ACCT_ERROR));
 			p.addListener("ready", () => setStatus(PlayerStatus.NOT_CONNECTED));
 
-			const wrappedPlayer = createWrappedPlayer(p);
+			const wrappedPlayer = createWrappedPlayer(p, authToken);
 			window.player = wrappedPlayer;
 			setPlayer(wrappedPlayer);
 
@@ -149,6 +152,7 @@ export const useSpotifyPlayer = (authToken: SpotifyAuthToken) => {
 				p.disconnect();
 				for (const event in playerEvents)
 					p.removeListener(event as Parameters<typeof p.removeListener>[0]);
+				window.player = undefined;
 			};
 		});
 	}, [token]);
@@ -165,6 +169,7 @@ const onTickCallbacks: PlayerStateCallback[] = [];
 let intervalId: number;
 
 export type WrappedPlayer = Spotify.Player & {
+	authToken: SpotifyAuthToken;
 	seekTo: (ms: number) => void;
 	addOnStateChange: CallbackHandler;
 	removeOnStateChange: CallbackHandler;
@@ -172,7 +177,10 @@ export type WrappedPlayer = Spotify.Player & {
 	removeOnTick: CallbackHandler;
 };
 
-const createWrappedPlayer = (player: Spotify.Player): WrappedPlayer => {
+const createWrappedPlayer = (
+	player: Spotify.Player,
+	authToken: SpotifyAuthToken,
+): WrappedPlayer => {
 	const tick = () =>
 		player.getCurrentState().then((state) => {
 			if (state) for (const cb of onTickCallbacks) cb(state);
@@ -189,7 +197,8 @@ const createWrappedPlayer = (player: Spotify.Player): WrappedPlayer => {
 	};
 	player.addListener("player_state_changed", mainCallback);
 
-	const additionalMethods = {
+	const additionalProperties = {
+		authToken,
 		seekTo(ms: number) {
 			player.seek(ms).then(tick);
 		},
@@ -212,7 +221,7 @@ const createWrappedPlayer = (player: Spotify.Player): WrappedPlayer => {
 		},
 	};
 
-	return Object.assign(player, additionalMethods);
+	return Object.assign(player, additionalProperties);
 };
 
 export const PlayerContext = createContext({} as WrappedPlayer);

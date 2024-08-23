@@ -47,6 +47,7 @@ button {
 .top-bar {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   background-color: var(--controls-bg-color);
   padding: 0.5em;
   border-bottom: solid black 1px;
@@ -99,17 +100,24 @@ button {
 .entry {
   display: flex;
   align-items: center;
-  padding: 0.5rem;
-  gap: 0.5em;
+  padding: 0 0.5rem;
 }
 .entry:nth-of-type(odd) {
   background-color: lightgray;
 }
 .entry .meter {
   width: 4rem;
+  text-align: right;;
+}
+.entry .timestamp {
+  cursor: pointer;
+  padding: 0.625em;
+  width: 5.5rem;
+  text-align: right;
 }
 .entry .note {
   flex: 1;
+  margin-right: 0.75em;
 }
 
 .controls {

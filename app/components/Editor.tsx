@@ -144,6 +144,7 @@ const TopBar = () => {
 					<input id="csv-upload" type="file" onChange={handleLoadCSV} />
 				</label>
 				{!!entries.length && <button onClick={clearEntries}>Clear</button>}
+				<button onClick={() => player.authToken.reset()}>Log Out</button>
 			</span>
 		</div>
 	);
