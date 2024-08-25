@@ -41,7 +41,7 @@ const NotAuthorized = ({ status }: { status: AuthStatus }) => (
 		{status === AuthStatus.LOADING ? (
 			"Loading..."
 		) : (
-			<Link to="auth/login">Please Log in!</Link>
+			<Link to="auth/login">Please log in with Spotify!</Link>
 		)}
 	</div>
 );

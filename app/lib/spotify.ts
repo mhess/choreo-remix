@@ -24,6 +24,8 @@ export const useSpotifyAuth = () => {
 
 	useEffect(() => {
 		if (token) return;
+
+		// Use token from url search before LS bc LS token might be stale
 		if (tokenInParams) {
 			setToken(tokenInParams);
 			setStatus(AuthStatus.GOOD);

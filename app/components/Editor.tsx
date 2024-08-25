@@ -12,6 +12,7 @@ import type {
 	SpotifyAuthToken,
 } from "../lib/spotify";
 import { EntriesContext, useEntries, useEntry } from "../lib/entries";
+import { Link } from "@remix-run/react";
 
 export default ({ token }: { token: SpotifyAuthToken }) => {
 	const { player, status } = useSpotifyPlayer(token);
@@ -19,54 +20,34 @@ export default ({ token }: { token: SpotifyAuthToken }) => {
 	return status === PlayerStatus.READY ? (
 		<Editor player={player as WrappedPlayer} />
 	) : (
-		<StatusMessage status={status} reset={token.reset} />
+		<StatusMessage status={status} />
 	);
 };
 
-const messageByStatus: Record<
-	PlayerStatus,
-	(reset: () => void) => React.ReactNode
-> = {
-	[PlayerStatus.READY]: () => "shouldn't happen!",
-	[PlayerStatus.LOADING]: () => "Connecting to Spotify",
-
-	[PlayerStatus.NOT_CONNECTED]: () =>
-		`Please connect to the "Choreo" device on your Spotify player`,
-	[PlayerStatus.PLAYBACK_ERROR]: (reset) => (
-		<TryAgain message="There was an error with playback." reset={reset} />
-	),
-	[PlayerStatus.INIT_ERROR]: (reset: () => void) => (
-		<TryAgain message="Initialization Failed." reset={reset} />
-	),
-	[PlayerStatus.ACCT_ERROR]: (reset: () => void) => (
-		<TryAgain
-			message="There was a problem with your account. Spotify requires a premium account."
-			reset={reset}
-		/>
-	),
-	[PlayerStatus.AUTH_ERROR]: (reset: () => void) => (
-		<TryAgain message="Could not authorize access." reset={reset} />
-	),
-};
-
-const TryAgain = ({
-	message,
-	reset,
-}: { message: string; reset: () => void }) => (
+const TryAgain = ({ message }: { message: string }) => (
 	<p>
-		{message} Would you like to try to{" "}
-		<span className="log-in" onClick={reset}>
-			log in
-		</span>{" "}
+		{message} Would you like to try to <Link to="auth/login">log in</Link>{" "}
 		again?
 	</p>
 );
 
-const StatusMessage = ({
-	status,
-	reset,
-}: { status: PlayerStatus; reset: () => void }) => {
-	return <div className="status-message">{messageByStatus[status](reset)}</div>;
+const messageByStatus: Record<PlayerStatus, React.ReactNode> = {
+	[PlayerStatus.READY]: "shouldn't happen!",
+	[PlayerStatus.LOADING]: "Connecting to Spotify",
+
+	[PlayerStatus.NOT_CONNECTED]: `Please connect to the "Choreo" device on your Spotify player`,
+	[PlayerStatus.PLAYBACK_ERROR]: (
+		<TryAgain message="There was an error with playback." />
+	),
+	[PlayerStatus.INIT_ERROR]: <TryAgain message="Initialization Failed." />,
+	[PlayerStatus.ACCT_ERROR]: (
+		<TryAgain message="There was a problem with your account. Spotify requires a premium account." />
+	),
+	[PlayerStatus.AUTH_ERROR]: <TryAgain message="Could not authorize access." />,
+};
+
+const StatusMessage = ({ status }: { status: PlayerStatus }) => {
+	return <div className="status-message">{messageByStatus[status]}</div>;
 };
 
 const Editor = ({ player }: { player: WrappedPlayer }) => {
