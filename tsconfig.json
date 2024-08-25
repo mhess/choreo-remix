@@ -8,8 +8,8 @@
     "**/.client/**/*.tsx"
   ],
   "compilerOptions": {
+    "typeRoots": ["./node_modules/@types", "./types"],
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
-
     "isolatedModules": true,
     "esModuleInterop": true,
     "jsx": "react-jsx",
