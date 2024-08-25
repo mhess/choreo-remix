@@ -58,30 +58,31 @@ let highlightedIndex: number;
 
 const getHighlightCurrentEntry =
 	(scrollRef: React.MutableRefObject<HTMLElement | undefined>) =>
-	({ position }: Spotify.PlaybackState) => {
+	({ position }: Spotify.PlaybackState, ms?: number) => {
 		if (!entriesWithHighlight.length) return;
+		const timeMs = ms !== undefined ? ms : position;
 
 		let newIndex = undefined;
 		const currentEntry = entriesWithHighlight[highlightedIndex]?.entry;
 
-		if (currentEntry && position >= currentEntry.timeMs) {
+		if (currentEntry && timeMs >= currentEntry.timeMs) {
 			const nextEntry = entriesWithHighlight[highlightedIndex + 1]?.entry;
 			// Most common case: Still in the same entry
 			if (nextEntry) {
-				if (position < nextEntry.timeMs) newIndex = highlightedIndex;
+				if (timeMs < nextEntry.timeMs) newIndex = highlightedIndex;
 				else {
 					const nextNextEntry =
 						entriesWithHighlight[highlightedIndex + 2]?.entry;
 					const isNextEntry =
 						nextNextEntry &&
-						position >= nextEntry.timeMs &&
-						position < nextNextEntry.timeMs;
+						timeMs >= nextEntry.timeMs &&
+						timeMs < nextNextEntry.timeMs;
 					if (isNextEntry) newIndex = highlightedIndex + 1;
 				}
 			}
 		}
 
-		if (newIndex === undefined) newIndex = findEntryIndex(position) - 1;
+		if (newIndex === undefined) newIndex = findEntryIndex(timeMs) - 1;
 
 		if (newIndex !== highlightedIndex) {
 			entriesWithHighlight[highlightedIndex]?.highlighter?.(false);

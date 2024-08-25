@@ -198,7 +198,8 @@ const TrackTime = () => {
 	const player = usePlayer();
 
 	useEffect(() => {
-		const cb: PlayerStateCallback = ({ position }) => setTimeMs(position);
+		const cb: PlayerStateCallback = ({ position }, ms?: number) =>
+			setTimeMs(ms !== undefined ? ms : position);
 		player.addOnTick(cb);
 		return () => player.removeOnTick(cb);
 	}, []);

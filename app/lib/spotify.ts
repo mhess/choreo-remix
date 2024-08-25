@@ -178,9 +178,9 @@ export type WrappedPlayer = Spotify.Player & {
 };
 
 const createWrappedPlayer = (player: Spotify.Player): WrappedPlayer => {
-	const tick = () => {
+	const tick = (timeMs?: number) => {
 		player.getCurrentState().then((state) => {
-			if (state) for (const cb of onTickCallbacks) cb(state);
+			if (state) for (const cb of onTickCallbacks) cb(state, timeMs);
 		});
 	};
 
@@ -201,8 +201,8 @@ const createWrappedPlayer = (player: Spotify.Player): WrappedPlayer => {
 
 	const additionalProperties = {
 		authToken: { value: undefined, reset: () => {} },
-		seekTo(ms: number) {
-			player.seek(ms).then(tick);
+		seekTo(timeMs: number) {
+			player.seek(timeMs).then(() => tick(timeMs));
 		},
 		addOnStateChange(cb: PlayerStateCallback) {
 			player.getCurrentState().then((state) => state && cb(state));
