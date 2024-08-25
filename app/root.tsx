@@ -1,9 +1,23 @@
 import { Links, Link, Meta, Outlet, Scripts } from "@remix-run/react";
-import type { LinksFunction } from "@remix-run/node";
+import type { LinksFunction, MetaFunction } from "@remix-run/node";
 
 import appStylesHref from "./app.css?url";
 import { useSpotifyAuth, AuthStatus } from "./lib/spotify";
 import Editor from "./components/Editor";
+
+export const meta: MetaFunction = () => {
+	return [
+		{ title: "Choreo" },
+		{
+			property: "og:title",
+			content: "Very cool app",
+		},
+		{
+			name: "description",
+			content: "Easily compose choreographies to music on Spotify",
+		},
+	];
+};
 
 export const links: LinksFunction = () => [
 	{ rel: "stylesheet", href: appStylesHref },
