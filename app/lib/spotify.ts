@@ -58,10 +58,15 @@ export const useSpotifyAuth = () => {
 
 export type SpotifyAuthToken = ReturnType<typeof useSpotifyAuth>["token"];
 
+const SPOTIFY_SCRIPT_ID = "spotify-sdk-script";
+
 const getSpotifyPlayer = async (token: string): Promise<WrappedPlayer> => {
-	const $script = document.createElement("script");
-	$script.src = "https://sdk.scdn.co/spotify-player.js";
-	document.body.appendChild($script);
+	if (!document.getElementById(SPOTIFY_SCRIPT_ID)) {
+		const $script = document.createElement("script");
+		$script.id = SPOTIFY_SCRIPT_ID;
+		$script.src = "https://sdk.scdn.co/spotify-player.js";
+		document.body.appendChild($script);
+	}
 
 	return new Promise((resolve) => {
 		window.onSpotifyWebPlaybackSDKReady = () => {
@@ -112,7 +117,11 @@ export const useSpotifyPlayer = (authToken: SpotifyAuthToken) => {
 
 	useEffect(() => {
 		let promise: Promise<WrappedPlayer>;
-		if (
+		// Use the player from the Window if it has a correct token
+		if (window.player && window.player.authToken.value === token) {
+			promise = Promise.resolve(window.player);
+			tokenAndPromise = { token, promise };
+		} else if (
 			!tokenAndPromise ||
 			token !== tokenAndPromise.token ||
 			!tokenAndPromise.promise
@@ -128,6 +137,7 @@ export const useSpotifyPlayer = (authToken: SpotifyAuthToken) => {
 				setStatus(PlayerStatus.INIT_ERROR);
 				return;
 			}
+			wp.getCurrentState().then(setStatusFromState);
 
 			wp.addListener("player_state_changed", setStatusFromState);
 			wp.addListener("playback_error", (obj) => {

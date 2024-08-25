@@ -18,7 +18,7 @@ import { Link } from "@remix-run/react";
 export default ({ token }: { token: SpotifyAuthToken }) => {
 	const { player, status } = useSpotifyPlayer(token);
 
-	return status === PlayerStatus.READY ? (
+	return status === PlayerStatus.READY && player ? (
 		<Editor player={player as WrappedPlayer} />
 	) : (
 		<StatusMessage status={status} />
@@ -54,7 +54,7 @@ const StatusMessage = ({ status }: { status: PlayerStatus }) => {
 const Editor = ({ player }: { player: WrappedPlayer }) => {
 	useEffect(
 		() => () => {
-			player.pause();
+			player?.pause();
 		},
 		[],
 	);
