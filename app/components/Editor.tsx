@@ -41,7 +41,7 @@ const messageByStatus: Record<PlayerStatus, React.ReactNode> = {
 	),
 	[PlayerStatus.INIT_ERROR]: <TryAgain message="Initialization Failed." />,
 	[PlayerStatus.ACCT_ERROR]: (
-		<TryAgain message="There was a problem with your account. Spotify requires a premium account." />
+		<TryAgain message="There was a problem with your account. Spotify requires a premium account for application access." />
 	),
 	[PlayerStatus.AUTH_ERROR]: <TryAgain message="Could not authorize access." />,
 };
