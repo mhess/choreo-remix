@@ -125,6 +125,7 @@ export const useSpotifyPlayer = (authToken: SpotifyAuthToken) => {
 		}
 
 		promise.then(async (p) => {
+			window.player?.disconnect();
 			if (!(await p.connect())) {
 				setStatus(PlayerStatus.INIT_ERROR);
 				return;
@@ -147,13 +148,6 @@ export const useSpotifyPlayer = (authToken: SpotifyAuthToken) => {
 			const wrappedPlayer = createWrappedPlayer(p, authToken);
 			window.player = wrappedPlayer;
 			setPlayer(wrappedPlayer);
-
-			return () => {
-				p.disconnect();
-				for (const event in playerEvents)
-					p.removeListener(event as Parameters<typeof p.removeListener>[0]);
-				window.player = undefined;
-			};
 		});
 	}, [token]);
 
