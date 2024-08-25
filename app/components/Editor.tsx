@@ -90,10 +90,16 @@ const TopBar = () => {
 		return () => player.removeOnStateChange(cb);
 	}, []);
 
-	let info = "";
+	let info: React.ReactNode;
 	if (track) {
 		const artists = track.artists.map(({ name }) => name).join(", ");
-		info = `${artists}: ${track.name}`;
+		info = (
+			<>
+				<span className="artist">{artists}</span>
+				{": "}
+				<span className="track">{track.name}</span>
+			</>
+		);
 	}
 
 	const handleSaveCSV = () => {

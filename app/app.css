@@ -55,7 +55,9 @@ button {
 .track-info {
   font-size: 18px;
   margin-right: 2rem;
-  /* font-weight: bold; */
+}
+.track-info .track {
+  font-weight: bold;
 }
 .actions {
   display: flex;
