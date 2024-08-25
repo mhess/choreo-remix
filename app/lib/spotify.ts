@@ -1,5 +1,4 @@
 import { useEffect, useState, useContext, createContext } from "react";
-import { getFakePlayer } from "./fakeSpotify";
 import { useLocation } from "@remix-run/react";
 
 declare global {
@@ -119,10 +118,7 @@ export const useSpotifyPlayer = (authToken: SpotifyAuthToken) => {
 		) {
 			promise = tokenAndPromise.promise;
 		} else {
-			promise =
-				token === "fake"
-					? Promise.resolve(getFakePlayer())
-					: getSpotifyPlayer(token);
+			promise = getSpotifyPlayer(token);
 			tokenAndPromise = { token, promise };
 		}
 
