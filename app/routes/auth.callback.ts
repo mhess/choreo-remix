@@ -1,5 +1,5 @@
-import { json, redirect } from "@remix-run/node";
 import type { LoaderFunctionArgs } from "@remix-run/node";
+import { json, redirect } from "@remix-run/node";
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	const url = new URL(request.url);
@@ -12,7 +12,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 	const data = {
 		code,
-		redirect_uri: `http://localhost:${process.env.PORT}/auth/callback`,
+		redirect_uri: `${new URL(request.url).host}/auth/callback`,
 		grant_type: "authorization_code",
 	};
 
