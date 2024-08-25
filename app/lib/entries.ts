@@ -227,9 +227,10 @@ const guessMeterForIndex = (index: number, timeMs: number) => {
 	const priorTwo = entriesWithHighlight.slice(index - 2, index);
 	const priorCount = priorTwo.length;
 	const hasTwo = priorTwo.length === 2;
-	if (priorCount && priorTwo[0].entry.timeMs) {
+	if (priorCount) {
 		const first = (hasTwo ? priorTwo[0] : null)?.entry;
 		const second = priorTwo[hasTwo ? 1 : 0].entry;
+		if (!hasTwo && !second.timeMs) return second.meter;
 		const prevTimeDeltaMs = second.timeMs - (first?.timeMs || 0);
 		const prevMeterDeltaMs = second.meter - (first?.meter || 0);
 		const meterLengthMs = prevTimeDeltaMs / prevMeterDeltaMs;
