@@ -74,9 +74,6 @@ button {
   appearance: auto;
   text-rendering: auto;
   color: buttontext;
-  letter-spacing: normal;
-  word-spacing: normal;
-  line-height: normal;
   text-indent: 0px;
   display: inline-block;
   text-align: center;

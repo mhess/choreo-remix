@@ -175,8 +175,6 @@ export type OnTickCallback = (ms: number) => void;
 const playerStateCallbacks: PlayerStateCallback[] = [];
 const onTickCallbacks: OnTickCallback[] = [];
 
-let tickIntervalId: number | undefined;
-
 export type WrappedPlayer = Spotify.Player & {
 	authToken: SpotifyAuthToken;
 	seekTo: (ms: number) => void;
@@ -192,6 +190,8 @@ const createWrappedPlayer = (player: Spotify.Player): WrappedPlayer => {
 			ms !== undefined ? ms : (await player.getCurrentState())?.position;
 		if (timeMs !== undefined) for (const cb of onTickCallbacks) cb(timeMs);
 	};
+
+	let tickIntervalId: number | undefined;
 
 	const stateChangeCallback = (state: Spotify.PlaybackState | null) => {
 		if (!state) return;
@@ -214,7 +214,7 @@ const createWrappedPlayer = (player: Spotify.Player): WrappedPlayer => {
 			player.seek(timeMs).then(() => tick(timeMs));
 		},
 		addOnStateChange(cb: PlayerStateCallback) {
-			player?.getCurrentState().then((state) => state && cb(state));
+			player.getCurrentState().then((state) => state && cb(state));
 			playerStateCallbacks.push(cb);
 		},
 		removeOnStateChange(callback: PlayerStateCallback) {
@@ -223,7 +223,7 @@ const createWrappedPlayer = (player: Spotify.Player): WrappedPlayer => {
 			if (index > -1) playerStateCallbacks.splice(index, 1);
 		},
 		addOnTick(cb: OnTickCallback) {
-			player?.getCurrentState().then((state) => state && cb(state.position));
+			player.getCurrentState().then((state) => state && cb(state.position));
 			onTickCallbacks.push(cb);
 		},
 		removeOnTick(callback: OnTickCallback) {
