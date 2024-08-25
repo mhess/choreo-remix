@@ -8,6 +8,11 @@ type EntryWithHighlight = {
 	highlighter?: (flag: boolean) => void;
 };
 
+const loadEntries = (entries?: Entry[]) => {
+	const nonEmptyEntries = entries || [{ meter: 0, timeMs: 0, note: "Start" }];
+	entriesWithHighlight = nonEmptyEntries.map((entry: Entry) => ({ entry }));
+};
+
 let timeoutId = 0;
 const debounced =
 	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
@@ -17,7 +22,9 @@ const debounced =
 			clearTimeout(timeoutId);
 			timeoutId = window.setTimeout(() => fn(...args), 2000);
 		};
-let entriesWithHighlight: EntryWithHighlight[] = [];
+let entriesWithHighlight: EntryWithHighlight[];
+loadEntries();
+
 const entriesSet: Set<number> = new Set<number>();
 const getEntries = () => entriesWithHighlight.map(({ entry }) => entry);
 
@@ -86,15 +93,11 @@ const getHighlightCurrentEntry =
 		setEntriesScrollPosition(scrollRef, newIndex);
 	};
 
-const loadEntries = (entries: Entry[]) => {
-	entriesWithHighlight = entries.map((entry: Entry) => ({ entry }));
-};
-
 const STORAGE_KEY = "choreo-entries";
 const loadEntriesFromLocalStorage = () => {
 	const data = localStorage.getItem(STORAGE_KEY);
 	const stored = data ? JSON.parse(data) : null;
-	if (stored) loadEntries(stored);
+	if (stored?.length) loadEntries(stored);
 };
 const storeEntriesLocally = () => {
 	localStorage.setItem(STORAGE_KEY, JSON.stringify(getEntries()));
@@ -156,7 +159,7 @@ export const useEntries = (player: WrappedPlayer) => {
 			saveToCSV,
 			loadFromCSV,
 			clear: () => {
-				loadEntries([]);
+				loadEntries();
 				storeEntriesLocally();
 				render();
 			},
