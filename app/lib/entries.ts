@@ -18,11 +18,13 @@ type EntryWithHighlight = {
 
 let timeoutId = 0;
 const debounced =
-	(fn: Function) =>
-	(...args) => {
-		clearTimeout(timeoutId);
-		timeoutId = window.setTimeout(() => fn(...args), 2000);
-	};
+	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+		(fn: (...rest: any[]) => any) =>
+		// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+		(...args: any[]) => {
+			clearTimeout(timeoutId);
+			timeoutId = window.setTimeout(() => fn(...args), 2000);
+		};
 let entriesWithHighlight: EntryWithHighlight[] = [];
 const entriesSet: Set<number> = new Set<number>();
 const getEntries = () => entriesWithHighlight.map(({ entry }) => entry);
