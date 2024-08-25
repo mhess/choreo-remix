@@ -3,6 +3,7 @@ import { json, redirect } from "@remix-run/node";
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	const url = new URL(request.url);
+	const protocolAndHost = `${url.protocol}//${url.host}`;
 	const code = url.searchParams.get("code");
 
 	if (!code) throw json("No code recieved", { status: 404 });
@@ -12,7 +13,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 	const data = {
 		code,
-		redirect_uri: `${new URL(request.url).host}/auth/callback`,
+		redirect_uri: `${protocolAndHost}/auth/callback`,
 		grant_type: "authorization_code",
 	};
 
