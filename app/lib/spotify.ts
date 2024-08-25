@@ -180,7 +180,7 @@ const createWrappedPlayer = (player: Spotify.Player): WrappedPlayer => {
 	const tick = async (ms?: number) => {
 		const timeMs =
 			ms !== undefined ? ms : (await player.getCurrentState())?.position;
-		if (timeMs) for (const cb of onTickCallbacks) cb(timeMs);
+		if (timeMs !== undefined) for (const cb of onTickCallbacks) cb(timeMs);
 	};
 
 	const mainCallback = (state: Spotify.PlaybackState | null) => {
