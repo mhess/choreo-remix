@@ -51,6 +51,12 @@ const StatusMessage = ({ status }: { status: PlayerStatus }) => {
 };
 
 const Editor = ({ player }: { player: WrappedPlayer }) => {
+	useEffect(
+		() => () => {
+			player.pause();
+		},
+		[],
+	);
 	const entries = useEntries(player);
 
 	return (
