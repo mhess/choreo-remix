@@ -59,7 +59,6 @@ export const useSpotifyAuth = () => {
 export type SpotifyAuthToken = ReturnType<typeof useSpotifyAuth>["token"];
 
 const getSpotifyPlayer = async (token: string): Promise<Spotify.Player> => {
-	console.log(`getSpotifyPlayer ${token}`);
 	const $script = document.createElement("script");
 	$script.src = "https://sdk.scdn.co/spotify-player.js";
 	document.body.appendChild($script);

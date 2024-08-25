@@ -122,11 +122,7 @@ const TopBar = () => {
 			<span className="track-info">{info}</span>
 			<span className="actions">
 				{track && <button onClick={handleSaveCSV}>Save as CSV</button>}
-				<label
-					htmlFor="csv-upload"
-					className="load-button"
-					onClick={(e) => console.log(e.target)}
-				>
+				<label htmlFor="csv-upload" className="load-button">
 					Load from CSV
 					<input id="csv-upload" type="file" onChange={handleLoadCSV} />
 				</label>

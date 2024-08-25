@@ -204,21 +204,18 @@ export const useEntry = (index: number) => {
 	}, [entryWithHighlight]);
 
 	const setMeter = (meter: number) => {
-		console.log("meter");
 		entry.meter = meter;
 		debouncedStoreEntriesLocally();
 		render();
 	};
 
 	const setTimeMs = (timeMs: number) => {
-		console.log("time");
 		entry.timeMs = timeMs;
 		debouncedStoreEntriesLocally();
 		render();
 	};
 
 	const setNote = (note: string) => {
-		console.log("note");
 		entry.note = note;
 		debouncedStoreEntriesLocally();
 		render();
