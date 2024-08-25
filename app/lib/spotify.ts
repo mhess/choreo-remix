@@ -160,28 +160,27 @@ export const useSpotifyPlayer = (authToken: SpotifyAuthToken) => {
 };
 
 export type PlayerStateCallback = (state: Spotify.PlaybackState) => void;
-type CallbackHandler = (cb: PlayerStateCallback) => void;
+export type OnTickCallback = (ms: number) => void;
 
 const playerStateCallbacks: PlayerStateCallback[] = [];
-const onTickCallbacks: ((ps: Spotify.PlaybackState, ms?: number) => void)[] =
-	[];
+const onTickCallbacks: OnTickCallback[] = [];
 
 let tickIntervalId: number | undefined;
 
 export type WrappedPlayer = Spotify.Player & {
 	authToken: SpotifyAuthToken;
 	seekTo: (ms: number) => void;
-	addOnStateChange: CallbackHandler;
-	removeOnStateChange: CallbackHandler;
-	addOnTick: CallbackHandler;
-	removeOnTick: CallbackHandler;
+	addOnStateChange: (cb: PlayerStateCallback) => void;
+	removeOnStateChange: (cb: PlayerStateCallback) => void;
+	addOnTick: (cb: OnTickCallback) => void;
+	removeOnTick: (cb: OnTickCallback) => void;
 };
 
 const createWrappedPlayer = (player: Spotify.Player): WrappedPlayer => {
-	const tick = (timeMs?: number) => {
-		player.getCurrentState().then((state) => {
-			if (state) for (const cb of onTickCallbacks) cb(state, timeMs);
-		});
+	const tick = async (ms?: number) => {
+		const timeMs =
+			ms !== undefined ? ms : (await player.getCurrentState())?.position;
+		if (timeMs) for (const cb of onTickCallbacks) cb(timeMs);
 	};
 
 	const mainCallback = (state: Spotify.PlaybackState | null) => {
@@ -213,10 +212,10 @@ const createWrappedPlayer = (player: Spotify.Player): WrappedPlayer => {
 			const index = playerStateCallbacks.findIndex((cb) => cb === callback);
 			if (index > -1) playerStateCallbacks.splice(index, 1);
 		},
-		addOnTick(cb: PlayerStateCallback) {
+		addOnTick(cb: OnTickCallback) {
 			onTickCallbacks.push(cb);
 		},
-		removeOnTick(callback: PlayerStateCallback) {
+		removeOnTick(callback: OnTickCallback) {
 			if (!onTickCallbacks.length) return;
 			const index = onTickCallbacks.findIndex((cb) => cb === callback);
 			if (index > -1) onTickCallbacks.splice(index, 1);

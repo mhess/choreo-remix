@@ -58,9 +58,8 @@ let highlightedIndex: number;
 
 const getHighlightCurrentEntry =
 	(scrollRef: React.MutableRefObject<HTMLElement | undefined>) =>
-	({ position }: Spotify.PlaybackState, ms?: number) => {
+	(timeMs: number) => {
 		if (!entriesWithHighlight.length) return;
-		const timeMs = ms !== undefined ? ms : position;
 
 		let newIndex = undefined;
 		const currentEntry = entriesWithHighlight[highlightedIndex]?.entry;

@@ -10,6 +10,7 @@ import type {
 	WrappedPlayer,
 	PlayerStateCallback,
 	SpotifyAuthToken,
+	OnTickCallback,
 } from "../lib/spotify";
 import { EntriesContext, useEntries, useEntry } from "../lib/entries";
 import { Link } from "@remix-run/react";
@@ -198,8 +199,7 @@ const TrackTime = () => {
 	const player = usePlayer();
 
 	useEffect(() => {
-		const cb: PlayerStateCallback = ({ position }, ms?: number) =>
-			setTimeMs(ms !== undefined ? ms : position);
+		const cb: OnTickCallback = (ms) => setTimeMs(ms);
 		player.addOnTick(cb);
 		return () => player.removeOnTick(cb);
 	}, []);
