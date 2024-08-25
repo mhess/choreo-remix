@@ -1,12 +1,4 @@
-import {
-	useState,
-	useCallback,
-	useEffect,
-	useRef,
-	useMemo,
-	createContext,
-	useContext,
-} from "react";
+import { useState, useEffect, useRef, useMemo, createContext } from "react";
 import type { WrappedPlayer } from "./spotify";
 import Papa from "papaparse";
 
@@ -54,41 +46,44 @@ const loadFromCSVWithoutRender = async (file: File) => {
 	storeEntriesLocally();
 };
 
-// This could become wrong if an entry get inserted before this index
+// This could become wrong if an entry gets inserted before this index
 let highlightedIndex: number;
 
-const getHighlightEntry =
+const getHighlightCurrentEntry =
 	(scrollRef: React.MutableRefObject<HTMLElement | undefined>) =>
 	({ position }: Spotify.PlaybackState) => {
 		if (!entriesWithHighlight.length) return;
-		// Optimize for most common case: The next entry gets highlighted.
-		const nextEntry = entriesWithHighlight[highlightedIndex + 1];
-		const nextNextEntry = entriesWithHighlight[highlightedIndex + 2];
-		const isNextEntry =
-			nextEntry &&
-			nextNextEntry &&
-			nextEntry.entry.timeMs < position &&
-			position < nextNextEntry.entry.timeMs;
 
-		const newIndex = isNextEntry
-			? highlightedIndex + 1
-			: findEntryIndex(position) - 1;
-		if (highlightedIndex === newIndex) return;
-		entriesWithHighlight[newIndex]?.highlighter?.(true);
-		entriesWithHighlight[highlightedIndex]?.highlighter?.(false);
-		highlightedIndex = newIndex;
-		const $scroller = scrollRef.current;
-		if ($scroller) {
-			const $child = $scroller.childNodes[newIndex] as HTMLElement;
-			if (!$child) return;
-			const oldTop = $scroller.scrollTop;
-			const childBottom = $child.offsetTop + $child.clientHeight;
-			if (childBottom > oldTop + $scroller.clientHeight) {
-				const halfClient = $scroller.clientHeight >> 1;
-				const newTop = $child.offsetTop - halfClient;
-				$scroller.scrollTo(0, newTop);
+		let newIndex = undefined;
+		const currentEntry = entriesWithHighlight[highlightedIndex]?.entry;
+
+		if (currentEntry && position >= currentEntry.timeMs) {
+			const nextEntry = entriesWithHighlight[highlightedIndex + 1]?.entry;
+			// Most common case: Still in the same entry
+			if (nextEntry) {
+				if (position < nextEntry.timeMs) newIndex = highlightedIndex;
+				else {
+					const nextNextEntry =
+						entriesWithHighlight[highlightedIndex + 2]?.entry;
+					const isNextEntry =
+						nextNextEntry &&
+						position >= nextEntry.timeMs &&
+						position < nextNextEntry.timeMs;
+					if (isNextEntry) newIndex = highlightedIndex + 1;
+				}
 			}
 		}
+
+		if (newIndex === undefined) newIndex = findEntryIndex(position) - 1;
+
+		if (newIndex !== highlightedIndex) {
+			entriesWithHighlight[highlightedIndex]?.highlighter?.(false);
+			entriesWithHighlight[newIndex]?.highlighter?.(true);
+		}
+
+		highlightedIndex = newIndex;
+
+		setEntriesScrollPosition(scrollRef, newIndex);
 	};
 
 const loadEntries = (entries: Entry[]) => {
@@ -118,7 +113,7 @@ export const useEntries = (player: WrappedPlayer) => {
 	}, []);
 
 	useEffect(() => {
-		const cb = getHighlightEntry(scrollerRef);
+		const cb = getHighlightCurrentEntry(scrollerRef);
 		if (entriesWithHighlight.length) player.addOnTick(cb);
 		return () => player.removeOnTick(cb);
 	}, [!!entriesWithHighlight.length]);
@@ -126,22 +121,13 @@ export const useEntries = (player: WrappedPlayer) => {
 	const addEntry = (timeMs: number) => {
 		if (entriesSet.has(timeMs)) return;
 		const index = findEntryIndex(timeMs);
-		const priorTwo = entriesWithHighlight.slice(index - 2, index);
-		let meter = 0;
-		if (priorTwo.length === 2) {
-			const [first, second] = priorTwo.map(({ entry }) => entry);
-			const prevTimeDelta = second.timeMs - first.timeMs;
-			const prevMeterDelta = second.meter - first.meter;
-			const meterLength = prevTimeDelta / prevMeterDelta;
-			const timeDelta = timeMs - second.timeMs;
-			const meterDelta = Math.round(timeDelta / meterLength);
-			meter = second.meter + meterDelta;
-		}
 
 		if (index === entriesWithHighlight.length) {
 			const $scroller = scrollerRef.current;
 			if ($scroller) $scroller.scrollTop = $scroller.scrollHeight;
 		}
+
+		const meter = guessMeterForIndex(index, timeMs);
 		const newEntry = { entry: { meter, timeMs, note: "" } };
 		entriesWithHighlight.splice(index, 0, newEntry);
 		entriesSet.add(timeMs);
@@ -232,4 +218,39 @@ const useRender = (): [number, (input?: number) => void] => {
 	}, []);
 
 	return [state, (input?: number) => setState(input ? input : (p) => p + 1)];
+};
+
+const guessMeterForIndex = (index: number, timeMs: number) => {
+	const priorTwo = entriesWithHighlight.slice(index - 2, index);
+	const priorCount = priorTwo.length;
+	const hasTwo = priorTwo.length === 2;
+	if (priorCount && priorTwo[0].entry.timeMs) {
+		const first = (hasTwo ? priorTwo[0] : null)?.entry;
+		const second = priorTwo[hasTwo ? 1 : 0].entry;
+		const prevTimeDeltaMs = second.timeMs - (first?.timeMs || 0);
+		const prevMeterDeltaMs = second.meter - (first?.meter || 0);
+		const meterLengthMs = prevTimeDeltaMs / prevMeterDeltaMs;
+		const timeDeltaMs = timeMs - second.timeMs;
+		const meterDelta = Math.round(timeDeltaMs / meterLengthMs);
+		return second.meter + meterDelta;
+	}
+	return 0;
+};
+
+const setEntriesScrollPosition = (
+	scrollRef: React.MutableRefObject<HTMLElement | undefined>,
+	newIndex: number,
+) => {
+	const $scroller = scrollRef.current;
+	if ($scroller) {
+		const $child = $scroller.childNodes[newIndex] as HTMLElement;
+		if (!$child) return;
+		const oldTop = $scroller.scrollTop;
+		const childBottom = $child.offsetTop + $child.clientHeight;
+		if (childBottom > oldTop + $scroller.clientHeight) {
+			const halfClient = $scroller.clientHeight >> 1;
+			const newTop = $child.offsetTop - halfClient;
+			$scroller.scrollTo(0, newTop);
+		}
+	}
 };

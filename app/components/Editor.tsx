@@ -220,6 +220,7 @@ const Entry = ({ index }: { index: number }) => {
 			<input
 				className="meter"
 				value={Number(meter).toString()}
+				min={0}
 				type="number"
 				onChange={handleMeterChange}
 			/>
