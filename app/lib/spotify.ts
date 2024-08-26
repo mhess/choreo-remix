@@ -90,7 +90,9 @@ export enum PlayerStatus {
 	READY = "ready",
 }
 
-const playerEvents: Parameters<Spotify.Player["removeListener"]>[0][] = [
+type PlayerEvent = Parameters<Spotify.Player["removeListener"]>[0];
+
+const playerEvents: PlayerEvent[] = [
 	"player_state_changed",
 	"playback_error",
 	"initialization_error",
@@ -160,9 +162,7 @@ export const useSpotifyPlayer = (authToken: SpotifyAuthToken) => {
 
 		return () => {
 			for (const event in playerEvents)
-				player?.removeListener(
-					event as Parameters<typeof player.removeListener>[0],
-				);
+				window.player?.removeListener(event as PlayerEvent);
 		};
 	}, [token]);
 
@@ -171,10 +171,6 @@ export const useSpotifyPlayer = (authToken: SpotifyAuthToken) => {
 
 export type PlayerStateCallback = (state: Spotify.PlaybackState) => void;
 export type OnTickCallback = (ms: number) => void;
-
-const playerStateCallbacks: PlayerStateCallback[] = [];
-const onTickCallbacks: OnTickCallback[] = [];
-
 export type WrappedPlayer = Spotify.Player & {
 	authToken: SpotifyAuthToken;
 	seekTo: (ms: number) => void;
@@ -185,13 +181,15 @@ export type WrappedPlayer = Spotify.Player & {
 };
 
 const createWrappedPlayer = (player: Spotify.Player): WrappedPlayer => {
+	let tickIntervalId: number | undefined;
+	const playerStateCallbacks: PlayerStateCallback[] = [];
+	const onTickCallbacks: OnTickCallback[] = [];
+
 	const tick = async (ms?: number) => {
 		const timeMs =
 			ms !== undefined ? ms : (await player.getCurrentState())?.position;
 		if (timeMs !== undefined) for (const cb of onTickCallbacks) cb(timeMs);
 	};
-
-	let tickIntervalId: number | undefined;
 
 	const stateChangeCallback = (state: Spotify.PlaybackState | null) => {
 		if (!state) return;

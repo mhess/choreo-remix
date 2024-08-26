@@ -45,7 +45,7 @@ const saveToCSV = (trackName: string) => {
 	}, 0);
 };
 
-const loadFromCSVWithoutRender = async (file: File) => {
+const loadEntriesFromCSV = async (file: File) => {
 	const csv = await file.text();
 	const result = Papa.parse(csv, { header: true, dynamicTyping: true });
 	if (result.errors.length) return alert(`CSV had errors ${result.errors}`);
@@ -146,7 +146,13 @@ export const useEntries = (player: WrappedPlayer) => {
 	};
 
 	const loadFromCSV = async (file: File) => {
-		await loadFromCSVWithoutRender(file);
+		await loadEntriesFromCSV(file);
+		render();
+	};
+
+	const clear = () => {
+		loadEntries();
+		storeEntriesLocally();
 		render();
 	};
 
@@ -158,11 +164,7 @@ export const useEntries = (player: WrappedPlayer) => {
 			removeEntry,
 			saveToCSV,
 			loadFromCSV,
-			clear: () => {
-				loadEntries();
-				storeEntriesLocally();
-				render();
-			},
+			clear,
 		}),
 		[renderState],
 	);
@@ -186,7 +188,7 @@ export const useEntry = (index: number) => {
 	const { entry } = entryWithHighlight;
 
 	const [isHighlighted, setIsHighlighted] = useState(false);
-	const [rState, render] = useRender();
+	const render = useRender()[1];
 
 	useEffect(() => {
 		entryWithHighlight.highlighter = setIsHighlighted;
