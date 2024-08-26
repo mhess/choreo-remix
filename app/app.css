@@ -26,6 +26,10 @@ button {
 *:after {
   box-sizing: inherit;
 }
+.landing {
+  margin: 2rem 1rem;
+  max-width: 750px;
+}
 .status-message {
   display: flex;
   justify-content: center;

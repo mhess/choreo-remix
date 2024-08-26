@@ -4,14 +4,12 @@ import type { LinksFunction, MetaFunction } from "@remix-run/node";
 import appStylesHref from "./app.css?url";
 import { useSpotifyAuth, AuthStatus } from "./lib/spotify";
 import Editor from "./components/Editor";
+import Landing from "./components/Landing";
 
 export const meta: MetaFunction = () => {
 	return [
 		{ title: "Choreo" },
-		{
-			property: "og:title",
-			content: "Very cool app",
-		},
+		{ property: "og:title", content: "Choreo" },
 		{
 			name: "description",
 			content: "Easily compose choreographies to music on Spotify",
@@ -52,10 +50,6 @@ export default function App() {
 
 const NotAuthorized = ({ status }: { status: AuthStatus }) => (
 	<div className="status-message">
-		{status === AuthStatus.LOADING ? (
-			"Loading..."
-		) : (
-			<Link to="auth/login">Please log in with Spotify!</Link>
-		)}
+		{status === AuthStatus.LOADING ? "Loading..." : <Landing />}
 	</div>
 );
