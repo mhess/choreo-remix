@@ -1,4 +1,8 @@
-:root {
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* :root {
   --controls-bg-color: #a9d9d5;
 }
 
@@ -147,4 +151,4 @@ button {
   background-color: white;
   margin: 0 1rem;
   width: 5rem;
-}
+} */
