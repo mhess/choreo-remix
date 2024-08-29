@@ -2,7 +2,9 @@ import { Links, Link, Meta, Outlet, Scripts } from "@remix-run/react";
 import type { LinksFunction, MetaFunction } from "@remix-run/node";
 
 import appStylesHref from "./app.css?url";
+
 import { useSpotifyAuth, AuthStatus } from "./lib/spotify";
+
 import Editor from "./components/Editor";
 import Landing from "./components/Landing";
 
@@ -13,6 +15,10 @@ export const meta: MetaFunction = () => {
 		{
 			name: "description",
 			content: "Easily compose choreographies to music on Spotify",
+		},
+		{
+			name: "viewport",
+			content: "width=device-width,initial-scale=1",
 		},
 	];
 };
@@ -39,7 +45,7 @@ export default function App() {
 				{status === AuthStatus.GOOD ? (
 					<Editor token={token} />
 				) : (
-					<NotAuthorized status={status} />
+					<NotAuthenticated status={status} />
 				)}
 				<Outlet />
 				<Scripts />
@@ -48,7 +54,7 @@ export default function App() {
 	);
 }
 
-const NotAuthorized = ({ status }: { status: AuthStatus }) => (
+const NotAuthenticated = ({ status }: { status: AuthStatus }) => (
 	<div className="status-message">
 		{status === AuthStatus.LOADING ? "Loading..." : <Landing />}
 	</div>
