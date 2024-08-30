@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from "react";
-import type { HTMLProps, LegacyRef } from "react";
+import type { LegacyRef } from "react";
 import {
 	useSpotifyPlayer,
 	PlayerContext,
@@ -12,6 +12,7 @@ import type {
 	SpotifyAuthToken,
 	OnTickCallback,
 } from "../lib/spotify";
+import Icon from "./Icon";
 import { EntriesContext, useEntries, useEntry } from "../lib/entries";
 import { Link } from "@remix-run/react";
 
@@ -184,15 +185,6 @@ const Controls = () => {
 		</div>
 	);
 };
-
-const Icon = ({
-	name,
-	...props
-}: { name: string } & HTMLProps<HTMLSpanElement>) => (
-	<span className="material-symbols-outlined" {...props}>
-		{name}
-	</span>
-);
 
 const TrackTime = () => {
 	const [timeMs, setTimeMs] = useState(0);

@@ -7,6 +7,7 @@ import { useSpotifyAuth, AuthStatus } from "./lib/spotify";
 
 import Editor from "./components/Editor";
 import Landing from "./components/Landing";
+import Icon from "./components/Icon";
 
 export const meta: MetaFunction = () => {
 	return [
@@ -35,7 +36,7 @@ export default function App() {
 	const { status, token } = useSpotifyAuth();
 
 	return (
-		<html lang="en">
+		<html lang="en" className="">
 			<head>
 				<link rel="icon" href="data:image/x-icon;base64,AA" />
 				<Meta />
@@ -55,7 +56,16 @@ export default function App() {
 }
 
 const NotAuthenticated = ({ status }: { status: AuthStatus }) => (
-	<div className="status-message">
-		{status === AuthStatus.LOADING ? "Loading..." : <Landing />}
+	<div className="flex justify-center items-center h-full">
+		{status === AuthStatus.LOADING ? <Loading /> : <Landing />}
 	</div>
 );
+
+const Loading = ({ message }: { message?: string }) => {
+	return (
+		<div className="flex flex-col items-center">
+			<Icon name="progress_activity" className="animate-spin" />
+			{message ? message : "loading"}
+		</div>
+	);
+};

@@ -2,7 +2,7 @@ import { Link } from "@remix-run/react";
 
 export default () => {
 	return (
-		<div className="landing">
+		<div className="max-w-4xl mx-4">
 			<h1>Welcome to the Choreo App!</h1>
 			<p>Choreo is an app that helps you compose choreography to music.</p>
 			<p>
