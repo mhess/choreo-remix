@@ -1,5 +1,7 @@
-import { Links, Link, Meta, Outlet, Scripts } from "@remix-run/react";
+import { Links, Meta, Scripts, ScrollRestoration } from "@remix-run/react";
 import type { LinksFunction, MetaFunction } from "@remix-run/node";
+import { Center, ColorSchemeScript, MantineProvider } from "@mantine/core";
+import "@mantine/core/styles.css";
 
 import appStylesHref from "./app.css?url";
 
@@ -9,20 +11,19 @@ import Editor from "./components/Editor";
 import Landing from "./components/Landing";
 import Icon from "./components/Icon";
 
-export const meta: MetaFunction = () => {
-	return [
-		{ title: "Choreo" },
-		{ property: "og:title", content: "Choreo" },
-		{
-			name: "description",
-			content: "Easily compose choreographies to music on Spotify",
-		},
-		{
-			name: "viewport",
-			content: "width=device-width,initial-scale=1",
-		},
-	];
-};
+export const meta: MetaFunction = () => [
+	{ charSet: "utf-8" },
+	{ title: "Choreo" },
+	{ property: "og:title", content: "Choreo" },
+	{
+		name: "description",
+		content: "Easily compose choreographies to music on Spotify",
+	},
+	{
+		name: "viewport",
+		content: "width=device-width,initial-scale=1",
+	},
+];
 
 export const links: LinksFunction = () => [
 	{ rel: "stylesheet", href: appStylesHref },
@@ -32,40 +33,48 @@ export const links: LinksFunction = () => [
 	},
 ];
 
+export const Layout = ({ children }: { children: React.ReactNode }) => (
+	<html lang="en">
+		<head>
+			<Meta />
+			<Links />
+			<ColorSchemeScript />
+		</head>
+		<body>
+			<MantineProvider>{children}</MantineProvider>
+			<ScrollRestoration />
+			<Scripts />
+		</body>
+	</html>
+);
+
 export default function App() {
 	const { status, token } = useSpotifyAuth();
 
-	return (
-		<html lang="en" className="">
-			<head>
-				<link rel="icon" href="data:image/x-icon;base64,AA" />
-				<Meta />
-				<Links />
-			</head>
-			<body>
-				{status === AuthStatus.GOOD ? (
-					<Editor token={token} />
-				) : (
-					<NotAuthenticated status={status} />
-				)}
-				<Outlet />
-				<Scripts />
-			</body>
-		</html>
+	return status === AuthStatus.GOOD ? (
+		<Editor token={token} />
+	) : (
+		<NotAuthenticated status={status} />
 	);
 }
 
 const NotAuthenticated = ({ status }: { status: AuthStatus }) => (
-	<div className="flex justify-center items-center h-full">
-		{status === AuthStatus.LOADING ? <Loading /> : <Landing />}
-	</div>
+	<Center className="h-full">
+		{status === AuthStatus.LOADING ? (
+			<Loading message="loading" />
+		) : (
+			<Landing /> // <Loading message="loading" />
+		)}
+	</Center>
 );
 
-const Loading = ({ message }: { message?: string }) => {
-	return (
-		<div className="flex flex-col items-center">
-			<Icon name="progress_activity" className="animate-spin" />
-			{message ? message : "loading"}
-		</div>
-	);
-};
+const Loading = ({ message }: { message: React.ReactNode }) => (
+	<Center className="flex-col">
+		<Icon
+			name="progress_activity"
+			style={{ fontSize: "2.25rem" }}
+			className="animate-spin"
+		/>
+		{message}
+	</Center>
+);
