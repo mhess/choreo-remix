@@ -8,7 +8,6 @@ import {
 } from "../lib/spotify";
 import type {
 	WrappedPlayer,
-	PlayerStateCallback,
 	SpotifyAuthToken,
 	OnTickCallback,
 } from "../lib/spotify";
@@ -92,7 +91,7 @@ const TopBar = () => {
 	const [track, setTrack] = useState<Spotify.Track>();
 
 	useEffect(() => {
-		const cb: PlayerStateCallback = ({ track_window }) =>
+		const cb: Spotify.PlaybackStateListener = ({ track_window }) =>
 			setTrack(track_window.current_track);
 		player.addOnStateChange(cb);
 		return () => player.removeOnStateChange(cb);
@@ -147,7 +146,7 @@ const Controls = () => {
 	const [paused, setPaused] = useState(false);
 
 	useEffect(() => {
-		const cb: PlayerStateCallback = ({ paused }) => setPaused(paused);
+		const cb: Spotify.PlaybackStateListener = ({ paused }) => setPaused(paused);
 		player.addOnStateChange(cb);
 		return () => player.removeOnStateChange(cb);
 	}, []);

@@ -13,15 +13,15 @@ import Icon from "./components/Icon";
 
 export const meta: MetaFunction = () => [
 	{ charSet: "utf-8" },
+	{
+		name: "viewport",
+		content: "width=device-width,initial-scale=1",
+	},
 	{ title: "Choreo" },
 	{ property: "og:title", content: "Choreo" },
 	{
 		name: "description",
 		content: "Easily compose choreographies to music on Spotify",
-	},
-	{
-		name: "viewport",
-		content: "width=device-width,initial-scale=1",
 	},
 ];
 

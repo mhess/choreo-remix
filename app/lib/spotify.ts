@@ -1,5 +1,6 @@
 import { useEffect, useState, useContext, createContext } from "react";
 import { useLocation } from "@remix-run/react";
+import { getFakePlayer } from "./fakeSpotify";
 
 declare global {
 	interface Window {
@@ -131,6 +132,7 @@ export const useSpotifyPlayer = (authToken: SpotifyAuthToken) => {
 			// In this case the window.player would have a differnet token.
 			window.player?.disconnect();
 			promise = getSpotifyPlayer(token);
+			// promise = Promise.resolve(createWrappedPlayer(getFakePlayer()));
 			tokenAndPromise = { token, promise };
 		}
 
@@ -169,20 +171,19 @@ export const useSpotifyPlayer = (authToken: SpotifyAuthToken) => {
 	return { player, status };
 };
 
-export type PlayerStateCallback = (state: Spotify.PlaybackState) => void;
 export type OnTickCallback = (ms: number) => void;
 export type WrappedPlayer = Spotify.Player & {
 	authToken: SpotifyAuthToken;
 	seekTo: (ms: number) => void;
-	addOnStateChange: (cb: PlayerStateCallback) => void;
-	removeOnStateChange: (cb: PlayerStateCallback) => void;
+	addOnStateChange: (cb: Spotify.PlaybackStateListener) => void;
+	removeOnStateChange: (cb: Spotify.PlaybackStateListener) => void;
 	addOnTick: (cb: OnTickCallback) => void;
 	removeOnTick: (cb: OnTickCallback) => void;
 };
 
 const createWrappedPlayer = (player: Spotify.Player): WrappedPlayer => {
 	let tickIntervalId: number | undefined;
-	const playerStateCallbacks: PlayerStateCallback[] = [];
+	const playerStateCallbacks: Spotify.PlaybackStateListener[] = [];
 	const onTickCallbacks: OnTickCallback[] = [];
 
 	const tick = async (ms?: number) => {
@@ -211,11 +212,11 @@ const createWrappedPlayer = (player: Spotify.Player): WrappedPlayer => {
 		seekTo(timeMs: number) {
 			player.seek(timeMs).then(() => tick(timeMs));
 		},
-		addOnStateChange(cb: PlayerStateCallback) {
+		addOnStateChange(cb: Spotify.PlaybackStateListener) {
 			player.getCurrentState().then((state) => state && cb(state));
 			playerStateCallbacks.push(cb);
 		},
-		removeOnStateChange(callback: PlayerStateCallback) {
+		removeOnStateChange(callback: Spotify.PlaybackStateListener) {
 			if (!playerStateCallbacks.length) return;
 			const index = playerStateCallbacks.findIndex((cb) => cb === callback);
 			if (index > -1) playerStateCallbacks.splice(index, 1);
