@@ -210,7 +210,8 @@ const createWrappedPlayer = (player: Spotify.Player): WrappedPlayer => {
 	const additionalProperties = {
 		authToken: { value: undefined, reset: () => {} },
 		seekTo(timeMs: number) {
-			player.seek(timeMs).then(() => tick(timeMs));
+			const posTimeMs = timeMs < 0 ? 0 : timeMs;
+			player.seek(posTimeMs).then(() => tick(posTimeMs));
 		},
 		addOnStateChange(cb: Spotify.PlaybackStateListener) {
 			player.getCurrentState().then((state) => state && cb(state));
