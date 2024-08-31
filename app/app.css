@@ -6,19 +6,6 @@
   font-family: Arial, Helvetica, sans-serif;
 }
 
-.editor {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.entries {
-  position: relative;
-  flex: 1;
-  overflow-y: scroll;
-  padding-bottom: 2rem;
-}
-
 .entry {
   display: flex;
   align-items: center;

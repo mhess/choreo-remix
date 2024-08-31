@@ -1,20 +1,16 @@
-import { useState, useEffect, useContext } from "react";
-import type { LegacyRef } from "react";
-import { Center, Text } from "@mantine/core";
+import { useEffect, useContext } from "react";
+import type { RefObject } from "react";
+import { Box, Center, Text } from "@mantine/core";
 import { Link } from "@remix-run/react";
 
-import {
-	useSpotifyPlayer,
-	PlayerContext,
-	usePlayer,
-	PlayerStatus,
-} from "../lib/spotify";
-import type { SpotifyAuthToken, OnTickCallback } from "../lib/spotify";
-import { EntriesContext, useEntries, useEntry } from "../lib/entries";
+import { useSpotifyPlayer, PlayerContext, PlayerStatus } from "../lib/spotify";
+import type { SpotifyAuthToken } from "../lib/spotify";
+import { EntriesContext, useEntries } from "../lib/entries";
 
-import Icon from "./Icon";
 import Loading from "./Loading";
 import Header from "./Header";
+import Controls from "./Controls";
+import Entry from "./Entry";
 
 export default ({ token }: { token: SpotifyAuthToken }) => {
 	const { player, status } = useSpotifyPlayer(token);
@@ -58,7 +54,7 @@ const messageByStatus: Record<PlayerStatus, React.ReactNode> = {
 
 const Entries = () => {
 	const player = useContext(PlayerContext);
-	const entries = useContext(EntriesContext);
+	const { entries, scrollerRef } = useContext(EntriesContext);
 
 	useEffect(
 		() => () => {
@@ -68,118 +64,16 @@ const Entries = () => {
 	);
 
 	return (
-		<div className="editor">
-			<div
-				className="entries"
-				ref={entries.scrollerRef as LegacyRef<HTMLDivElement>}
+		<>
+			<Box
+				className="flex-1 overflow-y-scroll pb-8"
+				ref={scrollerRef as RefObject<HTMLDivElement>}
 			>
-				{entries.entries.map((entry, index) => (
+				{entries.map((entry, index) => (
 					<Entry key={entry.timeMs} index={index} />
 				))}
-			</div>
+			</Box>
 			<Controls />
-		</div>
+		</>
 	);
-};
-
-const Controls = () => {
-	const { addEntry } = useContext(EntriesContext);
-	const player = usePlayer();
-	const [paused, setPaused] = useState(false);
-
-	useEffect(() => {
-		const cb: Spotify.PlaybackStateListener = ({ paused }) => setPaused(paused);
-		player.addOnStateChange(cb);
-		return () => player.removeOnStateChange(cb);
-	}, []);
-
-	const handleSeekDir = (ms: number) => async () => {
-		const state = await player.getCurrentState();
-		if (!state) return;
-		player.seekTo(ms + state.position);
-	};
-
-	const handleAddEntry = async () => {
-		const state = await player.getCurrentState();
-		if (!state) return;
-		addEntry(state.position);
-	};
-
-	return (
-		<div className="controls">
-			<TrackTime />
-			<button className="playback-button" onClick={handleSeekDir(-5000)}>
-				<Icon name="fast_rewind" /> 5
-			</button>
-			<button className="playback-button" onClick={() => player.togglePlay()}>
-				{paused ? <Icon name="play_arrow" /> : <Icon name="pause" />}
-			</button>
-			<button className="playback-button" onClick={handleSeekDir(5000)}>
-				5 <Icon name="fast_forward" />
-			</button>
-			<button className="playback-button add-entry" onClick={handleAddEntry}>
-				<Icon
-					style={{ position: "relative", top: "1px" }}
-					name="playlist_add"
-				/>
-			</button>
-		</div>
-	);
-};
-
-const TrackTime = () => {
-	const [timeMs, setTimeMs] = useState(0);
-	const player = usePlayer();
-
-	useEffect(() => {
-		const cb: OnTickCallback = (ms) => setTimeMs(ms);
-		player.addOnTick(cb);
-		return () => player.removeOnTick(cb);
-	}, []);
-
-	return <span className="time-display">{displayMs(timeMs)}</span>;
-};
-
-const Entry = ({ index }: { index: number }) => {
-	const { removeEntry } = useContext(EntriesContext);
-	const entry = useEntry(index);
-	const player = usePlayer();
-	const { meter, timeMs, note, isHighlighted } = entry;
-
-	const handleMeterChange = (event: React.ChangeEvent<HTMLInputElement>) =>
-		entry.setMeter(Number(event.target.value));
-
-	const handleNoteChange = (event: React.ChangeEvent<HTMLInputElement>) =>
-		entry.setNote(event.target.value);
-
-	return (
-		<div
-			className="entry"
-			style={{ backgroundColor: isHighlighted ? "#ffc05f" : "" }}
-		>
-			<input
-				className="meter"
-				value={Number(meter).toString()}
-				min={0}
-				type="number"
-				onChange={handleMeterChange}
-			/>
-			<span className="timestamp" onClick={() => player.seekTo(timeMs)}>
-				{displayMs(timeMs)}
-			</span>
-			<input className="note" value={note} onChange={handleNoteChange} />
-			<button onClick={() => removeEntry(index)}>
-				<Icon name="delete" />
-			</button>
-		</div>
-	);
-};
-
-const displayMs = (totalMs: number) => {
-	const ms = (totalMs % 1000).toString().slice(0, 2).padStart(2, "0");
-	const totalSeconds = Math.floor(totalMs / 1000);
-	const minutes = Math.floor(totalSeconds / 60);
-	const seconds = (totalSeconds % 60).toString().padStart(2, "0");
-
-	return `${minutes}:${seconds}.${ms}`;
 };

@@ -106,7 +106,7 @@ const storeEntriesLocally = () => {
 const debouncedStoreEntriesLocally = debounced(storeEntriesLocally, 2000);
 
 export const useEntries = (player: WrappedPlayer | undefined) => {
-	const scrollerRef = useRef<HTMLElement>();
+	const scrollerRef = useRef<HTMLDivElement>();
 	const [renderState, render] = useRender();
 
 	useEffect(() => {

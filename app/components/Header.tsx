@@ -67,22 +67,6 @@ export default ({
 	);
 };
 
-const BurgerMenu = ({
-	trackName,
-	logout,
-}: { trackName?: string; logout: () => void }) => {
-	const [opened, { toggle, close }] = useDisclosure(false);
-
-	return (
-		<Menu onClose={close}>
-			<Menu.Target>
-				<Burger opened={opened} onClick={toggle} hiddenFrom="sm" />
-			</Menu.Target>
-			<MenuDropdown trackName={trackName} logout={logout} />
-		</Menu>
-	);
-};
-
 const MenuDropdown = ({
 	trackName,
 	logout,
@@ -124,5 +108,21 @@ const MenuDropdown = ({
 			)}
 			{logout && <Menu.Item onClick={logout}>Log Out</Menu.Item>}
 		</Menu.Dropdown>
+	);
+};
+
+const BurgerMenu = ({
+	trackName,
+	logout,
+}: { trackName?: string; logout: () => void }) => {
+	const [opened, { toggle, close }] = useDisclosure(false);
+
+	return (
+		<Menu onClose={close}>
+			<Menu.Target>
+				<Burger opened={opened} onClick={toggle} hiddenFrom="sm" />
+			</Menu.Target>
+			<MenuDropdown trackName={trackName} logout={logout} />
+		</Menu>
 	);
 };
