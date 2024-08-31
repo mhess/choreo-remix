@@ -1,4 +1,5 @@
 import { useContext, useEffect, useState } from "react";
+import { Button, Group, Text } from "@mantine/core";
 
 import { EntriesContext } from "../lib/entries";
 import { usePlayer } from "../lib/spotify";
@@ -6,6 +7,7 @@ import type { OnTickCallback } from "../lib/spotify";
 import { displayMs } from "../lib/utils";
 
 import Icon from "./Icon";
+import classes from "./Controls.module.css";
 
 export default () => {
 	const { addEntry } = useContext(EntriesContext);
@@ -31,24 +33,41 @@ export default () => {
 	};
 
 	return (
-		<div className="controls">
+		<Group className={classes.controls}>
 			<TrackTime />
-			<button className="playback-button" onClick={handleSeekDir(-5000)}>
+			<Button
+				classNames={{ label: classes.btnLabel }}
+				onClick={handleSeekDir(-5000)}
+				title="Rewind 5 sec"
+			>
 				<Icon name="fast_rewind" /> 5
-			</button>
-			<button className="playback-button" onClick={() => player.togglePlay()}>
+			</Button>
+			<Button
+				classNames={{ label: classes.btnLabel }}
+				onClick={() => player.togglePlay()}
+				title={paused ? "Play" : "Pause"}
+			>
 				{paused ? <Icon name="play_arrow" /> : <Icon name="pause" />}
-			</button>
-			<button className="playback-button" onClick={handleSeekDir(5000)}>
+			</Button>
+			<Button
+				classNames={{ label: classes.btnLabel }}
+				onClick={handleSeekDir(5000)}
+				title="Fast-forward 5 sec"
+			>
 				5 <Icon name="fast_forward" />
-			</button>
-			<button className="playback-button add-entry" onClick={handleAddEntry}>
+			</Button>
+			<Button
+				classNames={{ label: classes.btnLabel }}
+				ml="md"
+				onClick={handleAddEntry}
+				title="Add Entry"
+			>
 				<Icon
 					style={{ position: "relative", top: "1px" }}
 					name="playlist_add"
 				/>
-			</button>
-		</div>
+			</Button>
+		</Group>
 	);
 };
 
@@ -62,5 +81,9 @@ const TrackTime = () => {
 		return () => player.removeOnTick(cb);
 	}, []);
 
-	return <span className="time-display">{displayMs(timeMs)}</span>;
+	return (
+		<Text span className={classes.timeDisplay}>
+			{displayMs(timeMs)}
+		</Text>
+	);
 };

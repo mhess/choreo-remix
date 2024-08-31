@@ -23,6 +23,9 @@ const theme = createTheme({
 			defaultProps: { size: "xs" },
 			classNames: { input: classes.input },
 		},
+		Button: {
+			defaultProps: { size: "compact-sm", variant: "default" },
+		},
 	},
 });
 

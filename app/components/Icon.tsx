@@ -7,7 +7,10 @@ export default ({
 	const { className, ...rest } = props;
 
 	return (
-		<span className={`material-symbols-outlined ${className}`} {...rest}>
+		<span
+			className={`material-symbols-outlined${className ? ` ${className}` : ""}`}
+			{...rest}
+		>
 			{name}
 		</span>
 	);

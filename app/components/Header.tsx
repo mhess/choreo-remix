@@ -58,9 +58,7 @@ export default ({
 						<MenuDropdown trackName={track.name} />
 					</Menu>
 				)}
-				<Button size="compact-sm" variant="default" onClick={logout}>
-					Log Out
-				</Button>
+				<Button onClick={logout}>Log Out</Button>
 			</Group>
 			<BurgerMenu trackName={track?.name} logout={logout} />
 		</Group>

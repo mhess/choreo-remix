@@ -6,6 +6,7 @@
   background-color: var(--mantine-color-green-1);
   border-bottom: 1px solid var(--mantine-color-gray-5);
 }
+
 .logo {
   text-transform: uppercase;
   font-weight: bold;

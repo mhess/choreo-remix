@@ -1,33 +1,6 @@
 @tailwind base;
-/* @tailwind components; */
 @tailwind utilities;
 
 :root {
   font-family: Arial, Helvetica, sans-serif;
-}
-
-.controls {
-  background-color: #a9d9d5;
-  display: flex;
-  align-items: center;
-  gap: 0.25em;
-  padding: 0.5em 0;
-  border-top: solid black 1px;
-}
-.playback-button {
-  display: flex;
-  align-items: center;
-  gap: 0.125rem;
-}
-.playback-button.add-entry {
-  margin-left: 1rem;
-}
-.time-display {
-  font-family: monospace;
-  font-size: 0.85rem;
-  text-align: right;
-  padding: 0 0.25rem;
-  background-color: white;
-  margin: 0 1rem;
-  width: 5rem;
 }

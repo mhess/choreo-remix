@@ -1,0 +1,29 @@
+.controls {
+  display: flex;
+  align-items: center;
+  background-color: var(--mantine-color-green-1);
+  gap: 0.25em;
+  padding: 0.5em 0;
+  border-top: 1px solid var(--mantine-color-gray-5);
+}
+
+.timeDisplay {
+  font-family: monospace;
+  font-size: var(--mantine-font-size-sm);
+  text-align: right;
+  padding: 0 0.5rem;
+  background-color: white;
+  margin: 0 1rem;
+  width: 5.5rem;
+  line-height: 1.75;
+  border-radius: var(--mantine-radius-sm);
+}
+
+.btnLabel {
+  display: flex;
+  gap: 0.125rem;
+}
+
+.btnLabel :global(.material-symbols-outlined) {
+  font-size: var(--mantine-font-size-xl);
+}
