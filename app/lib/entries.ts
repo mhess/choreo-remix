@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useMemo, createContext } from "react";
-import type { WrappedPlayer } from "./spotify";
+import type { MutableRefObject } from "react";
 import Papa from "papaparse";
+
+import type { WrappedPlayer } from "./spotify";
 
 export type Entry = { meter: number; timeMs: number; note: string };
 
@@ -62,7 +64,10 @@ const loadEntriesFromCSV = async (file: File) => {
 let highlightedIndex: number;
 
 const getHighlightCurrentEntry =
-	(scrollRef: React.MutableRefObject<HTMLElement | undefined>) =>
+	(
+		scrollRef: MutableRefObject<HTMLElement | undefined>,
+		containerRef: MutableRefObject<HTMLElement | undefined>,
+	) =>
 	(timeMs: number) => {
 		if (!entriesWithHighlight.length) return;
 
@@ -95,7 +100,7 @@ const getHighlightCurrentEntry =
 
 		highlightedIndex = newIndex;
 
-		setEntriesScrollPosition(scrollRef, newIndex);
+		setEntriesScrollPosition(scrollRef, containerRef, newIndex);
 	};
 
 const STORAGE_KEY = "choreo-entries";
@@ -113,8 +118,8 @@ const debouncedStoreEntriesLocally = debounced(storeEntriesLocally, 2000);
 export type MeterDialogData = { timeMs: number; defaultMeter: number };
 
 export const useEntries = (player: WrappedPlayer | undefined) => {
-	const scrollerRef = useRef<HTMLDivElement>();
-	const [meterDialog, setMeterDialog] = useState<MeterDialogData>();
+	const scrollerRef = useRef<HTMLElement>();
+	const containerRef = useRef<HTMLElement>();
 	const [renderState, render] = useRender();
 
 	useEffect(() => {
@@ -126,24 +131,13 @@ export const useEntries = (player: WrappedPlayer | undefined) => {
 	useEffect(() => {
 		if (!player) return;
 
-		const cb = getHighlightCurrentEntry(scrollerRef);
+		const cb = getHighlightCurrentEntry(scrollerRef, containerRef);
 		if (entriesWithHighlight.length) player.addOnTick(cb);
 		return () => player.removeOnTick(cb);
 	}, [!!player, !!entriesWithHighlight.length]);
 
-	const addEntry = (timeMs: number, inputMeter?: number | null) => {
+	const addEntry = (timeMs: number) => {
 		if (entriesSet.has(timeMs)) return;
-		const firstEntry = entriesWithHighlight[0].entry;
-
-		if (
-			inputMeter === undefined &&
-			entriesSet.size === 1 &&
-			firstEntry.timeMs < timeMs
-		) {
-			player?.pause();
-			setMeterDialog({ timeMs, defaultMeter: firstEntry.meter });
-			return;
-		}
 
 		const index = findEntryIndex(timeMs);
 
@@ -152,20 +146,12 @@ export const useEntries = (player: WrappedPlayer | undefined) => {
 			if ($scroller) $scroller.scrollTop = $scroller.scrollHeight;
 		}
 
-		const isInputProvided = inputMeter !== null && inputMeter !== undefined;
-		const meter = isInputProvided
-			? inputMeter
-			: guessMeterForIndex(index, timeMs);
+		const meter = guessMeterForIndex(index, timeMs);
 		const newEntry = { entry: { meter, timeMs, note: "" } };
 		entriesWithHighlight.splice(index, 0, newEntry);
 		entriesSet.add(timeMs);
 		debouncedStoreEntriesLocally();
 		render();
-	};
-
-	const closeMeterDialog = (inputMeter: number | null = null) => {
-		addEntry(meterDialog?.timeMs as number, inputMeter);
-		setMeterDialog(undefined);
 	};
 
 	const removeEntry = (index: number) => {
@@ -190,15 +176,14 @@ export const useEntries = (player: WrappedPlayer | undefined) => {
 		() => ({
 			entries: entriesWithHighlight.map(({ entry }) => entry),
 			scrollerRef,
-			meterDialog,
-			closeMeterDialog,
+			containerRef,
 			addEntry,
 			removeEntry,
 			saveToCSV,
 			loadFromCSV,
 			clear,
 		}),
-		[renderState, meterDialog],
+		[renderState],
 	);
 };
 
@@ -276,12 +261,13 @@ const guessMeterForIndex = (index: number, timeMs: number) => {
 };
 
 const setEntriesScrollPosition = (
-	scrollRef: React.MutableRefObject<HTMLElement | undefined>,
+	scrollRef: MutableRefObject<HTMLElement | undefined>,
+	containerRef: MutableRefObject<HTMLElement | undefined>,
 	newIndex: number,
 ) => {
 	const $scroller = scrollRef.current;
 	if ($scroller) {
-		const $child = $scroller.childNodes[newIndex] as HTMLElement;
+		const $child = containerRef.current?.childNodes[newIndex] as HTMLElement;
 		if (!$child) return;
 		const oldTop = $scroller.scrollTop;
 		const childBottom = $child.offsetTop + $child.clientHeight;

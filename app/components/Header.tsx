@@ -43,11 +43,11 @@ export default ({
 					</Text>
 				)}
 			</Group>
-			<Group visibleFrom="sm" gap="2rem">
+			<Group visibleFrom="sm" gap="0.5rem">
 				{track && (
 					<Menu trigger="hover">
 						<Menu.Target>
-							<Button variant="subtle" className={classes.actions}>
+							<Button variant="outline" className={classes.actions}>
 								Actions
 								<Icon
 									name="keyboard_arrow_down"

@@ -14,6 +14,8 @@ export enum AuthStatus {
 	GOOD = "good",
 }
 
+const LS_TOKEN_KEY = "authToken";
+
 export const useSpotifyAuth = () => {
 	// Can't just grab the token from localStorage bc it's only available
 	// on the browser. Remix also renders this component on the server >:[
@@ -29,7 +31,7 @@ export const useSpotifyAuth = () => {
 		if (tokenInParams) {
 			setToken(tokenInParams);
 			setStatus(AuthStatus.GOOD);
-			localStorage.setItem("authToken", tokenInParams);
+			localStorage.setItem(LS_TOKEN_KEY, tokenInParams);
 
 			// Even if the search string manimpulation here is removed, the app still
 			// mounts/unmounts/mounts the root component ¯\_(ツ)_/¯
@@ -39,7 +41,7 @@ export const useSpotifyAuth = () => {
 			return;
 		}
 
-		const tokenFromLS = localStorage.getItem("authToken");
+		const tokenFromLS = localStorage.getItem(LS_TOKEN_KEY);
 		if (tokenFromLS) {
 			setToken(tokenFromLS);
 			setStatus(AuthStatus.GOOD);
@@ -51,6 +53,7 @@ export const useSpotifyAuth = () => {
 
 	const reset = () => {
 		setToken(undefined);
+		localStorage.removeItem(LS_TOKEN_KEY);
 		setStatus(AuthStatus.NO_AUTH);
 	};
 

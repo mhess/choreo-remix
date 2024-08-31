@@ -1,3 +1,5 @@
+@import '../theme.module.css';
+
 .entries {
   flex: 1;
   overflow-y: scroll;
@@ -5,28 +7,25 @@
   scrollbar-width: none;
 }
 
-.meterDialogTitle {
-  font-size: var(--mantine-font-size-lg);
-  font-weight: 700;
+.entryHeader {
+  gap: 0;
+  padding: 0 var(--mantine-spacing-md);
+
+  p {
+    font-size: var(--mantine-font-size-xs);
+    font-weight: bold;
+    text-align: center;
+    line-height: 0.75;
+    margin: 0.5rem 0 0.5rem;
+  }
 }
 
-.meterDialogBody {
-  display: flex;
-  flex-direction: column;
-  gap: var(--mantine-spacing-md);
+.meter {
+  width: var(--meter-width);
+  border-right: 1px solid var(--mantine-color-gray-7);
 }
 
-.meterDialogInputRoot {
-  display: flex;
-  align-items: center;
-  gap: var(--mantine-spacing-sm)
-}
-
-.meterDialogInputInput {
-  text-align: right;
-  width: 3rem;
-}
-
-.meterDialogInputLabel {
-  font-size: var(--mantine-font-size-sm);
+.timestamp {
+  width: var(--timestamp-width);
+  border-right: 1px solid var(--mantine-color-gray-7);
 }

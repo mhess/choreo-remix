@@ -1,9 +1,10 @@
 import { useEffect, useContext, useRef } from "react";
-import type { MutableRefObject, RefObject } from "react";
+import type { MutableRefObject } from "react";
 import {
 	Box,
 	Button,
 	Center,
+	Container,
 	Group,
 	Modal,
 	Text,
@@ -14,8 +15,6 @@ import { Link } from "@remix-run/react";
 import { useSpotifyPlayer, PlayerContext, PlayerStatus } from "../lib/spotify";
 import type { SpotifyAuthToken } from "../lib/spotify";
 import { EntriesContext, useEntries } from "../lib/entries";
-import type { MeterDialogData } from "../lib/entries";
-import { displayMs } from "../lib/utils";
 
 import classes from "./Editor.module.css";
 import Loading from "./Loading";
@@ -44,8 +43,7 @@ export default ({ token }: { token: SpotifyAuthToken }) => {
 
 const Entries = () => {
 	const player = useContext(PlayerContext);
-	const { entries, scrollerRef, meterDialog, closeMeterDialog } =
-		useContext(EntriesContext);
+	const { entries, scrollerRef, containerRef } = useContext(EntriesContext);
 
 	useEffect(
 		() => () => {
@@ -60,12 +58,18 @@ const Entries = () => {
 				className={classes.entries}
 				ref={scrollerRef as MutableRefObject<HTMLDivElement>}
 			>
-				{entries.map((entry, index) => (
-					<Entry key={entry.timeMs} index={index} />
-				))}
+				<Group className={classes.entryHeader}>
+					<Text className={classes.meter}>meter</Text>
+					<Text className={classes.timestamp}>timestamp</Text>
+					<Text pl="sm">notes</Text>
+				</Group>
+				<Box ref={containerRef as MutableRefObject<HTMLDivElement>}>
+					{entries.map(({ timeMs }, index) => (
+						<Entry key={timeMs} index={index} />
+					))}
+				</Box>
 			</Box>
 			<Controls />
-			<MeterDialog data={meterDialog} close={closeMeterDialog} />
 		</>
 	);
 };
@@ -80,7 +84,25 @@ const TryAgain = ({ message }: { message: string }) => (
 const messageByStatus: Record<PlayerStatus, React.ReactNode> = {
 	[PlayerStatus.READY]: "shouldn't happen!",
 	[PlayerStatus.LOADING]: <Loading message="Connecting to Spotify" />,
-	[PlayerStatus.NOT_CONNECTED]: `Please connect to the "Choreo" device on your Spotify player`,
+	[PlayerStatus.NOT_CONNECTED]: (
+		<Container className="text-center" size="xs">
+			<Text>
+				Please connect to the "Choreo Player" device on your Spotify player.
+				Ensure that your other device is on the same network as this one.
+			</Text>
+			<Text mt="sm">
+				See this{" "}
+				<a
+					href="https://support.spotify.com/us/article/spotify-connect/"
+					rel="noreferrer"
+					target="_blank"
+				>
+					article
+				</a>{" "}
+				if you're having trouble.
+			</Text>
+		</Container>
+	),
 	[PlayerStatus.PLAYBACK_ERROR]: (
 		<TryAgain message="There was an error with playback." />
 	),
@@ -89,54 +111,4 @@ const messageByStatus: Record<PlayerStatus, React.ReactNode> = {
 		<TryAgain message="There was a problem with your account. Spotify requires a premium account for application access." />
 	),
 	[PlayerStatus.AUTH_ERROR]: <TryAgain message="Could not authorize access." />,
-};
-
-const MeterDialog = ({
-	data,
-	close,
-}: {
-	data?: MeterDialogData;
-	close: ReturnType<typeof useEntries>["closeMeterDialog"];
-}) => {
-	const inputRef = useRef<HTMLInputElement>();
-	const isOpen = !!data;
-
-	const handleClose = (isClose: boolean) => () => {
-		if (isClose) return close(null);
-		close(Number(inputRef.current?.value));
-	};
-
-	return (
-		<Modal
-			opened={isOpen}
-			onClose={handleClose(true)}
-			title="Please set a meter for this next entry"
-			classNames={{
-				title: classes.meterDialogTitle,
-				body: classes.meterDialogBody,
-			}}
-			transitionProps={{ onEntered: () => inputRef.current?.focus() }}
-		>
-			<TextInput
-				classNames={{
-					root: classes.meterDialogInputRoot,
-					input: classes.meterDialogInputInput,
-					label: classes.meterDialogInputLabel,
-				}}
-				label={`Meter at time ${displayMs(data?.timeMs || 12345)}`}
-				ref={inputRef as MutableRefObject<HTMLInputElement>}
-				placeholder={data?.defaultMeter.toString()}
-				type="number"
-				min="0"
-			/>
-			<Text size="sm">
-				The meter for future entries will be generated automatically.
-			</Text>
-			<Group justify="right">
-				<Button onClick={handleClose(false)} size="sm" variant="filled">
-					Save
-				</Button>
-			</Group>
-		</Modal>
-	);
 };

@@ -10,7 +10,9 @@
 
 .timestamp {
   cursor: pointer;
+  text-align: right;
   padding: 0.5rem var(--mantine-spacing-sm);
+  width: 5.5rem;
 }
 
 .timestamp:hover {

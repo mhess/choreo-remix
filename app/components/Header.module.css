@@ -32,8 +32,7 @@
 
 .actions {
   color: var(--app-font-color);
-  font-size: var(--mantine-font-size-md);
-  font-weight: normal;
+  border-color: var(--mantine-color-gray-6);
   position: relative;
 }
 
@@ -42,8 +41,9 @@
 }
 
 .chevronIcon {
+  font-size: 1.25rem;
   position: relative;
-  transform: translateY(10%);
+  transform: translateY(0.0625rem);
 }
 
 .fileInput {
