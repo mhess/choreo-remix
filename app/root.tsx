@@ -1,15 +1,30 @@
 import { Links, Meta, Scripts, ScrollRestoration } from "@remix-run/react";
 import type { LinksFunction, MetaFunction } from "@remix-run/node";
-import { Center, ColorSchemeScript, MantineProvider } from "@mantine/core";
+import {
+	Center,
+	ColorSchemeScript,
+	MantineProvider,
+	createTheme,
+} from "@mantine/core";
 import "@mantine/core/styles.css";
 
 import appStylesHref from "./app.css?url";
+import classes from "./theme.module.css";
 
 import { useSpotifyAuth, AuthStatus } from "./lib/spotify";
 
 import Editor from "./components/Editor";
 import Landing from "./components/Landing";
 import Loading from "./components/Loading";
+
+const theme = createTheme({
+	components: {
+		Input: {
+			defaultProps: { size: "xs" },
+			classNames: { input: classes.input },
+		},
+	},
+});
 
 export const meta: MetaFunction = () => [
 	{ charSet: "utf-8" },
@@ -41,7 +56,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => (
 			<ColorSchemeScript />
 		</head>
 		<body className="flex flex-col h-full">
-			<MantineProvider>{children}</MantineProvider>
+			<MantineProvider theme={theme}>{children}</MantineProvider>
 			<ScrollRestoration />
 			<Scripts />
 		</body>

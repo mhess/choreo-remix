@@ -1,11 +1,19 @@
 import { useContext } from "react";
+import {
+	CloseButton,
+	Group,
+	Input,
+	Text,
+	useMantineTheme,
+} from "@mantine/core";
 
 import { useEntry, EntriesContext } from "../lib/entries";
 import { usePlayer } from "../lib/spotify";
 import { displayMs } from "../lib/utils";
-import Icon from "./Icon";
+import classes from "./Entry.module.css";
 
 export default ({ index }: { index: number }) => {
+	const theme = useMantineTheme();
 	const { removeEntry } = useContext(EntriesContext);
 	const entry = useEntry(index);
 	const player = usePlayer();
@@ -18,24 +26,27 @@ export default ({ index }: { index: number }) => {
 		entry.setNote(event.target.value);
 
 	return (
-		<div
-			className="entry"
-			style={{ backgroundColor: isHighlighted ? "#ffc05f" : "" }}
+		<Group
+			className={classes.entry}
+			bg={isHighlighted ? theme.colors.orange[4] : ""}
 		>
-			<input
-				className="meter"
+			<Input
+				classNames={{ input: classes.meterInput }}
 				value={Number(meter).toString()}
 				min={0}
 				type="number"
 				onChange={handleMeterChange}
 			/>
-			<span className="timestamp" onClick={() => player.seekTo(timeMs)}>
+			<Text
+				p="sm"
+				className="cursor-pointer"
+				span
+				onClick={() => player.seekTo(timeMs)}
+			>
 				{displayMs(timeMs)}
-			</span>
-			<input className="note" value={note} onChange={handleNoteChange} />
-			<button onClick={() => removeEntry(index)}>
-				<Icon name="delete" />
-			</button>
-		</div>
+			</Text>
+			<Input className="flex-1 mr-2" value={note} onChange={handleNoteChange} />
+			<CloseButton onClick={() => removeEntry(index)} />
+		</Group>
 	);
 };
