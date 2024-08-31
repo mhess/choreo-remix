@@ -1,12 +1,12 @@
 import { useContext, useEffect, useState } from "react";
 import { Burger, Button, Center, Group, Menu, Text } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
 
 import type { WrappedPlayer } from "~/lib/spotify";
 
+import { EntriesContext } from "../lib/entries";
 import classes from "./Header.module.css";
 import Icon from "./Icon";
-import { EntriesContext } from "../lib/entries";
-import { useDisclosure } from "@mantine/hooks";
 
 export default ({
 	player,
@@ -16,6 +16,7 @@ export default ({
 	logout: () => void;
 }) => {
 	const [track, setTrack] = useState<Spotify.Track>();
+
 	useEffect(() => {
 		if (!player) return;
 
@@ -30,7 +31,7 @@ export default ({
 	return (
 		<Group component="header" className={classes.header}>
 			<Group className={classes.headerLeftSide}>
-				<Text size="sm" fw={700} span>
+				<Text className={classes.logo} span>
 					Choreo
 				</Text>
 				{track && (
@@ -61,15 +62,15 @@ export default ({
 					Log Out
 				</Button>
 			</Group>
-			<BurgerMenu track={track} logout={logout} />
+			<BurgerMenu trackName={track?.name} logout={logout} />
 		</Group>
 	);
 };
 
 const BurgerMenu = ({
-	track,
+	trackName,
 	logout,
-}: { track?: Spotify.Track; logout: () => void }) => {
+}: { trackName?: string; logout: () => void }) => {
 	const [opened, { toggle, close }] = useDisclosure(false);
 
 	return (
@@ -77,7 +78,7 @@ const BurgerMenu = ({
 			<Menu.Target>
 				<Burger opened={opened} onClick={toggle} hiddenFrom="sm" />
 			</Menu.Target>
-			<MenuDropdown trackName={track?.name} logout={logout} />
+			<MenuDropdown trackName={trackName} logout={logout} />
 		</Menu>
 	);
 };

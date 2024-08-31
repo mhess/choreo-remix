@@ -11,11 +11,6 @@
   flex-direction: column;
   height: 100%;
 }
-.log-in {
-  cursor: pointer;
-  color: blue;
-  text-decoration: underline;
-}
 
 .entries {
   position: relative;
