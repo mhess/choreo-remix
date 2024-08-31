@@ -59,7 +59,7 @@ const Entries = () => {
 				ref={scrollerRef as MutableRefObject<HTMLDivElement>}
 			>
 				<Group className={classes.entryHeader}>
-					<Text className={classes.meter}>meter</Text>
+					<Text className={classes.count}>count</Text>
 					<Text className={classes.timestamp}>timestamp</Text>
 					<Text pl="sm">notes</Text>
 				</Group>

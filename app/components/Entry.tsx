@@ -17,10 +17,10 @@ export default ({ index }: { index: number }) => {
 	const { removeEntry } = useContext(EntriesContext);
 	const entry = useEntry(index);
 	const player = usePlayer();
-	const { meter, timeMs, note, isHighlighted } = entry;
+	const { count, timeMs, note, isHighlighted } = entry;
 
-	const handleMeterChange = (event: React.ChangeEvent<HTMLInputElement>) =>
-		entry.setMeter(Number(event.target.value));
+	const handleCountChange = (event: React.ChangeEvent<HTMLInputElement>) =>
+		entry.setCount(Number(event.target.value));
 
 	const handleNoteChange = (event: React.ChangeEvent<HTMLInputElement>) =>
 		entry.setNote(event.target.value);
@@ -31,11 +31,11 @@ export default ({ index }: { index: number }) => {
 			bg={isHighlighted ? theme.colors.orange[4] : ""}
 		>
 			<TextInput
-				classNames={{ input: classes.meterInput }}
-				value={Number(meter).toString()}
+				classNames={{ input: classes.countInput }}
+				value={Number(count).toString()}
 				min={0}
 				type="number"
-				onChange={handleMeterChange}
+				onChange={handleCountChange}
 			/>
 			<Text
 				className={classes.timestamp}

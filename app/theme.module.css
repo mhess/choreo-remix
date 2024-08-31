@@ -2,7 +2,7 @@
   --app-font-color: var(--mantine-color-gray-9);
   --app-bg-color: var(--mantine-color-green-0);
   --app-border-color: var(--mantine-color-gray-5);
-  --meter-width: 3.25rem;
+  --count-width: 3.25rem;
   --timestamp-width: 5.5rem;
 }
 

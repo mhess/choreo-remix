@@ -4,7 +4,7 @@ import Papa from "papaparse";
 
 import type { WrappedPlayer } from "./spotify";
 
-export type Entry = { meter: number; timeMs: number; note: string };
+export type Entry = { count: number; timeMs: number; note: string };
 
 type EntryWithHighlight = {
 	entry: Entry;
@@ -15,7 +15,7 @@ const entriesSet: Set<number> = new Set<number>();
 let entriesWithHighlight: EntryWithHighlight[];
 
 const loadEntries = (entries?: Entry[]) => {
-	const nonEmptyEntries = entries || [{ meter: 0, timeMs: 0, note: "Start" }];
+	const nonEmptyEntries = entries || [{ count: 0, timeMs: 0, note: "Start" }];
 	entriesSet.clear();
 	for (const entry of nonEmptyEntries) entriesSet.add(entry.timeMs);
 	entriesWithHighlight = nonEmptyEntries.map((entry: Entry) => ({ entry }));
@@ -104,18 +104,18 @@ const getHighlightCurrentEntry =
 	};
 
 const STORAGE_KEY = "choreo-entries";
+
 const loadEntriesFromLocalStorage = () => {
 	const data = localStorage.getItem(STORAGE_KEY);
 	const stored = data ? JSON.parse(data) : null;
 	if (stored?.length) loadEntries(stored);
 };
+
 const storeEntriesLocally = () => {
 	localStorage.setItem(STORAGE_KEY, JSON.stringify(getEntries()));
 };
 
 const debouncedStoreEntriesLocally = debounced(storeEntriesLocally, 2000);
-
-export type MeterDialogData = { timeMs: number; defaultMeter: number };
 
 export const useEntries = (player: WrappedPlayer | undefined) => {
 	const scrollerRef = useRef<HTMLElement>();
@@ -146,8 +146,8 @@ export const useEntries = (player: WrappedPlayer | undefined) => {
 			if ($scroller) $scroller.scrollTop = $scroller.scrollHeight;
 		}
 
-		const meter = guessMeterForIndex(index, timeMs);
-		const newEntry = { entry: { meter, timeMs, note: "" } };
+		const count = guessCountForIndex(index, timeMs);
+		const newEntry = { entry: { count, timeMs, note: "" } };
 		entriesWithHighlight.splice(index, 0, newEntry);
 		entriesSet.add(timeMs);
 		debouncedStoreEntriesLocally();
@@ -211,8 +211,8 @@ export const useEntry = (index: number) => {
 		entryWithHighlight.highlighter = setIsHighlighted;
 	}, [entryWithHighlight]);
 
-	const setMeter = (meter: number) => {
-		entry.meter = meter;
+	const setCount = (count: number) => {
+		entry.count = count;
 		debouncedStoreEntriesLocally();
 		render();
 	};
@@ -229,7 +229,7 @@ export const useEntry = (index: number) => {
 		render();
 	};
 
-	return { ...entry, setMeter, setTimeMs, setNote, isHighlighted };
+	return { ...entry, setCount, setTimeMs, setNote, isHighlighted };
 };
 
 const useRender = (): [number, (input?: number) => void] => {
@@ -242,20 +242,20 @@ const useRender = (): [number, (input?: number) => void] => {
 	return [state, (input?: number) => setState(input ? input : (p) => p + 1)];
 };
 
-const guessMeterForIndex = (index: number, timeMs: number) => {
+const guessCountForIndex = (index: number, timeMs: number) => {
 	const priorTwo = entriesWithHighlight.slice(index - 2, index);
 	const priorCount = priorTwo.length;
 	const hasTwo = priorTwo.length === 2;
 	if (priorCount) {
 		const first = (hasTwo ? priorTwo[0] : null)?.entry;
 		const second = priorTwo[hasTwo ? 1 : 0].entry;
-		if (!hasTwo && !second.timeMs) return second.meter;
+		if (!hasTwo && !second.timeMs) return second.count;
 		const prevTimeDeltaMs = second.timeMs - (first?.timeMs || 0);
-		const prevMeterDeltaMs = second.meter - (first?.meter || 0);
-		const meterLengthMs = prevTimeDeltaMs / prevMeterDeltaMs;
+		const prevCountDeltaMs = second.count - (first?.count || 0);
+		const countLengthMs = prevTimeDeltaMs / prevCountDeltaMs;
 		const timeDeltaMs = timeMs - second.timeMs;
-		const meterDelta = Math.round(timeDeltaMs / meterLengthMs);
-		return second.meter + meterDelta;
+		const countDelta = Math.round(timeDeltaMs / countLengthMs);
+		return second.count + countDelta;
 	}
 	return 0;
 };

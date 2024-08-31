@@ -19,7 +19,7 @@
   color: var(--mantine-color-blue-9);
 }
 
-.meterInput {
+.countInput {
   width: 3.25rem;
   text-align: right;
 }

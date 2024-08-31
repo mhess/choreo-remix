@@ -20,8 +20,8 @@
   }
 }
 
-.meter {
-  width: var(--meter-width);
+.count {
+  width: var(--count-width);
   border-right: 1px solid var(--mantine-color-gray-7);
 }
 
