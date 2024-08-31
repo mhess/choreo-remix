@@ -1,0 +1,35 @@
+.header {
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: nowrap;
+  padding: 0.375rem var(--mantine-spacing-md);
+  background-color: var(--mantine-color-green-1);
+  border-bottom: 1px solid var(--mantine-color-gray-6);
+}
+
+.headerLeftSide {
+  flex: 1;
+  gap: var(--mantine-spacing-md);
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+.trackInfo {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.actions {
+  cursor: pointer;
+  position: relative;
+}
+
+.chevronIcon {
+  position: relative;
+  transform: translateY(10%);
+}
+
+.fileInput {
+  display: none;
+}

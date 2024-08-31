@@ -2,20 +2,8 @@
 /* @tailwind components; */
 @tailwind utilities;
 
-:root, body {
+:root {
   font-family: Arial, Helvetica, sans-serif;
-  height: 100%;
-}
-
-.landing {
-  margin: 2rem 1rem;
-  max-width: 750px;
-}
-.status-message {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
 }
 
 .editor {
@@ -27,51 +15,6 @@
   cursor: pointer;
   color: blue;
   text-decoration: underline;
-}
-
-.top-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background-color: #a9d9d5;
-  padding: 0.5em;
-  border-bottom: solid black 1px;
-}
-.track-info {
-  font-size: 18px;
-  margin-right: 2rem;
-}
-.track-info .track {
-  font-weight: bold;
-}
-.actions {
-  display: flex;
-  gap: 0.5rem;
-}
-#csv-upload {
-  display: none;
-}
-.load-button {
-  cursor: pointer;
-  border-radius: 3px;
-  font-size: 0.875rem;
-  font-family: Arial, Helvetica, sans-serif;
-  appearance: auto;
-  text-rendering: auto;
-  color: buttontext;
-  text-indent: 0px;
-  display: inline-block;
-  text-align: center;
-  align-items: flex-start;
-  box-sizing: border-box;
-  background-color: buttonface;
-  margin: 0;
-  padding-block: 1px;
-  padding-inline: 6px;
-  border-width: 1px;
-  border-style: outset;
-  border-color: buttonborder;
-  border-image: initial;
 }
 
 .entries {

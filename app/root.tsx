@@ -9,7 +9,7 @@ import { useSpotifyAuth, AuthStatus } from "./lib/spotify";
 
 import Editor from "./components/Editor";
 import Landing from "./components/Landing";
-import Icon from "./components/Icon";
+import Loading from "./components/Loading";
 
 export const meta: MetaFunction = () => [
 	{ charSet: "utf-8" },
@@ -34,13 +34,13 @@ export const links: LinksFunction = () => [
 ];
 
 export const Layout = ({ children }: { children: React.ReactNode }) => (
-	<html lang="en">
+	<html lang="en" className="h-full">
 		<head>
 			<Meta />
 			<Links />
 			<ColorSchemeScript />
 		</head>
-		<body>
+		<body className="flex flex-col h-full">
 			<MantineProvider>{children}</MantineProvider>
 			<ScrollRestoration />
 			<Scripts />
@@ -63,18 +63,7 @@ const NotAuthenticated = ({ status }: { status: AuthStatus }) => (
 		{status === AuthStatus.LOADING ? (
 			<Loading message="loading" />
 		) : (
-			<Landing /> // <Loading message="loading" />
+			<Landing />
 		)}
-	</Center>
-);
-
-const Loading = ({ message }: { message: React.ReactNode }) => (
-	<Center className="flex-col">
-		<Icon
-			name="progress_activity"
-			style={{ fontSize: "2.25rem" }}
-			className="animate-spin"
-		/>
-		{message}
 	</Center>
 );

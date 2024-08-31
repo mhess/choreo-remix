@@ -13,15 +13,15 @@ const loadEntries = (entries?: Entry[]) => {
 	entriesWithHighlight = nonEmptyEntries.map((entry: Entry) => ({ entry }));
 };
 
-let timeoutId = 0;
-const debounced =
+// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+const debounced = (fn: (...rest: any[]) => void, timeMs: number) => {
+	let timeoutId = 0;
 	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-		(fn: (...rest: any[]) => any) =>
-		// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-		(...args: any[]) => {
-			clearTimeout(timeoutId);
-			timeoutId = window.setTimeout(() => fn(...args), 2000);
-		};
+	return (...args: any[]) => {
+		clearTimeout(timeoutId);
+		timeoutId = window.setTimeout(() => fn(...args), timeMs);
+	};
+};
 let entriesWithHighlight: EntryWithHighlight[];
 loadEntries();
 
@@ -103,9 +103,9 @@ const storeEntriesLocally = () => {
 	localStorage.setItem(STORAGE_KEY, JSON.stringify(getEntries()));
 };
 
-const debouncedStoreEntriesLocally = debounced(storeEntriesLocally);
+const debouncedStoreEntriesLocally = debounced(storeEntriesLocally, 2000);
 
-export const useEntries = (player: WrappedPlayer) => {
+export const useEntries = (player: WrappedPlayer | undefined) => {
 	const scrollerRef = useRef<HTMLElement>();
 	const [renderState, render] = useRender();
 
@@ -116,10 +116,12 @@ export const useEntries = (player: WrappedPlayer) => {
 	}, []);
 
 	useEffect(() => {
+		if (!player) return;
+
 		const cb = getHighlightCurrentEntry(scrollerRef);
 		if (entriesWithHighlight.length) player.addOnTick(cb);
 		return () => player.removeOnTick(cb);
-	}, [!!entriesWithHighlight.length]);
+	}, [!!player, !!entriesWithHighlight.length]);
 
 	const addEntry = (timeMs: number) => {
 		if (entriesSet.has(timeMs)) return;
@@ -158,7 +160,7 @@ export const useEntries = (player: WrappedPlayer) => {
 
 	return useMemo(
 		() => ({
-			entries: entriesWithHighlight,
+			entries: entriesWithHighlight.map(({ entry }) => entry),
 			scrollerRef,
 			addEntry,
 			removeEntry,

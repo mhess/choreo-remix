@@ -1,41 +1,50 @@
 import { useState, useEffect, useContext } from "react";
 import type { LegacyRef } from "react";
+import { Center, Text } from "@mantine/core";
+import { Link } from "@remix-run/react";
+
 import {
 	useSpotifyPlayer,
 	PlayerContext,
 	usePlayer,
 	PlayerStatus,
 } from "../lib/spotify";
-import type {
-	WrappedPlayer,
-	SpotifyAuthToken,
-	OnTickCallback,
-} from "../lib/spotify";
-import Icon from "./Icon";
+import type { SpotifyAuthToken, OnTickCallback } from "../lib/spotify";
 import { EntriesContext, useEntries, useEntry } from "../lib/entries";
-import { Link } from "@remix-run/react";
+
+import Icon from "./Icon";
+import Loading from "./Loading";
+import Header from "./Header";
 
 export default ({ token }: { token: SpotifyAuthToken }) => {
 	const { player, status } = useSpotifyPlayer(token);
+	const isPlayerReady = status === PlayerStatus.READY && !!player;
+	const entries = useEntries(player);
 
-	return status === PlayerStatus.READY && player ? (
-		<Editor player={player as WrappedPlayer} />
-	) : (
-		<StatusMessage status={status} />
+	return (
+		<EntriesContext.Provider value={entries}>
+			<Header player={player} logout={token.reset} />
+			{isPlayerReady ? (
+				<PlayerContext.Provider value={player}>
+					<Entries />
+				</PlayerContext.Provider>
+			) : (
+				<Center className="h-full">{messageByStatus[status]}</Center>
+			)}
+		</EntriesContext.Provider>
 	);
 };
 
 const TryAgain = ({ message }: { message: string }) => (
-	<p>
+	<Text>
 		{message} Would you like to try to <Link to="auth/login">log in</Link>{" "}
 		again?
-	</p>
+	</Text>
 );
 
 const messageByStatus: Record<PlayerStatus, React.ReactNode> = {
 	[PlayerStatus.READY]: "shouldn't happen!",
-	[PlayerStatus.LOADING]: "Connecting to Spotify",
-
+	[PlayerStatus.LOADING]: <Loading message="Connecting to Spotify" />,
 	[PlayerStatus.NOT_CONNECTED]: `Please connect to the "Choreo" device on your Spotify player`,
 	[PlayerStatus.PLAYBACK_ERROR]: (
 		<TryAgain message="There was an error with playback." />
@@ -47,95 +56,28 @@ const messageByStatus: Record<PlayerStatus, React.ReactNode> = {
 	[PlayerStatus.AUTH_ERROR]: <TryAgain message="Could not authorize access." />,
 };
 
-const StatusMessage = ({ status }: { status: PlayerStatus }) => {
-	return <div className="status-message">{messageByStatus[status]}</div>;
-};
+const Entries = () => {
+	const player = useContext(PlayerContext);
+	const entries = useContext(EntriesContext);
 
-const Editor = ({ player }: { player: WrappedPlayer }) => {
 	useEffect(
 		() => () => {
-			player?.pause();
+			player.pause();
 		},
 		[],
 	);
-	const entries = useEntries(player);
 
 	return (
-		<PlayerContext.Provider value={player}>
-			<EntriesContext.Provider value={entries}>
-				<div className="editor">
-					<TopBar />
-					<div
-						className="entries"
-						ref={entries.scrollerRef as LegacyRef<HTMLDivElement>}
-					>
-						{entries.entries.map((entry, index) => (
-							<Entry key={entry.entry.timeMs} index={index} />
-						))}
-					</div>
-					<Controls />
-				</div>
-			</EntriesContext.Provider>
-		</PlayerContext.Provider>
-	);
-};
-
-const TopBar = () => {
-	const player = usePlayer();
-	const {
-		entries,
-		loadFromCSV,
-		saveToCSV,
-		clear: clearEntries,
-	} = useContext(EntriesContext);
-	const [track, setTrack] = useState<Spotify.Track>();
-
-	useEffect(() => {
-		const cb: Spotify.PlaybackStateListener = ({ track_window }) =>
-			setTrack(track_window.current_track);
-		player.addOnStateChange(cb);
-		return () => player.removeOnStateChange(cb);
-	}, []);
-
-	let info: React.ReactNode;
-	if (track) {
-		const artists = track.artists.map(({ name }) => name).join(", ");
-		info = (
-			<>
-				<span className="artist">{artists}</span>
-				{": "}
-				<span className="track">{track.name}</span>
-			</>
-		);
-	}
-
-	const handleSaveCSV = () => {
-		if (!track) return;
-		const formattedTrackName = track.name
-			.toLocaleLowerCase()
-			.replaceAll(" ", "_");
-		saveToCSV(formattedTrackName);
-	};
-
-	const handleLoadCSV = ({ target }: React.ChangeEvent<HTMLInputElement>) => {
-		const file = target?.files?.[0];
-		if (!file) return alert("No file was selected :(");
-		if (file.type !== "text/csv") alert(`File must be of type "text/csv"`);
-		loadFromCSV(file);
-	};
-
-	return (
-		<div className="top-bar">
-			<span className="track-info">{info}</span>
-			<span className="actions">
-				{track && <button onClick={handleSaveCSV}>Save as CSV</button>}
-				<label htmlFor="csv-upload" className="load-button">
-					Load from CSV
-					<input id="csv-upload" type="file" onChange={handleLoadCSV} />
-				</label>
-				{!!entries.length && <button onClick={clearEntries}>Clear</button>}
-				<button onClick={() => player.authToken.reset()}>Log Out</button>
-			</span>
+		<div className="editor">
+			<div
+				className="entries"
+				ref={entries.scrollerRef as LegacyRef<HTMLDivElement>}
+			>
+				{entries.entries.map((entry, index) => (
+					<Entry key={entry.timeMs} index={index} />
+				))}
+			</div>
+			<Controls />
 		</div>
 	);
 };

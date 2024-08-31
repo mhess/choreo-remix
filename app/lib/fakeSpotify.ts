@@ -15,7 +15,7 @@ export const getFakePlayer = () => {
 		position: 0,
 		track_window: {
 			current_track: {
-				name: "Track Name!",
+				name: "Track Name! That is Really Really Long",
 				artists: [{ name: "First Artist" }],
 			},
 		},
