@@ -3,13 +3,19 @@ import type { WrappedPlayer } from "./spotify";
 import Papa from "papaparse";
 
 export type Entry = { meter: number; timeMs: number; note: string };
+
 type EntryWithHighlight = {
 	entry: Entry;
 	highlighter?: (flag: boolean) => void;
 };
 
+const entriesSet: Set<number> = new Set<number>();
+let entriesWithHighlight: EntryWithHighlight[];
+
 const loadEntries = (entries?: Entry[]) => {
 	const nonEmptyEntries = entries || [{ meter: 0, timeMs: 0, note: "Start" }];
+	entriesSet.clear();
+	for (const entry of nonEmptyEntries) entriesSet.add(entry.timeMs);
 	entriesWithHighlight = nonEmptyEntries.map((entry: Entry) => ({ entry }));
 };
 
@@ -22,10 +28,9 @@ const debounced = (fn: (...rest: any[]) => void, timeMs: number) => {
 		timeoutId = window.setTimeout(() => fn(...args), timeMs);
 	};
 };
-let entriesWithHighlight: EntryWithHighlight[];
+
 loadEntries();
 
-const entriesSet: Set<number> = new Set<number>();
 const getEntries = () => entriesWithHighlight.map(({ entry }) => entry);
 
 const saveToCSV = (trackName: string) => {
@@ -105,8 +110,11 @@ const storeEntriesLocally = () => {
 
 const debouncedStoreEntriesLocally = debounced(storeEntriesLocally, 2000);
 
+export type MeterDialogData = { timeMs: number; defaultMeter: number };
+
 export const useEntries = (player: WrappedPlayer | undefined) => {
 	const scrollerRef = useRef<HTMLDivElement>();
+	const [meterDialog, setMeterDialog] = useState<MeterDialogData>();
 	const [renderState, render] = useRender();
 
 	useEffect(() => {
@@ -123,8 +131,20 @@ export const useEntries = (player: WrappedPlayer | undefined) => {
 		return () => player.removeOnTick(cb);
 	}, [!!player, !!entriesWithHighlight.length]);
 
-	const addEntry = (timeMs: number) => {
+	const addEntry = (timeMs: number, inputMeter?: number | null) => {
 		if (entriesSet.has(timeMs)) return;
+		const firstEntry = entriesWithHighlight[0].entry;
+
+		if (
+			inputMeter === undefined &&
+			entriesSet.size === 1 &&
+			firstEntry.timeMs < timeMs
+		) {
+			player?.pause();
+			setMeterDialog({ timeMs, defaultMeter: firstEntry.meter });
+			return;
+		}
+
 		const index = findEntryIndex(timeMs);
 
 		if (index === entriesWithHighlight.length) {
@@ -132,12 +152,20 @@ export const useEntries = (player: WrappedPlayer | undefined) => {
 			if ($scroller) $scroller.scrollTop = $scroller.scrollHeight;
 		}
 
-		const meter = guessMeterForIndex(index, timeMs);
+		const isInputProvided = inputMeter !== null && inputMeter !== undefined;
+		const meter = isInputProvided
+			? inputMeter
+			: guessMeterForIndex(index, timeMs);
 		const newEntry = { entry: { meter, timeMs, note: "" } };
 		entriesWithHighlight.splice(index, 0, newEntry);
 		entriesSet.add(timeMs);
 		debouncedStoreEntriesLocally();
 		render();
+	};
+
+	const closeMeterDialog = (inputMeter: number | null = null) => {
+		addEntry(meterDialog?.timeMs as number, inputMeter);
+		setMeterDialog(undefined);
 	};
 
 	const removeEntry = (index: number) => {
@@ -162,13 +190,15 @@ export const useEntries = (player: WrappedPlayer | undefined) => {
 		() => ({
 			entries: entriesWithHighlight.map(({ entry }) => entry),
 			scrollerRef,
+			meterDialog,
+			closeMeterDialog,
 			addEntry,
 			removeEntry,
 			saveToCSV,
 			loadFromCSV,
 			clear,
 		}),
-		[renderState],
+		[renderState, meterDialog],
 	);
 };
 

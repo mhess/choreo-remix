@@ -4,6 +4,6 @@
   --app-border-color: var(--mantine-color-gray-5);
 }
 
-.input {
+.textInput {
   font-size: var(--mantine-font-size-md);
 }

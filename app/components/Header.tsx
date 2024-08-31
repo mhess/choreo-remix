@@ -86,26 +86,35 @@ const MenuDropdown = ({
 	};
 
 	return (
-		<Menu.Dropdown>
-			{!!trackName && (
-				<>
-					<Menu.Item>
-						<Text size="sm" component="label" htmlFor="csv-upload">
-							Load from CSV
-							<input
-								className={classes.fileInput}
-								id="csv-upload"
-								type="file"
-								onChange={handleLoadCSV}
-							/>
-						</Text>
-					</Menu.Item>
-					<Menu.Item onClick={handleSaveCSV}>Save to CSV</Menu.Item>
-					<Menu.Item onClick={clear}>Clear</Menu.Item>
-				</>
-			)}
-			{logout && <Menu.Item onClick={logout}>Log Out</Menu.Item>}
-		</Menu.Dropdown>
+		<>
+			{/* This input must still be rendered even after the menu dropdown closes
+			  in order for the onChange callback to get invoked */}
+			<input
+				className={classes.fileInput}
+				id="csv-upload"
+				type="file"
+				onChange={handleLoadCSV}
+			/>
+			<Menu.Dropdown>
+				{!!trackName && (
+					<>
+						<Menu.Item>
+							<Text
+								className="cursor-pointer"
+								size="sm"
+								component="label"
+								htmlFor="csv-upload"
+							>
+								Load from CSV
+							</Text>
+						</Menu.Item>
+						<Menu.Item onClick={handleSaveCSV}>Save to CSV</Menu.Item>
+						<Menu.Item onClick={clear}>Clear</Menu.Item>
+					</>
+				)}
+				{logout && <Menu.Item onClick={logout}>Log Out</Menu.Item>}
+			</Menu.Dropdown>
+		</>
 	);
 };
 

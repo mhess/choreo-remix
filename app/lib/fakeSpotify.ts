@@ -1,4 +1,3 @@
-const RESOLVED_PROMISE = Promise.resolve();
 type ListenerMap = {
 	ready?: Spotify.PlaybackInstanceListener[];
 	not_ready?: Spotify.PlaybackInstanceListener[];
@@ -21,26 +20,35 @@ export const getFakePlayer = () => {
 		},
 	} as Spotify.PlaybackState;
 
+	const invokeStateListeners = () => {
+		const callbacks = listeners.player_state_changed;
+		if (callbacks) for (const cb of callbacks) cb(currentState);
+	};
+
 	return {
-		async pause() {},
+		async pause() {
+			if (currentState.paused) return;
+			currentState.paused = true;
+			currentState.position = Date.now() - playStarted;
+			invokeStateListeners();
+		},
 		async connect() {
 			return true;
 		},
-		getCurrentState() {
+		async getCurrentState() {
 			const { paused, position } = currentState;
 			const stateWithPosition = {
 				...currentState,
 				position: paused ? position : Date.now() - playStarted,
 			};
-			return Promise.resolve(stateWithPosition);
+			return stateWithPosition;
 		},
-		seek(ms: number) {
+		async seek(ms: number) {
 			const bounded = ms < 0 ? 0 : ms;
 			playStarted = Date.now() - bounded;
 			currentState = { ...currentState, position: bounded };
-			return RESOLVED_PROMISE;
 		},
-		togglePlay() {
+		async togglePlay() {
 			const { paused, position } = currentState;
 			if (paused) playStarted = Date.now() - position;
 			const newPosition = paused ? position : Date.now() - playStarted;
@@ -49,9 +57,7 @@ export const getFakePlayer = () => {
 				paused: !paused,
 				position: newPosition,
 			};
-			const callbacks = listeners.player_state_changed;
-			if (callbacks) for (const cb of callbacks) cb(currentState);
-			return RESOLVED_PROMISE;
+			invokeStateListeners();
 		},
 		addListener(eventName, callback) {
 			const callbacks = listeners[eventName];

@@ -11,6 +11,7 @@
 }
 
 .logo {
+  color: var(--mantine-color-violet-9);
   text-transform: uppercase;
   font-weight: bold;
   font-size: var(--mantine-font-size-sm);

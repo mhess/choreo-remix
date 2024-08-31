@@ -4,3 +4,29 @@
   padding-bottom: 2rem;
   scrollbar-width: none;
 }
+
+.meterDialogTitle {
+  font-size: var(--mantine-font-size-lg);
+  font-weight: 700;
+}
+
+.meterDialogBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-md);
+}
+
+.meterDialogInputRoot {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-sm)
+}
+
+.meterDialogInputInput {
+  text-align: right;
+  width: 3rem;
+}
+
+.meterDialogInputLabel {
+  font-size: var(--mantine-font-size-sm);
+}

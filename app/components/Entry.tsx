@@ -2,7 +2,7 @@ import { useContext } from "react";
 import {
 	CloseButton,
 	Group,
-	Input,
+	TextInput,
 	Text,
 	useMantineTheme,
 } from "@mantine/core";
@@ -30,7 +30,7 @@ export default ({ index }: { index: number }) => {
 			className={classes.entry}
 			bg={isHighlighted ? theme.colors.orange[4] : ""}
 		>
-			<Input
+			<TextInput
 				classNames={{ input: classes.meterInput }}
 				value={Number(meter).toString()}
 				min={0}
@@ -44,7 +44,12 @@ export default ({ index }: { index: number }) => {
 			>
 				{displayMs(timeMs)}
 			</Text>
-			<Input className="flex-1 mr-2" value={note} onChange={handleNoteChange} />
+			<TextInput
+				flex={1}
+				mr="0.5rem"
+				value={note}
+				onChange={handleNoteChange}
+			/>
 			<CloseButton onClick={() => removeEntry(index)} />
 		</Group>
 	);

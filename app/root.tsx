@@ -19,9 +19,9 @@ import Loading from "./components/Loading";
 
 const theme = createTheme({
 	components: {
-		Input: {
+		TextInput: {
 			defaultProps: { size: "xs" },
-			classNames: { input: classes.input },
+			classNames: { input: classes.textInput },
 		},
 		Button: {
 			defaultProps: { size: "compact-sm", variant: "default" },
@@ -52,13 +52,13 @@ export const links: LinksFunction = () => [
 ];
 
 export const Layout = ({ children }: { children: React.ReactNode }) => (
-	<html lang="en" className="h-full">
+	<html lang="en">
 		<head>
 			<Meta />
 			<Links />
 			<ColorSchemeScript />
 		</head>
-		<body className="flex flex-col h-full">
+		<body>
 			<MantineProvider theme={theme}>{children}</MantineProvider>
 			<ScrollRestoration />
 			<Scripts />
@@ -77,7 +77,7 @@ export default function App() {
 }
 
 const NotAuthenticated = ({ status }: { status: AuthStatus }) => (
-	<Center className="h-full">
+	<Center h="100%">
 		{status === AuthStatus.LOADING ? (
 			<Loading message="loading" />
 		) : (
