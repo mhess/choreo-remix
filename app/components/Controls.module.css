@@ -1,10 +1,12 @@
+@import '../theme.module.css';
+
 .controls {
   display: flex;
   align-items: center;
-  background-color: var(--mantine-color-green-1);
+  background-color: var(--app-bg-color);
   gap: 0.25em;
   padding: 0.5em 0;
-  border-top: 1px solid var(--mantine-color-gray-5);
+  border-top: 1px solid var(--app-border-color);
 }
 
 .timeDisplay {

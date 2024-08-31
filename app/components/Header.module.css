@@ -1,10 +1,13 @@
+@import '../theme.module.css';
+
 .header {
+  color: var(--app-font-color);
   justify-content: space-between;
   align-items: center;
   flex-wrap: nowrap;
   padding: 0.375rem var(--mantine-spacing-md);
-  background-color: var(--mantine-color-green-1);
-  border-bottom: 1px solid var(--mantine-color-gray-5);
+  background-color: var(--app-bg-color);
+  border-bottom: 1px solid var(--app-border-color);
 }
 
 .logo {
@@ -27,8 +30,14 @@
 }
 
 .actions {
-  cursor: pointer;
+  color: var(--app-font-color);
+  font-size: var(--mantine-font-size-md);
+  font-weight: normal;
   position: relative;
+}
+
+.actions:hover {
+  color: var(--app-font-color);
 }
 
 .chevronIcon {

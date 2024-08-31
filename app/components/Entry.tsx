@@ -38,8 +38,7 @@ export default ({ index }: { index: number }) => {
 				onChange={handleMeterChange}
 			/>
 			<Text
-				p="sm"
-				className="cursor-pointer"
+				className={classes.timestamp}
 				span
 				onClick={() => player.seekTo(timeMs)}
 			>

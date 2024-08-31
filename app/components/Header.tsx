@@ -47,13 +47,13 @@ export default ({
 				{track && (
 					<Menu trigger="hover">
 						<Menu.Target>
-							<Center className={classes.actions}>
+							<Button variant="subtle" className={classes.actions}>
 								Actions
 								<Icon
 									name="keyboard_arrow_down"
 									className={classes.chevronIcon}
 								/>
-							</Center>
+							</Button>
 						</Menu.Target>
 						<MenuDropdown trackName={track.name} />
 					</Menu>

@@ -1,3 +1,9 @@
+:root {
+  --app-font-color: var(--mantine-color-gray-9);
+  --app-bg-color: var(--mantine-color-green-3);
+  --app-border-color: var(--mantine-color-gray-5);
+}
+
 .input {
   font-size: var(--mantine-font-size-md);
 }

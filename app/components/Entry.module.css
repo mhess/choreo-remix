@@ -8,6 +8,15 @@
   background-color: var(--mantine-color-gray-2);
 }
 
+.timestamp {
+  cursor: pointer;
+  padding: 0.5rem var(--mantine-spacing-sm);
+}
+
+.timestamp:hover {
+  color: var(--mantine-color-blue-9);
+}
+
 .meterInput {
   width: 3.25rem;
   text-align: right;
