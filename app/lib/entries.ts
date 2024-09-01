@@ -64,11 +64,7 @@ const loadEntriesFromCSV = async (file: File) => {
 let highlightedIndex: number;
 
 const getHighlightCurrentEntry =
-	(
-		scrollRef: MutableRefObject<HTMLElement | undefined>,
-		containerRef: MutableRefObject<HTMLElement | undefined>,
-	) =>
-	(timeMs: number) => {
+	(scrollRef: ElementRef, containerRef: ElementRef) => (timeMs: number) => {
 		if (!entriesWithHighlight.length) return;
 
 		let newIndex = undefined;
@@ -261,8 +257,8 @@ const guessCountForIndex = (index: number, timeMs: number) => {
 };
 
 const setEntriesScrollPosition = (
-	scrollRef: MutableRefObject<HTMLElement | undefined>,
-	containerRef: MutableRefObject<HTMLElement | undefined>,
+	scrollRef: ElementRef,
+	containerRef: ElementRef,
 	newIndex: number,
 ) => {
 	const $scroller = scrollRef.current;

@@ -1,18 +1,10 @@
-import { useEffect, useContext, useRef } from "react";
+import { useEffect, useContext } from "react";
 import type { MutableRefObject } from "react";
-import {
-	Box,
-	Button,
-	Center,
-	Container,
-	Group,
-	Modal,
-	Text,
-	TextInput,
-} from "@mantine/core";
+import { Box, Center, Container, Group, Text } from "@mantine/core";
 import { Link } from "@remix-run/react";
+import { useDisclosure } from "@mantine/hooks";
 
-import { useSpotifyPlayer, PlayerContext, PlayerStatus } from "../lib/spotify";
+import { useSpotifyPlayer, PlayerContext, PlayerStatus } from "~/lib/spotify";
 import type { SpotifyAuthToken } from "../lib/spotify";
 import { EntriesContext, useEntries } from "../lib/entries";
 
@@ -21,6 +13,7 @@ import Loading from "./Loading";
 import Header from "./Header";
 import Controls from "./Controls";
 import Entry from "./Entry";
+import Help from "./Help";
 
 export default ({ token }: { token: SpotifyAuthToken }) => {
 	const { player, status } = useSpotifyPlayer(token);
@@ -44,6 +37,7 @@ export default ({ token }: { token: SpotifyAuthToken }) => {
 const Entries = () => {
 	const player = useContext(PlayerContext);
 	const { entries, scrollerRef, containerRef } = useContext(EntriesContext);
+	const [isHelpOpen, { toggle }] = useDisclosure(false);
 
 	useEffect(
 		() => () => {
@@ -54,25 +48,34 @@ const Entries = () => {
 
 	return (
 		<>
+			{isHelpOpen && <EntryHeader />}
 			<Box
 				className={classes.entries}
+				style={{ paddingBottom: isHelpOpen ? 0 : "2rem" }}
 				ref={scrollerRef as MutableRefObject<HTMLDivElement>}
 			>
-				<Group className={classes.entryHeader}>
-					<Text className={classes.count}>count</Text>
-					<Text className={classes.timestamp}>timestamp</Text>
-					<Text pl="sm">notes</Text>
-				</Group>
+				{!isHelpOpen && <EntryHeader />}
 				<Box ref={containerRef as MutableRefObject<HTMLDivElement>}>
 					{entries.map(({ timeMs }, index) => (
 						<Entry key={timeMs} index={index} />
 					))}
 				</Box>
+				{isHelpOpen && (
+					<Help scrollerRef={scrollerRef} containerRef={containerRef} />
+				)}
 			</Box>
-			<Controls />
+			<Controls help={{ isShowing: isHelpOpen, toggle }} />
 		</>
 	);
 };
+
+const EntryHeader = () => (
+	<Group className={classes.entryHeader}>
+		<Text className={classes.count}>count</Text>
+		<Text className={classes.timestamp}>timestamp</Text>
+		<Text pl="sm">notes</Text>
+	</Group>
+);
 
 const TryAgain = ({ message }: { message: string }) => (
 	<Text>

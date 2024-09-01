@@ -1,12 +1,16 @@
 @import '../theme.module.css';
 
-.controls {
+.controlBar {
   display: flex;
   align-items: center;
   background-color: var(--app-bg-color);
-  gap: 0.25em;
-  padding: 0.5em 0;
+  justify-content: space-between;
+  padding: 0.5em 1rem;
   border-top: 1px solid var(--app-border-color);
+}
+
+.controls {
+  gap: 0.25em;
 }
 
 .timeDisplay {
@@ -15,7 +19,7 @@
   text-align: right;
   padding: 0 0.5rem;
   background-color: white;
-  margin: 0 1rem;
+  margin-right: 1rem;
   width: 5.5rem;
   line-height: 1.75;
   border-radius: var(--mantine-radius-sm);
@@ -28,4 +32,15 @@
 
 .btnLabel :global(.material-symbols-outlined) {
   font-size: var(--mantine-font-size-xl);
+}
+
+.helpTooltip {
+  font-size: var(--mantine-font-size-sm);
+  animation: blinking 1s linear infinite;
+}
+
+@keyframes blinking {
+  50% {
+    filter: brightness(130%);
+  }
 }

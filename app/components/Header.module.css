@@ -2,9 +2,9 @@
 
 .header {
   color: var(--app-font-color);
-  justify-content: space-between;
   align-items: center;
   flex-wrap: nowrap;
+  gap: 0;
   padding: 0.375rem var(--mantine-spacing-md);
   background-color: var(--app-bg-color);
   border-bottom: 1px solid var(--app-border-color);
@@ -18,7 +18,6 @@
 }
 
 .headerLeftSide {
-  flex: 1;
   gap: var(--mantine-spacing-md);
   flex-wrap: nowrap;
   min-width: 0;
@@ -30,19 +29,38 @@
   text-overflow: ellipsis;
 }
 
-.actions {
-  color: var(--app-font-color);
-  border-color: var(--mantine-color-gray-6);
-  position: relative;
+.headerRightSide {
+  flex: 1;
+  justify-content: space-between;
 }
 
-.actions:hover {
-  color: var(--app-font-color);
+.changeTrack {
+  position: relative;
+  margin: 0 0.5rem;
+  padding: 0 0.5em;
+  height: 1rem;
+  font-size: 0.625rem;
+  top: -0.25rem;
+
+  &:active {
+    transform: none;
+  }
+}
+/* For some reason both these :active rules are needed */
+.changeTrack:active {
+  transform: none;
+}
+
+.actions {
+  margin-right: 0.5rem;
+
+  &:active {
+    transform: none;
+  }
 }
 
 .chevronIcon {
   font-size: 1.25rem;
-  position: relative;
   transform: translateY(0.0625rem);
 }
 

@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import { Burger, Button, Center, Group, Menu, Text } from "@mantine/core";
+import { Box, Burger, Button, Group, Menu, Text, Tooltip } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 
 import type { WrappedPlayer } from "~/lib/spotify";
@@ -43,23 +43,34 @@ export default ({
 					</Text>
 				)}
 			</Group>
-			<Group visibleFrom="sm" gap="0.5rem">
+			<Group className={classes.headerRightSide}>
 				{track && (
-					<Menu trigger="hover">
-						<Menu.Target>
-							<Button variant="outline" className={classes.actions}>
-								Actions
-								<Icon
-									name="keyboard_arrow_down"
-									className={classes.chevronIcon}
-								/>
-							</Button>
-						</Menu.Target>
-						<MenuDropdown trackName={track.name} />
-					</Menu>
+					<>
+						<ChangeTrackPopover />
+						<Box visibleFrom="sm">
+							<Menu trigger="hover">
+								<Menu.Target>
+									<Button
+										className={classes.actions}
+										variant="outline"
+										color="var(--mantine-color-gray-7)"
+									>
+										Actions
+										<Icon
+											name="keyboard_arrow_down"
+											className={classes.chevronIcon}
+										/>
+									</Button>
+								</Menu.Target>
+								<MenuDropdown trackName={track.name} />
+							</Menu>
+						</Box>
+					</>
 				)}
-				<Button onClick={logout}>Log Out</Button>
 			</Group>
+			<Button visibleFrom="sm" onClick={logout}>
+				Log Out
+			</Button>
 			<BurgerMenu trackName={track?.name} logout={logout} />
 		</Group>
 	);
@@ -131,5 +142,22 @@ const BurgerMenu = ({
 			</Menu.Target>
 			<MenuDropdown trackName={trackName} logout={logout} />
 		</Menu>
+	);
+};
+
+const ChangeTrackPopover = () => {
+	return (
+		<Tooltip
+			withArrow
+			label="Use a the Spotify desktop or mobile app to change the track."
+		>
+			<Button
+				className={classes.changeTrack}
+				variant="outline"
+				color="var(--mantine-color-gray-7)"
+			>
+				Change?
+			</Button>
+		</Tooltip>
 	);
 };

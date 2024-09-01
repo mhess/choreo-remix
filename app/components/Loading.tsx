@@ -1,13 +1,8 @@
-import { Center } from "@mantine/core";
-import Icon from "./Icon";
+import { Center, Loader } from "@mantine/core";
 
 export default ({ message }: { message: React.ReactNode }) => (
 	<Center className="flex-col">
-		<Icon
-			name="progress_activity"
-			style={{ fontSize: "2.25rem" }}
-			className="animate-spin"
-		/>
+		<Loader mb="0.5rem" color="var(--mantine-color-gray-7)" />
 		{message}
 	</Center>
 );

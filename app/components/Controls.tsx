@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import { Button, Group, Text } from "@mantine/core";
+import { Button, Group, Text, Tooltip } from "@mantine/core";
 
 import { EntriesContext } from "../lib/entries";
 import { usePlayer } from "../lib/spotify";
@@ -9,7 +9,7 @@ import { displayMs } from "../lib/utils";
 import Icon from "./Icon";
 import classes from "./Controls.module.css";
 
-export default () => {
+export default ({ help }: { help: Help }) => {
 	const { addEntry } = useContext(EntriesContext);
 	const player = usePlayer();
 	const [paused, setPaused] = useState(false);
@@ -33,40 +33,43 @@ export default () => {
 	};
 
 	return (
-		<Group className={classes.controls}>
-			<TrackTime />
-			<Button
-				classNames={{ label: classes.btnLabel }}
-				onClick={handleSeekDir(-5000)}
-				title="Rewind 5 sec"
-			>
-				<Icon name="fast_rewind" /> 5
-			</Button>
-			<Button
-				classNames={{ label: classes.btnLabel }}
-				onClick={() => player.togglePlay()}
-				title={paused ? "Play" : "Pause"}
-			>
-				{paused ? <Icon name="play_arrow" /> : <Icon name="pause" />}
-			</Button>
-			<Button
-				classNames={{ label: classes.btnLabel }}
-				onClick={handleSeekDir(5000)}
-				title="Fast-forward 5 sec"
-			>
-				5 <Icon name="fast_forward" />
-			</Button>
-			<Button
-				classNames={{ label: classes.btnLabel }}
-				ml="md"
-				onClick={handleAddEntry}
-				title="Add Entry"
-			>
-				<Icon
-					style={{ position: "relative", top: "1px" }}
-					name="playlist_add"
-				/>
-			</Button>
+		<Group className={classes.controlBar}>
+			<Group className={classes.controls}>
+				<TrackTime />
+				<Button
+					classNames={{ label: classes.btnLabel }}
+					onClick={handleSeekDir(-5000)}
+					title="Rewind 5 sec"
+				>
+					<Icon name="fast_rewind" /> 5
+				</Button>
+				<Button
+					classNames={{ label: classes.btnLabel }}
+					onClick={() => player.togglePlay()}
+					title={paused ? "Play" : "Pause"}
+				>
+					{paused ? <Icon name="play_arrow" /> : <Icon name="pause" />}
+				</Button>
+				<Button
+					classNames={{ label: classes.btnLabel }}
+					onClick={handleSeekDir(5000)}
+					title="Fast-forward 5 sec"
+				>
+					5 <Icon name="fast_forward" />
+				</Button>
+				<Button
+					classNames={{ label: classes.btnLabel }}
+					ml="md"
+					onClick={handleAddEntry}
+					title="Add Entry"
+				>
+					<Icon
+						style={{ position: "relative", top: "1px" }}
+						name="playlist_add"
+					/>
+				</Button>
+			</Group>
+			<HelpButton help={help} />
 		</Group>
 	);
 };
@@ -82,8 +85,51 @@ const TrackTime = () => {
 	}, []);
 
 	return (
-		<Text span className={classes.timeDisplay}>
-			{displayMs(timeMs)}
-		</Text>
+		<Tooltip withArrow label="Current Track Time">
+			<Text span className={classes.timeDisplay}>
+				{displayMs(timeMs)}
+			</Text>
+		</Tooltip>
+	);
+};
+
+const LS_NO_HELP_KEY = "autoHelp";
+
+const HelpButton = ({ help }: { help: Help }) => {
+	const [isTooltipOpen, setIsTooltipOpen] = useState(false);
+
+	const handleClick = () => {
+		if (isTooltipOpen) localStorage.setItem(LS_NO_HELP_KEY, "true");
+		setIsTooltipOpen(false);
+		help.toggle();
+	};
+
+	useEffect(() => {
+		const noHelp = !!localStorage.getItem(LS_NO_HELP_KEY);
+		if (!noHelp) setIsTooltipOpen(true);
+	}, []);
+
+	return (
+		<Tooltip
+			className={classes.helpTooltip}
+			opened={isTooltipOpen}
+			arrowSize={8}
+			offset={10}
+			withArrow
+			color="orange"
+			label="First time here? Click below to toggle the help messages!"
+		>
+			<Button
+				variant="outline"
+				color="var(--app-font-color)"
+				onClick={handleClick}
+			>
+				{help.isShowing ? "Hide" : "Show"} Help{" "}
+				<Icon
+					name="help"
+					style={{ fontSize: "1.25rem", marginLeft: "0.25rem" }}
+				/>
+			</Button>
+		</Tooltip>
 	);
 };

@@ -1,0 +1,50 @@
+.help {
+  justify-content: space-between;
+  align-items: center;
+}
+
+.helpSection {
+  padding: 0.5rem 1rem;
+  background-color: var(--mantine-color-yellow-1);
+  overflow-y: auto;
+
+  &:first-child {
+    border-bottom-left-radius: 0.5rem;
+    border-bottom-right-radius: 0.5rem;
+  }
+
+  &:last-child {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+    border-top-left-radius: 0.5rem;
+    border-top-right-radius: 0.5rem;
+  }
+
+  dl {
+    margin: 0.5rem 0 0;
+  }
+
+  dt {
+    font-weight: bold;
+    font-style: italic;
+  }
+
+  dd{
+    margin-left: 1rem;
+  }
+
+  * {
+    font-size: var(--mantine-font-size-xs);
+  }
+
+  .pointUp {
+    transform: scaleY(-1) rotate(-90deg);
+    font-size: 1.25rem;
+  }
+
+  .pointDown {
+    transform: rotate(-90deg);
+    font-size: 1.25rem;
+  }
+}

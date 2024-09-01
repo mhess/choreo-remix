@@ -3,7 +3,6 @@
 .entries {
   flex: 1;
   overflow-y: scroll;
-  padding-bottom: 2rem;
   scrollbar-width: none;
 }
 
