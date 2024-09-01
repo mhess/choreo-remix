@@ -6,3 +6,5 @@ export const displayMs = (totalMs: number) => {
 
 	return `${minutes}:${seconds}.${ms}`;
 };
+
+export const MOBILE_BREAKPOINT = "xs";

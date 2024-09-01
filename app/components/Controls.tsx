@@ -37,30 +37,33 @@ export default ({ help }: { help: Help }) => {
 	return (
 		<Group className={classes.controlBar}>
 			<Group className={classes.controls}>
-				<TrackTime />
+				<Group className={classes.playback}>
+					<TrackTime />
+					<Button
+						classNames={{ label: classes.btnLabel }}
+						onClick={handleSeekDir(-5000)}
+						title="Rewind 5 sec"
+					>
+						<Icon name="fast_rewind" /> 5
+					</Button>
+					<Button
+						classNames={{ label: classes.btnLabel }}
+						onClick={() => player.togglePlay()}
+						title={paused ? "Play" : "Pause"}
+					>
+						{paused ? <Icon name="play_arrow" /> : <Icon name="pause" />}
+					</Button>
+					<Button
+						classNames={{ label: classes.btnLabel }}
+						onClick={handleSeekDir(5000)}
+						title="Fast-forward 5 sec"
+					>
+						5 <Icon name="fast_forward" />
+					</Button>
+				</Group>
 				<Button
 					classNames={{ label: classes.btnLabel }}
-					onClick={handleSeekDir(-5000)}
-					title="Rewind 5 sec"
-				>
-					<Icon name="fast_rewind" /> 5
-				</Button>
-				<Button
-					classNames={{ label: classes.btnLabel }}
-					onClick={() => player.togglePlay()}
-					title={paused ? "Play" : "Pause"}
-				>
-					{paused ? <Icon name="play_arrow" /> : <Icon name="pause" />}
-				</Button>
-				<Button
-					classNames={{ label: classes.btnLabel }}
-					onClick={handleSeekDir(5000)}
-					title="Fast-forward 5 sec"
-				>
-					5 <Icon name="fast_forward" />
-				</Button>
-				<Button
-					classNames={{ label: classes.btnLabel }}
+					px="1.5rem"
 					ml="md"
 					onClick={handleAddEntry}
 					title="Add Entry"

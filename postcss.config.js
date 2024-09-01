@@ -5,6 +5,7 @@ export default {
     'postcss-preset-mantine': {},
     'postcss-simple-vars': {
       variables: {
+        'mobile-breakpoint': '36em',
         'mantine-breakpoint-xs': '36em',
         'mantine-breakpoint-sm': '48em',
         'mantine-breakpoint-md': '62em',

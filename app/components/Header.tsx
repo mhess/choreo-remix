@@ -1,9 +1,10 @@
 import { useContext, useEffect, useState } from "react";
-import { Box, Burger, Button, Group, Menu, Text, Tooltip } from "@mantine/core";
+import { Box, Burger, Button, Group, Menu, Text } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 
 import type { WrappedPlayer } from "~/lib/spotify";
 import { EntriesContext } from "~/lib/entries";
+import { MOBILE_BREAKPOINT } from "~/lib/utils";
 
 import TooltipWithClick from "./TooltipWithClick";
 import Icon from "./Icon";
@@ -57,7 +58,7 @@ export default ({
 								Change?
 							</Button>
 						</TooltipWithClick>
-						<Box visibleFrom="sm">
+						<Box visibleFrom={MOBILE_BREAKPOINT}>
 							<Menu trigger="hover">
 								<Menu.Target>
 									<Button
@@ -78,7 +79,7 @@ export default ({
 					</>
 				)}
 			</Group>
-			<Button visibleFrom="sm" onClick={logout}>
+			<Button visibleFrom={MOBILE_BREAKPOINT} onClick={logout}>
 				Log Out
 			</Button>
 			<BurgerMenu trackName={track?.name} logout={logout} />
@@ -148,7 +149,11 @@ const BurgerMenu = ({
 	return (
 		<Menu onClose={close}>
 			<Menu.Target>
-				<Burger opened={opened} onClick={toggle} hiddenFrom="sm" />
+				<Burger
+					opened={opened}
+					onClick={toggle}
+					hiddenFrom={MOBILE_BREAKPOINT}
+				/>
 			</Menu.Target>
 			<MenuDropdown trackName={trackName} logout={logout} />
 		</Menu>
