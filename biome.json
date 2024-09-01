@@ -3,6 +3,13 @@
 	"organizeImports": {
 		"enabled": true
 	},
+	"css": {
+		"parser": {
+			"cssModules": true,
+			"allowWrongLineComments": true
+		}
+	},
+
 	"linter": {
 		"enabled": true,
 		"rules": {
