@@ -6,7 +6,9 @@ import { usePlayer } from "../lib/spotify";
 import type { OnTickCallback } from "../lib/spotify";
 import { displayMs } from "../lib/utils";
 
+import TooltipWithClick from "./TooltipWithClick";
 import Icon from "./Icon";
+
 import classes from "./Controls.module.css";
 
 export default ({ help }: { help: Help }) => {
@@ -85,11 +87,11 @@ const TrackTime = () => {
 	}, []);
 
 	return (
-		<Tooltip withArrow label="Current Track Time">
+		<TooltipWithClick label="Current Track Time">
 			<Text span className={classes.timeDisplay}>
 				{displayMs(timeMs)}
 			</Text>
-		</Tooltip>
+		</TooltipWithClick>
 	);
 };
 
@@ -115,7 +117,6 @@ const HelpButton = ({ help }: { help: Help }) => {
 			opened={isTooltipOpen}
 			arrowSize={8}
 			offset={10}
-			withArrow
 			color="orange"
 			label="First time here? Click below to toggle the help messages!"
 		>

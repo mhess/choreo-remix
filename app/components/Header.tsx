@@ -3,10 +3,12 @@ import { Box, Burger, Button, Group, Menu, Text, Tooltip } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 
 import type { WrappedPlayer } from "~/lib/spotify";
+import { EntriesContext } from "~/lib/entries";
 
-import { EntriesContext } from "../lib/entries";
-import classes from "./Header.module.css";
+import TooltipWithClick from "./TooltipWithClick";
 import Icon from "./Icon";
+
+import classes from "./Header.module.css";
 
 export default ({
 	player,
@@ -46,7 +48,15 @@ export default ({
 			<Group className={classes.headerRightSide}>
 				{track && (
 					<>
-						<ChangeTrackPopover />
+						<TooltipWithClick label="Use a the Spotify desktop or mobile app to change the track.">
+							<Button
+								className={classes.changeTrack}
+								variant="outline"
+								color="var(--mantine-color-gray-7)"
+							>
+								Change?
+							</Button>
+						</TooltipWithClick>
 						<Box visibleFrom="sm">
 							<Menu trigger="hover">
 								<Menu.Target>
@@ -142,22 +152,5 @@ const BurgerMenu = ({
 			</Menu.Target>
 			<MenuDropdown trackName={trackName} logout={logout} />
 		</Menu>
-	);
-};
-
-const ChangeTrackPopover = () => {
-	return (
-		<Tooltip
-			withArrow
-			label="Use a the Spotify desktop or mobile app to change the track."
-		>
-			<Button
-				className={classes.changeTrack}
-				variant="outline"
-				color="var(--mantine-color-gray-7)"
-			>
-				Change?
-			</Button>
-		</Tooltip>
 	);
 };

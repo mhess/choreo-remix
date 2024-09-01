@@ -26,6 +26,7 @@ const theme = createTheme({
 		Button: {
 			defaultProps: { size: "compact-sm", variant: "default" },
 		},
+		Tooltip: { defaultProps: { withArrow: true } },
 	},
 });
 
