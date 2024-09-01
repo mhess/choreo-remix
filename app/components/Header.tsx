@@ -49,7 +49,12 @@ export default ({
 			<Group className={classes.headerRightSide}>
 				{track && (
 					<>
-						<TooltipWithClick label="Use a the Spotify desktop or mobile app to change the track.">
+						<TooltipWithClick
+							ta="center"
+							w={200}
+							multiline
+							label="Use a the Spotify desktop or mobile app to change the track."
+						>
 							<Button
 								className={classes.changeTrack}
 								variant="outline"
