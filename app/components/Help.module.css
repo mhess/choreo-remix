@@ -4,16 +4,18 @@
 }
 
 .helpSection {
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 1rem 1rem;
   background-color: var(--mantine-color-yellow-1);
   overflow-y: auto;
 
   &:first-child {
+    flex-shrink: 1;
     border-bottom-left-radius: 0.5rem;
     border-bottom-right-radius: 0.5rem;
   }
 
   &:last-child {
+    flex-basis: fit-content;
     display: flex;
     align-items: flex-end;
     gap: 0.5rem;
@@ -22,6 +24,9 @@
   }
 
   dl {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
     margin: 0.5rem 0 0;
   }
 
@@ -37,14 +42,14 @@
   * {
     font-size: var(--mantine-font-size-xs);
   }
+}
 
-  .pointUp {
-    transform: scaleY(-1) rotate(-90deg);
-    font-size: 1.25rem;
-  }
+.pointUp {
+  transform: scaleY(-1) rotate(-90deg);
+  font-size: 1.25rem;
+}
 
-  .pointDown {
-    transform: rotate(-90deg);
-    font-size: 1.25rem;
-  }
+.pointDown {
+  transform: rotate(-90deg);
+  font-size: 1.25rem;
 }

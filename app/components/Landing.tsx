@@ -15,8 +15,8 @@ export default () => {
 				allows you to save these annotations to CSV files for later.
 			</Text>
 			<Text>
-				<Link to="auth/login">Log in</Link> with your Spotify account to use the
-				app.
+				<Link to="auth/login">Log in</Link> with your Spotify premium account to
+				use the app.
 			</Text>
 		</Container>
 	);

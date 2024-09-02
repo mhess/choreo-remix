@@ -120,6 +120,8 @@ const HelpButton = ({ help }: { help: Help }) => {
 			opened={isTooltipOpen}
 			arrowSize={8}
 			offset={10}
+			multiline
+			w={210}
 			color="orange"
 			label="First time here? Click below to toggle the help messages!"
 		>

@@ -8,45 +8,51 @@ export default ({
 	scrollerRef,
 	containerRef,
 }: { scrollerRef: ElementRef; containerRef: ElementRef }) => {
-	const [height, setHeight] = useState(0);
-
 	useEffect(() => {
 		const $scroller = scrollerRef.current;
-		const scrollerHeight = $scroller?.clientHeight | 0;
-		const lastChildHeight = containerRef.current?.lastChild.clientHeight | 0;
-		setHeight(scrollerHeight - lastChildHeight);
+		$scroller.scrollTo(0, containerRef.current.lastChild.offsetTop);
 	}, []);
 
-	useEffect(() => {
-		if (!height) return;
-		const $scroller = scrollerRef.current;
-		$scroller?.scrollTo(0, $scroller.scrollHeight - height);
-	}, [height]);
-
 	return (
-		<Stack h={height} className={classes.help}>
+		<Stack className={classes.help}>
 			<Container size="sm" className={classes.helpSection}>
 				<Text>
 					<Icon name="reply" className={classes.pointUp} /> The row above is an{" "}
 					<b>entry</b>, which has a <b>count</b>, <b>timestamp</b>, and{" "}
-					<b>note</b>. Each of these terms is defined below. If you fill in
-					non-zero <b>count</b> values, then subsequently added entries will
-					automatically have their <b>count</b> valued filled in based on the
-					durations of the existing counts.
+					<b>note</b>. Each of these terms is defined below.
 				</Text>
-				<dl>
-					<dt>count</dt>
-					<dd>
-						The number of user-specified measures/meters that have ellapsed at
-						the timestamp for the entry.
-					</dd>
-					<dt>timestamp</dt>
-					<dd>The time which the entry is annotating.</dd>
-					<dt>note</dt>
-					<dd>
-						Whatever text you want to annotate that timestamp in a tack. For
-						example, a dance pattern that should occur at that time.
-					</dd>
+				<dl className={classes.definitions}>
+					<Box>
+						<dt>Entry</dt>
+						<dd>
+							An annotation assigned to specific time point in the playing
+							track.
+						</dd>
+					</Box>
+					<Box>
+						<dt>Count</dt>
+						<dd>
+							The number of user-specified measures/meters that have ellapsed at
+							the timestamp for the entry. If you fill in the count values for
+							the last two entries, all subsequently added entries will havet
+							their count values automatically generated based on the durations
+							of the previous counts.
+						</dd>
+					</Box>
+					<Box>
+						<dt>Timestamp</dt>
+						<dd>
+							The time which the entry is annotating. Clicking on an entries
+							timestamp will seek to that point in the track.
+						</dd>
+					</Box>
+					<Box>
+						<dt>Note</dt>
+						<dd>
+							Whatever text you want to annotate that timestamp in a tack. For
+							example, a dance pattern that should occur at that time.
+						</dd>
+					</Box>
 				</dl>
 			</Container>
 			<Container size="sm" className={classes.helpSection}>

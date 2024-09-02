@@ -53,7 +53,7 @@ export default ({
 							ta="center"
 							w={200}
 							multiline
-							label="Use a the Spotify desktop or mobile app to change the track."
+							label="Use a Spotify desktop or mobile app to change the track."
 						>
 							<Button
 								className={classes.changeTrack}

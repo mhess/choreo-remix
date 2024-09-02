@@ -28,7 +28,9 @@ export default ({ token }: { token: SpotifyAuthToken }) => {
 					<Entries />
 				</PlayerContext.Provider>
 			) : (
-				<Center h="100%">{messageByStatus[status]}</Center>
+				<Center mx="1rem" h="100%">
+					{messageByStatus[status]}
+				</Center>
 			)}
 		</EntriesContext.Provider>
 	);
@@ -51,6 +53,7 @@ const Entries = () => {
 			{isHelpOpen && <EntryHeader />}
 			<Box
 				className={classes.entries}
+				pos="relative"
 				style={{ paddingBottom: isHelpOpen ? 0 : "2rem" }}
 				ref={scrollerRef as MutableRefObject<HTMLDivElement>}
 			>
@@ -73,7 +76,7 @@ const EntryHeader = () => (
 	<Group className={classes.entryHeader}>
 		<Text className={classes.count}>count</Text>
 		<Text className={classes.timestamp}>timestamp</Text>
-		<Text pl="sm">notes</Text>
+		<Text pl="sm">note</Text>
 	</Group>
 );
 
