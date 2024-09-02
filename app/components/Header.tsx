@@ -7,6 +7,7 @@ import { EntriesContext } from "~/lib/entries";
 import { MOBILE_BREAKPOINT } from "~/lib/utils";
 
 import TooltipWithClick from "./TooltipWithClick";
+import ThemedOutlineButton from "./ThemedOutlineButton";
 import Icon from "./Icon";
 
 import classes from "./Header.module.css";
@@ -55,28 +56,20 @@ export default ({
 							multiline
 							label="Use a Spotify desktop or mobile app to change the track."
 						>
-							<Button
-								className={classes.changeTrack}
-								variant="outline"
-								color="var(--mantine-color-gray-7)"
-							>
+							<ThemedOutlineButton className={classes.changeTrack}>
 								Change?
-							</Button>
+							</ThemedOutlineButton>
 						</TooltipWithClick>
 						<Box visibleFrom={MOBILE_BREAKPOINT}>
 							<Menu trigger="hover">
 								<Menu.Target>
-									<Button
-										className={classes.actions}
-										variant="outline"
-										color="var(--mantine-color-gray-7)"
-									>
+									<ThemedOutlineButton className={classes.actions}>
 										Actions
 										<Icon
 											name="keyboard_arrow_down"
 											className={classes.chevronIcon}
 										/>
-									</Button>
+									</ThemedOutlineButton>
 								</Menu.Target>
 								<MenuDropdown trackName={track.name} />
 							</Menu>

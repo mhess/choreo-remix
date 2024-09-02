@@ -1,5 +1,16 @@
 @import '../theme.module.css';
 
+:root[data-mantine-color-scheme="dark"] {
+  .controlBar {
+    background-color: var(--app-bg-color-dark);
+    border-top-color: var(--app-border-color-dark);
+  }
+
+  .timeDisplay {
+    background-color: var(--mantine-color-dark-7);
+  }
+}
+
 .controlBar {
   display: flex;
 

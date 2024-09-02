@@ -5,6 +5,8 @@ import {
 	TextInput,
 	Text,
 	useMantineTheme,
+	useComputedColorScheme,
+	darken,
 } from "@mantine/core";
 
 import { useEntry, EntriesContext } from "../lib/entries";
@@ -14,10 +16,14 @@ import classes from "./Entry.module.css";
 
 export default ({ index }: { index: number }) => {
 	const theme = useMantineTheme();
+	const isDark = useComputedColorScheme() === "dark";
 	const { removeEntry } = useContext(EntriesContext);
 	const entry = useEntry(index);
 	const player = usePlayer();
 	const { count, timeMs, note, isHighlighted } = entry;
+
+	let highlightColor = theme.colors.orange[4];
+	if (isDark) highlightColor = darken(highlightColor, 0.5);
 
 	const handleCountChange = (event: React.ChangeEvent<HTMLInputElement>) =>
 		entry.setCount(Number(event.target.value));
@@ -26,10 +32,7 @@ export default ({ index }: { index: number }) => {
 		entry.setNote(event.target.value);
 
 	return (
-		<Group
-			className={classes.entry}
-			bg={isHighlighted ? theme.colors.orange[4] : ""}
-		>
+		<Group className={classes.entry} bg={isHighlighted ? highlightColor : ""}>
 			<TextInput
 				classNames={{ input: classes.countInput }}
 				value={Number(count).toString()}

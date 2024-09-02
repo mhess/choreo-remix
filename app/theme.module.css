@@ -1,7 +1,10 @@
 :root {
   --app-font-color: var(--mantine-color-gray-9);
+  --app-font-color-dark: var(--mantine-color-gray-4);
   --app-bg-color: var(--mantine-color-green-0);
+  --app-bg-color-dark: darken(var(--mantine-color-green-3), 0.7);
   --app-border-color: var(--mantine-color-gray-5);
+  --app-border-color-dark: var(--mantine-color-gray-7);
   --count-width: 3.25rem;
   --timestamp-width: 5.5rem;
 }

@@ -60,7 +60,9 @@ export const Layout = ({ children }: { children: React.ReactNode }) => (
 			<ColorSchemeScript />
 		</head>
 		<body>
-			<MantineProvider theme={theme}>{children}</MantineProvider>
+			<MantineProvider defaultColorScheme="auto" theme={theme}>
+				{children}
+			</MantineProvider>
 			<ScrollRestoration />
 			<Scripts />
 		</body>

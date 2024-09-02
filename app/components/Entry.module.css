@@ -1,3 +1,10 @@
+
+:root[data-mantine-color-scheme="dark"] {
+  .entry:nth-child(odd) {
+    background-color: var(--mantine-color-gray-8);
+  }
+}
+
 .entry {
   align-items: center;
   gap: 0;

@@ -1,5 +1,12 @@
 import { useContext, useEffect, useState } from "react";
-import { Button, Group, Text, Tooltip } from "@mantine/core";
+import {
+	Button,
+	Group,
+	Text,
+	Tooltip,
+	useComputedColorScheme,
+	useMantineColorScheme,
+} from "@mantine/core";
 
 import { EntriesContext } from "../lib/entries";
 import { usePlayer } from "../lib/spotify";
@@ -10,6 +17,7 @@ import TooltipWithClick from "./TooltipWithClick";
 import Icon from "./Icon";
 
 import classes from "./Controls.module.css";
+import ThemedOutlineButton from "./ThemedOutlineButton";
 
 export default ({ help }: { help: Help }) => {
 	const { addEntry } = useContext(EntriesContext);
@@ -74,7 +82,10 @@ export default ({ help }: { help: Help }) => {
 					/>
 				</Button>
 			</Group>
-			<HelpButton help={help} />
+			<Group gap="sm">
+				<HelpButton help={help} />
+				<ToggleColorScheme />
+			</Group>
 		</Group>
 	);
 };
@@ -116,7 +127,7 @@ const HelpButton = ({ help }: { help: Help }) => {
 
 	return (
 		<Tooltip
-			className={classes.helpTooltip}
+			classNames={{ tooltip: classes.helpTooltip }}
 			opened={isTooltipOpen}
 			arrowSize={8}
 			offset={10}
@@ -125,17 +136,30 @@ const HelpButton = ({ help }: { help: Help }) => {
 			color="orange"
 			label="First time here? Click below to toggle the help messages!"
 		>
-			<Button
-				variant="outline"
-				color="var(--app-font-color)"
-				onClick={handleClick}
-			>
+			<ThemedOutlineButton onClick={handleClick}>
 				{help.isShowing ? "Hide" : "Show"} Help{" "}
 				<Icon
 					name="help"
 					style={{ fontSize: "1.25rem", marginLeft: "0.25rem" }}
 				/>
-			</Button>
+			</ThemedOutlineButton>
+		</Tooltip>
+	);
+};
+
+const ToggleColorScheme = () => {
+	const computedColorScheme = useComputedColorScheme();
+	const { toggleColorScheme } = useMantineColorScheme();
+	const isLight = computedColorScheme === "light";
+
+	return (
+		<Tooltip label="Toggle Light/Dark Mode" w={173}>
+			<ThemedOutlineButton onClick={toggleColorScheme}>
+				<Icon
+					style={{ fontSize: "1.25rem" }}
+					name={`${isLight ? "light" : "dark"}_mode`}
+				/>
+			</ThemedOutlineButton>
 		</Tooltip>
 	);
 };
