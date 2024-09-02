@@ -101,7 +101,7 @@ const TrackTime = () => {
 	}, []);
 
 	return (
-		<TooltipWithClick label="Current Track Time">
+		<TooltipWithClick label="Current track time">
 			<Text span className={classes.timeDisplay}>
 				{displayMs(timeMs)}
 			</Text>
@@ -148,12 +148,11 @@ const HelpButton = ({ help }: { help: Help }) => {
 };
 
 const ToggleColorScheme = () => {
-	const computedColorScheme = useComputedColorScheme();
 	const { toggleColorScheme } = useMantineColorScheme();
-	const isLight = computedColorScheme === "light";
+	const isLight = useComputedColorScheme() === "light";
 
 	return (
-		<Tooltip label="Toggle Light/Dark Mode" w={173}>
+		<Tooltip label="Toggle light/dark mode" w={173}>
 			<ThemedOutlineButton onClick={toggleColorScheme}>
 				<Icon
 					style={{ fontSize: "1.25rem" }}

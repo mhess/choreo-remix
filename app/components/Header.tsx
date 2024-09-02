@@ -52,7 +52,7 @@ export default ({
 					<>
 						<TooltipWithClick
 							ta="center"
-							w={200}
+							w={225}
 							multiline
 							label="Use a Spotify desktop or mobile app to change the track."
 						>

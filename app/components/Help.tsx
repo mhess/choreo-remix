@@ -69,7 +69,7 @@ export default ({
 							name="playlist_add"
 							style={{ fontSize: "1.25rem", verticalAlign: "middle" }}
 						/>{" "}
-						button will add an entry at the current track time. Even while the
+						button will add an entry at the current track time—even while the
 						track is playing.
 					</Text>
 				</Box>

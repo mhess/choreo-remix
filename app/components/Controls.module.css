@@ -9,6 +9,10 @@
   .timeDisplay {
     background-color: var(--mantine-color-dark-7);
   }
+
+  .btnLabel :global(.material-symbols-outlined) {
+    color: var(--app-font-color-dark);
+  }
 }
 
 .controlBar {
@@ -60,6 +64,7 @@
 }
 
 .btnLabel :global(.material-symbols-outlined) {
+  color: var(--app-font-color);
   font-size: var(--mantine-font-size-xl);
 }
 
