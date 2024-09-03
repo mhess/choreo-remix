@@ -91,7 +91,7 @@ const messageByStatus: Record<PlayerStatus, React.ReactNode> = {
 	[PlayerStatus.READY]: "shouldn't happen!",
 	[PlayerStatus.LOADING]: <Loading message="Connecting to Spotify" />,
 	[PlayerStatus.NOT_CONNECTED]: (
-		<Container className="text-center" size="xs">
+		<Container ta="center" size="xs">
 			<Text>
 				Please connect to the "Choreo Player" device on your Spotify player.
 				Ensure that your other device is on the same network as this one.

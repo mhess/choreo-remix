@@ -84,7 +84,7 @@ export default function App() {
 const NotAuthenticated = ({ status }: { status: AuthStatus }) => (
 	<Center h="100%">
 		{status === AuthStatus.LOADING ? (
-			<Loading message="loading" />
+			<Loading message="Loading" />
 		) : (
 			<Landing />
 		)}

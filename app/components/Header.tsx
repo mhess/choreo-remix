@@ -118,14 +118,13 @@ const MenuDropdown = ({
 				{!!trackName && (
 					<>
 						<Menu.Item>
-							<Text
-								className="cursor-pointer"
-								size="sm"
+							<Box
+								className={classes.loadLabel}
 								component="label"
 								htmlFor="csv-upload"
 							>
 								Load from CSV
-							</Text>
+							</Box>
 						</Menu.Item>
 						<Menu.Item onClick={handleSaveCSV}>Save to CSV</Menu.Item>
 						<Menu.Item onClick={clear}>Clear</Menu.Item>

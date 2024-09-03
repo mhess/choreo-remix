@@ -63,9 +63,9 @@
     transform: none;
   }
 }
-/* For some reason both these :active rules are needed */
-.changeTrack:active {
-  transform: none;
+
+.loadLabel {
+  cursor: pointer;
 }
 
 .actions {
