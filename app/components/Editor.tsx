@@ -5,8 +5,8 @@ import { Link } from "@remix-run/react";
 import { useDisclosure } from "@mantine/hooks";
 
 import { useSpotifyPlayer, PlayerContext, PlayerStatus } from "~/lib/spotify";
-import type { SpotifyAuthToken } from "../lib/spotify";
-import { EntriesContext, useEntries } from "../lib/entries";
+import type { SpotifyAuthToken, WrappedPlayer } from "~/lib/spotify";
+import { EntriesContext, useEntries } from "~/lib/entries";
 
 import classes from "./Editor.module.css";
 import Loading from "./Loading";
@@ -17,16 +17,15 @@ import Help from "./Help";
 
 export default ({ token }: { token: SpotifyAuthToken }) => {
 	const { player, status } = useSpotifyPlayer(token);
-	const isPlayerReady = status === PlayerStatus.READY && !!player;
 	const entries = useEntries(player);
+
+	const isPlayerReady = status === PlayerStatus.READY && !!player;
 
 	return (
 		<EntriesContext.Provider value={entries}>
 			<Header player={player} logout={token.reset} />
 			{isPlayerReady ? (
-				<PlayerContext.Provider value={player}>
-					<Entries />
-				</PlayerContext.Provider>
+				<Entries player={player} />
 			) : (
 				<Center mx="1rem" h="100%">
 					{messageByStatus[status]}
@@ -36,8 +35,7 @@ export default ({ token }: { token: SpotifyAuthToken }) => {
 	);
 };
 
-const Entries = () => {
-	const player = useContext(PlayerContext);
+const Entries = ({ player }: { player: WrappedPlayer }) => {
 	const { entries, scrollerRef, containerRef } = useContext(EntriesContext);
 	const [isHelpOpen, { toggle }] = useDisclosure(false);
 
@@ -49,7 +47,7 @@ const Entries = () => {
 	);
 
 	return (
-		<>
+		<PlayerContext.Provider value={player}>
 			{isHelpOpen && <EntryHeader />}
 			<Box
 				className={classes.entries}
@@ -68,7 +66,7 @@ const Entries = () => {
 				)}
 			</Box>
 			<Controls help={{ isShowing: isHelpOpen, toggle }} />
-		</>
+		</PlayerContext.Provider>
 	);
 };
 
@@ -82,7 +80,7 @@ const EntryHeader = () => (
 
 const TryAgain = ({ message }: { message: string }) => (
 	<Text>
-		{message} Would you like to try to <Link to="auth/login">log in</Link>{" "}
+		{message} Would you like to try to <Link to="auth/login">log&nbsp;in</Link>{" "}
 		again?
 	</Text>
 );
