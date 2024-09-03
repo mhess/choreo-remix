@@ -12,3 +12,29 @@
 .textInput {
   font-size: var(--mantine-font-size-md);
 }
+
+.defaultBtn {
+  color: var(--app-font-color);
+
+  :root[data-mantine-color-scheme="dark"] & {
+    color: var(--app-font-color-dark);
+  }
+}
+
+.outlineBtn {
+  color: var(--app-font-color);
+  border-color: var(--app-font-color);
+
+  & :hover {
+    color: var(--app-font-color);
+  }
+
+  :root[data-mantine-color-scheme="dark"] & {
+    color: var(--app-font-color-dark);
+    border-color: var(--app-font-color-dark);
+
+    & :hover {
+      color: var(--app-font-color-dark);
+    }
+  }
+}

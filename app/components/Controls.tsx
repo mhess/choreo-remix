@@ -25,7 +25,6 @@ import type { OnTickCallback } from "../lib/spotify";
 import { displayMs, useMobileBreakpoint } from "../lib/utils";
 
 import TooltipWithClick from "./TooltipWithClick";
-import ThemedOutlineButton from "./ThemedOutlineButton";
 
 import classes from "./Controls.module.css";
 
@@ -113,10 +112,10 @@ const HelpButton = ({ help }: { help: Help }) => {
 			color="orange"
 			label="First time here? Click below to toggle the help messages!"
 		>
-			<ThemedOutlineButton onClick={handleClick}>
+			<Button variant="outline" onClick={handleClick}>
 				{help.isShowing ? "Hide" : "Show"} Help
 				<IconHelp size="1.25rem" style={{ marginLeft: "0.25rem" }} />
-			</ThemedOutlineButton>
+			</Button>
 		</Tooltip>
 	);
 };
@@ -127,9 +126,9 @@ const ToggleColorScheme = () => {
 
 	return (
 		<Tooltip label="Toggle light/dark mode" w={173}>
-			<ThemedOutlineButton onClick={toggleColorScheme}>
+			<Button variant="outline" onClick={toggleColorScheme}>
 				{React.createElement(isLight ? IconSun : IconMoon, { size: "1.25rem" })}
-			</ThemedOutlineButton>
+			</Button>
 		</Tooltip>
 	);
 };

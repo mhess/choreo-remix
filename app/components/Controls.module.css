@@ -51,16 +51,6 @@
   }
 }
 
-.btnLabel {
-  display: flex;
-  gap: 0.125rem;
-}
-
-.btnLabel :global(.material-symbols-outlined) {
-  color: var(--app-font-color);
-  font-size: var(--mantine-font-size-xl);
-}
-
 .helpTooltip {
   font-size: var(--mantine-font-size-sm);
   animation: blinking 1s linear infinite;

@@ -1,6 +1,7 @@
 import { Links, Meta, Scripts, ScrollRestoration } from "@remix-run/react";
 import type { LinksFunction, MetaFunction } from "@remix-run/node";
 import {
+	Button,
 	Center,
 	ColorSchemeScript,
 	MantineProvider,
@@ -25,9 +26,18 @@ const theme = createTheme({
 			defaultProps: { size: "xs" },
 			classNames: { input: classes.textInput },
 		},
-		Button: {
+		Button: Button.extend({
 			defaultProps: { size: "compact-sm", variant: "default" },
-		},
+			classNames: (_, props) => {
+				const { variant, classNames } = props;
+				let root = undefined;
+
+				if (variant === "default") root = classes.defaultBtn;
+				else if (variant === "outline") root = classes.outlineBtn;
+
+				return { root, ...classNames };
+			},
+		}),
 		Tooltip: { defaultProps: { withArrow: true } },
 	},
 });

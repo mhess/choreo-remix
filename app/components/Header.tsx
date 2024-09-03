@@ -7,7 +7,6 @@ import type { WrappedPlayer } from "~/lib/spotify";
 import { EntriesContext } from "~/lib/entries";
 
 import TooltipWithClick from "./TooltipWithClick";
-import ThemedOutlineButton from "./ThemedOutlineButton";
 
 import classes from "./Header.module.css";
 
@@ -55,20 +54,20 @@ export default ({
 							multiline
 							label="Use a Spotify desktop or mobile app to change the track."
 						>
-							<ThemedOutlineButton className={classes.changeTrack}>
+							<Button variant="outline" className={classes.changeTrack}>
 								Change?
-							</ThemedOutlineButton>
+							</Button>
 						</TooltipWithClick>
 						<Box visibleFrom="mobile">
 							<Menu trigger="hover">
 								<Menu.Target>
-									<ThemedOutlineButton className={classes.actions}>
+									<Button variant="outline" className={classes.actions}>
 										Actions
 										<IconChevronDown
 											size="1.25rem"
 											style={{ transform: "translateY(0.125rem)" }}
 										/>
-									</ThemedOutlineButton>
+									</Button>
 								</Menu.Target>
 								<MenuDropdown trackName={track.name} />
 							</Menu>
