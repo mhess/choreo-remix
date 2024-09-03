@@ -76,11 +76,6 @@
   }
 }
 
-.chevronIcon {
-  font-size: 1.25rem;
-  transform: translateY(0.0625rem);
-}
-
 .fileInput {
   display: none;
 }

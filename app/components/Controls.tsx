@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
 	Button,
 	Group,
@@ -7,8 +7,17 @@ import {
 	useComputedColorScheme,
 	useMantineColorScheme,
 } from "@mantine/core";
-
 import type { PolymorphicComponentProps, BoxProps } from "@mantine/core";
+import {
+	IconHelp,
+	IconMoon,
+	IconPlayerPause,
+	IconPlayerPlay,
+	IconPlaylistAdd,
+	IconRewindBackward5,
+	IconRewindForward5,
+	IconSun,
+} from "@tabler/icons-react";
 
 import { EntriesContext } from "../lib/entries";
 import { usePlayer } from "../lib/spotify";
@@ -16,10 +25,9 @@ import type { OnTickCallback } from "../lib/spotify";
 import { displayMs, useMobileBreakpoint } from "../lib/utils";
 
 import TooltipWithClick from "./TooltipWithClick";
-import Icon from "./Icon";
+import ThemedOutlineButton from "./ThemedOutlineButton";
 
 import classes from "./Controls.module.css";
-import ThemedOutlineButton from "./ThemedOutlineButton";
 
 export default ({ help }: { help: Help }) => {
 	const isMobile = useMobileBreakpoint();
@@ -47,10 +55,7 @@ export default ({ help }: { help: Help }) => {
 					onClick={handleAddEntry}
 					title="Add Entry"
 				>
-					<Icon
-						style={{ position: "relative", top: "1px" }}
-						name="playlist_add"
-					/>
+					<IconPlaylistAdd size="1.25rem" />
 				</Button>
 			</Group>
 			<PlaybackButtons hiddenFrom="mobile" />
@@ -109,11 +114,8 @@ const HelpButton = ({ help }: { help: Help }) => {
 			label="First time here? Click below to toggle the help messages!"
 		>
 			<ThemedOutlineButton onClick={handleClick}>
-				{help.isShowing ? "Hide" : "Show"} Help{" "}
-				<Icon
-					name="help"
-					style={{ fontSize: "1.25rem", marginLeft: "0.25rem" }}
-				/>
+				{help.isShowing ? "Hide" : "Show"} Help
+				<IconHelp size="1.25rem" style={{ marginLeft: "0.25rem" }} />
 			</ThemedOutlineButton>
 		</Tooltip>
 	);
@@ -126,10 +128,7 @@ const ToggleColorScheme = () => {
 	return (
 		<Tooltip label="Toggle light/dark mode" w={173}>
 			<ThemedOutlineButton onClick={toggleColorScheme}>
-				<Icon
-					style={{ fontSize: "1.25rem" }}
-					name={`${isLight ? "light" : "dark"}_mode`}
-				/>
+				{React.createElement(isLight ? IconSun : IconMoon, { size: "1.25rem" })}
 			</ThemedOutlineButton>
 		</Tooltip>
 	);
@@ -160,21 +159,23 @@ const PlaybackButtons = (props: PolymorphicComponentProps<"div", BoxProps>) => {
 	return (
 		<Group {...props} className={classes.playback}>
 			<Button onClick={handleSeekDir(-5000)} title="Rewind 5 sec" {...btnProps}>
-				<Icon name="fast_rewind" /> 5
+				<IconRewindBackward5 size="1.25rem" />
 			</Button>
 			<Button
 				onClick={() => player.togglePlay()}
 				title={paused ? "Play" : "Pause"}
 				{...btnProps}
 			>
-				{paused ? <Icon name="play_arrow" /> : <Icon name="pause" />}
+				{React.createElement(paused ? IconPlayerPlay : IconPlayerPause, {
+					size: "1rem",
+				})}
 			</Button>
 			<Button
 				onClick={handleSeekDir(5000)}
 				title="Fast-forward 5 sec"
 				{...btnProps}
 			>
-				5 <Icon name="fast_forward" />
+				<IconRewindForward5 size="1.25rem" />
 			</Button>
 		</Group>
 	);

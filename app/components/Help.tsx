@@ -1,10 +1,14 @@
-import { Container, Stack, Text, Box } from "@mantine/core";
 import { useEffect } from "react";
+import { Container, Stack, Text, Box } from "@mantine/core";
+import {
+	IconCornerLeftDown,
+	IconCornerLeftUp,
+	IconPlaylistAdd,
+} from "@tabler/icons-react";
 
 import { useMobileBreakpoint } from "~/lib/utils";
 
 import classes from "./Help.module.css";
-import Icon from "./Icon";
 
 const desktoControlsHelp = (
 	<>
@@ -35,9 +39,8 @@ export default ({
 		<Stack className={classes.help}>
 			<Container size="sm" className={classes.helpSection}>
 				<Text>
-					<Icon name="reply" className={classes.pointUp} /> The row above is an{" "}
-					<b>entry</b>, which has a <b>count</b>, <b>timestamp</b>, and{" "}
-					<b>note</b>.
+					<IconCornerLeftUp size="1.25rem" /> The row above is an <b>entry</b>,
+					which has a <b>count</b>, <b>timestamp</b>, and <b>note</b>.
 				</Text>
 				<dl className={classes.definitions}>
 					<Box>
@@ -74,16 +77,16 @@ export default ({
 				</dl>
 			</Container>
 			<Container size="sm" className={classes.helpSection}>
-				<Icon name="reply" className={classes.pointDown} />
+				<IconCornerLeftDown size="1.25rem" />
 				<Box>
 					<Text mb="xs">
 						{isMobile ? mobileControlsHelp : desktoControlsHelp}
 					</Text>
 					<Text>
 						The <b>Add Entry</b>{" "}
-						<Icon
-							name="playlist_add"
-							style={{ fontSize: "1.25rem", verticalAlign: "middle" }}
+						<IconPlaylistAdd
+							size="1.25rem"
+							style={{ verticalAlign: "middle" }}
 						/>{" "}
 						button will add an entry at the current track time—even while the
 						track is playing.

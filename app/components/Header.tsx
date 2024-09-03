@@ -1,5 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import { Box, Burger, Button, Group, Menu, Text } from "@mantine/core";
+import { IconChevronDown } from "@tabler/icons-react";
 import { useDisclosure } from "@mantine/hooks";
 
 import type { WrappedPlayer } from "~/lib/spotify";
@@ -7,7 +8,6 @@ import { EntriesContext } from "~/lib/entries";
 
 import TooltipWithClick from "./TooltipWithClick";
 import ThemedOutlineButton from "./ThemedOutlineButton";
-import Icon from "./Icon";
 
 import classes from "./Header.module.css";
 
@@ -64,9 +64,9 @@ export default ({
 								<Menu.Target>
 									<ThemedOutlineButton className={classes.actions}>
 										Actions
-										<Icon
-											name="keyboard_arrow_down"
-											className={classes.chevronIcon}
+										<IconChevronDown
+											size="1.25rem"
+											style={{ transform: "translateY(0.125rem)" }}
 										/>
 									</ThemedOutlineButton>
 								</Menu.Target>
