@@ -75,9 +75,6 @@ importers:
       postcss-simple-vars:
         specifier: ^7.0.1
         version: 7.0.1(postcss@8.4.41)
-      typescript:
-        specifier: ^5.5.4
-        version: 5.5.4
       vite:
         specifier: ^5.4.2
         version: 5.4.2(@types/node@22.4.1)(sugarss@4.0.1(postcss@8.4.41))
@@ -5803,7 +5800,8 @@ snapshots:
       media-typer: 0.3.0
       mime-types: 2.1.35
 
-  typescript@5.5.4: {}
+  typescript@5.5.4:
+    optional: true
 
   ufo@1.5.4: {}
 
