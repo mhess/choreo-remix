@@ -1,3 +1,5 @@
+import { useMantineTheme } from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
 export const displayMs = (totalMs: number) => {
 	const ms = (totalMs % 1000).toString().slice(0, 2).padStart(2, "0");
 	const totalSeconds = Math.floor(totalMs / 1000);
@@ -7,4 +9,8 @@ export const displayMs = (totalMs: number) => {
 	return `${minutes}:${seconds}.${ms}`;
 };
 
-export const MOBILE_BREAKPOINT = "xs";
+export const useMobileBreakpoint = () => {
+	const { mobile } = useMantineTheme().breakpoints;
+
+	return useMediaQuery(`(max-width: ${mobile})`);
+};

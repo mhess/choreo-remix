@@ -4,7 +4,6 @@ import { useDisclosure } from "@mantine/hooks";
 
 import type { WrappedPlayer } from "~/lib/spotify";
 import { EntriesContext } from "~/lib/entries";
-import { MOBILE_BREAKPOINT } from "~/lib/utils";
 
 import TooltipWithClick from "./TooltipWithClick";
 import ThemedOutlineButton from "./ThemedOutlineButton";
@@ -60,7 +59,7 @@ export default ({
 								Change?
 							</ThemedOutlineButton>
 						</TooltipWithClick>
-						<Box visibleFrom={MOBILE_BREAKPOINT}>
+						<Box visibleFrom="mobile">
 							<Menu trigger="hover">
 								<Menu.Target>
 									<ThemedOutlineButton className={classes.actions}>
@@ -77,7 +76,7 @@ export default ({
 					</>
 				)}
 			</Group>
-			<Button visibleFrom={MOBILE_BREAKPOINT} onClick={logout}>
+			<Button visibleFrom="mobile" onClick={logout}>
 				Log Out
 			</Button>
 			<BurgerMenu trackName={track?.name} logout={logout} />
@@ -147,11 +146,7 @@ const BurgerMenu = ({
 	return (
 		<Menu onClose={close}>
 			<Menu.Target>
-				<Burger
-					opened={opened}
-					onClick={toggle}
-					hiddenFrom={MOBILE_BREAKPOINT}
-				/>
+				<Burger opened={opened} onClick={toggle} hiddenFrom="mobile" />
 			</Menu.Target>
 			<MenuDropdown trackName={trackName} logout={logout} />
 		</Menu>

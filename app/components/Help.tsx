@@ -1,13 +1,31 @@
 import { Container, Stack, Text, Box } from "@mantine/core";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+
+import { useMobileBreakpoint } from "~/lib/utils";
 
 import classes from "./Help.module.css";
 import Icon from "./Icon";
+
+const desktoControlsHelp = (
+	<>
+		From left to right, the control bar below has the <b>current track time</b>,{" "}
+		<b>playback buttons</b>, and the <b>Add Entry</b> button.
+	</>
+);
+
+const mobileControlsHelp = (
+	<>
+		From left-to-right and top-to-bottom, the control bar below has the{" "}
+		<b>current track time</b>, <b>Add Entry</b>, and <b>playback</b> buttons.
+	</>
+);
 
 export default ({
 	scrollerRef,
 	containerRef,
 }: { scrollerRef: ElementRef; containerRef: ElementRef }) => {
+	const isMobile = useMobileBreakpoint();
+
 	useEffect(() => {
 		const $scroller = scrollerRef.current;
 		$scroller.scrollTo(0, containerRef.current.lastChild.offsetTop);
@@ -19,7 +37,7 @@ export default ({
 				<Text>
 					<Icon name="reply" className={classes.pointUp} /> The row above is an{" "}
 					<b>entry</b>, which has a <b>count</b>, <b>timestamp</b>, and{" "}
-					<b>note</b>. Each of these terms is defined below.
+					<b>note</b>.
 				</Text>
 				<dl className={classes.definitions}>
 					<Box>
@@ -34,7 +52,7 @@ export default ({
 						<dd>
 							The number of user-specified measures/meters that have ellapsed at
 							the timestamp for the entry. If you fill in the count values for
-							the last two entries, all subsequently added entries will havet
+							the last two entries, all subsequently added entries will have
 							their count values automatically generated based on the durations
 							of the previous counts.
 						</dd>
@@ -42,7 +60,7 @@ export default ({
 					<Box>
 						<dt>Timestamp</dt>
 						<dd>
-							The time which the entry is annotating. Clicking on an entries
+							The time which the entry is annotating. Clicking on an entry's
 							timestamp will seek to that point in the track.
 						</dd>
 					</Box>
@@ -58,10 +76,8 @@ export default ({
 			<Container size="sm" className={classes.helpSection}>
 				<Icon name="reply" className={classes.pointDown} />
 				<Box>
-					<Text>
-						From left to right, the control bar below has the{" "}
-						<b>current track time</b>, <b>playback buttons</b>, and the{" "}
-						<b>Add Entry</b> button.
+					<Text mb="xs">
+						{isMobile ? mobileControlsHelp : desktoControlsHelp}
 					</Text>
 					<Text>
 						The <b>Add Entry</b>{" "}

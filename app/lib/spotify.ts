@@ -14,6 +14,8 @@ export enum AuthStatus {
 	GOOD = "good",
 }
 
+const DEV_FAKE_PLAYER = false;
+
 const LS_TOKEN_KEY = "authToken";
 
 export const useSpotifyAuth = () => {
@@ -22,7 +24,9 @@ export const useSpotifyAuth = () => {
 	const [token, setToken] = useState<string>();
 	const [status, setStatus] = useState(AuthStatus.LOADING);
 	const location = useLocation();
-	const tokenInParams = new URLSearchParams(location.search).get("token");
+	const tokenInParams = DEV_FAKE_PLAYER
+		? "fake"
+		: new URLSearchParams(location.search).get("token");
 
 	useEffect(() => {
 		if (token) return;
@@ -134,8 +138,10 @@ export const useSpotifyPlayer = (authToken: SpotifyAuthToken) => {
 		) {
 			// In this case the window.player would have a differnet token.
 			window.player?.disconnect();
-			promise = getSpotifyPlayer(token);
-			// promise = Promise.resolve(createWrappedPlayer(getFakePlayer()));
+			promise =
+				token === "fake"
+					? Promise.resolve(createWrappedPlayer(getFakePlayer()))
+					: getSpotifyPlayer(token);
 			tokenAndPromise = { token, promise };
 		}
 

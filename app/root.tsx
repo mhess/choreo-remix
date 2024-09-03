@@ -12,12 +12,14 @@ import appStylesHref from "./app.css?url";
 import classes from "./theme.module.css";
 
 import { useSpotifyAuth, AuthStatus } from "./lib/spotify";
+import breakpoints from "./breakpoints";
 
 import Editor from "./components/Editor";
 import Landing from "./components/Landing";
 import Loading from "./components/Loading";
 
 const theme = createTheme({
+	breakpoints,
 	components: {
 		TextInput: {
 			defaultProps: { size: "xs" },

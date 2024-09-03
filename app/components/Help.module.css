@@ -34,7 +34,7 @@
   dl {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: var(--mantine-spacing-xs);
     margin: 0.5rem 0 0;
   }
 

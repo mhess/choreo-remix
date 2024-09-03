@@ -8,10 +8,12 @@ import {
 	useMantineColorScheme,
 } from "@mantine/core";
 
+import type { PolymorphicComponentProps, BoxProps } from "@mantine/core";
+
 import { EntriesContext } from "../lib/entries";
 import { usePlayer } from "../lib/spotify";
 import type { OnTickCallback } from "../lib/spotify";
-import { displayMs } from "../lib/utils";
+import { displayMs, useMobileBreakpoint } from "../lib/utils";
 
 import TooltipWithClick from "./TooltipWithClick";
 import Icon from "./Icon";
@@ -20,21 +22,9 @@ import classes from "./Controls.module.css";
 import ThemedOutlineButton from "./ThemedOutlineButton";
 
 export default ({ help }: { help: Help }) => {
+	const isMobile = useMobileBreakpoint();
 	const { addEntry } = useContext(EntriesContext);
 	const player = usePlayer();
-	const [paused, setPaused] = useState(false);
-
-	useEffect(() => {
-		const cb: Spotify.PlaybackStateListener = ({ paused }) => setPaused(paused);
-		player.addOnStateChange(cb);
-		return () => player.removeOnStateChange(cb);
-	}, []);
-
-	const handleSeekDir = (ms: number) => async () => {
-		const state = await player.getCurrentState();
-		if (!state) return;
-		player.seekTo(ms + state.position);
-	};
 
 	const handleAddEntry = async () => {
 		const state = await player.getCurrentState();
@@ -44,35 +34,16 @@ export default ({ help }: { help: Help }) => {
 
 	return (
 		<Group className={classes.controlBar}>
-			<Group className={classes.controls}>
-				<Group className={classes.playback}>
+			<Group>
+				<Group className={classes.desktopLeftSide}>
 					<TrackTime />
-					<Button
-						classNames={{ label: classes.btnLabel }}
-						onClick={handleSeekDir(-5000)}
-						title="Rewind 5 sec"
-					>
-						<Icon name="fast_rewind" /> 5
-					</Button>
-					<Button
-						classNames={{ label: classes.btnLabel }}
-						onClick={() => player.togglePlay()}
-						title={paused ? "Play" : "Pause"}
-					>
-						{paused ? <Icon name="play_arrow" /> : <Icon name="pause" />}
-					</Button>
-					<Button
-						classNames={{ label: classes.btnLabel }}
-						onClick={handleSeekDir(5000)}
-						title="Fast-forward 5 sec"
-					>
-						5 <Icon name="fast_forward" />
-					</Button>
+					<PlaybackButtons visibleFrom="mobile" />
 				</Group>
 				<Button
 					classNames={{ label: classes.btnLabel }}
 					px="1.5rem"
-					ml="md"
+					ml={!isMobile ? "md" : undefined}
+					size={isMobile ? "md" : undefined}
 					onClick={handleAddEntry}
 					title="Add Entry"
 				>
@@ -82,7 +53,8 @@ export default ({ help }: { help: Help }) => {
 					/>
 				</Button>
 			</Group>
-			<Group gap="sm">
+			<PlaybackButtons hiddenFrom="mobile" />
+			<Group mt={isMobile ? "0.5rem" : undefined}>
 				<HelpButton help={help} />
 				<ToggleColorScheme />
 			</Group>
@@ -160,5 +132,50 @@ const ToggleColorScheme = () => {
 				/>
 			</ThemedOutlineButton>
 		</Tooltip>
+	);
+};
+
+const PlaybackButtons = (props: PolymorphicComponentProps<"div", BoxProps>) => {
+	const isMobile = useMobileBreakpoint();
+	const player = usePlayer();
+	const [paused, setPaused] = useState(false);
+
+	useEffect(() => {
+		const cb: Spotify.PlaybackStateListener = ({ paused }) => setPaused(paused);
+		player.addOnStateChange(cb);
+		return () => player.removeOnStateChange(cb);
+	}, []);
+
+	const handleSeekDir = (ms: number) => async () => {
+		const state = await player.getCurrentState();
+		if (!state) return;
+		player.seekTo(ms + state.position);
+	};
+
+	const btnProps = {
+		classNames: { label: classes.btnLabel },
+		size: isMobile ? "md" : undefined,
+	};
+
+	return (
+		<Group {...props} className={classes.playback}>
+			<Button onClick={handleSeekDir(-5000)} title="Rewind 5 sec" {...btnProps}>
+				<Icon name="fast_rewind" /> 5
+			</Button>
+			<Button
+				onClick={() => player.togglePlay()}
+				title={paused ? "Play" : "Pause"}
+				{...btnProps}
+			>
+				{paused ? <Icon name="play_arrow" /> : <Icon name="pause" />}
+			</Button>
+			<Button
+				onClick={handleSeekDir(5000)}
+				title="Fast-forward 5 sec"
+				{...btnProps}
+			>
+				5 <Icon name="fast_forward" />
+			</Button>
+		</Group>
 	);
 };

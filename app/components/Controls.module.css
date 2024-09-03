@@ -1,5 +1,3 @@
-@import '../theme.module.css';
-
 :root[data-mantine-color-scheme="dark"] {
   .controlBar {
     background-color: var(--app-bg-color-dark);
@@ -16,7 +14,9 @@
 }
 
 .controlBar {
-  display: flex;
+  padding: 0.5em 1rem;
+  background-color: var(--app-bg-color);
+  border-top: 1px solid var(--app-border-color);
 
   @media screen and (min-width: $mobile-breakpoint) {
     flex-direction: row;
@@ -26,23 +26,12 @@
 
   @media screen and (max-width: $mobile-breakpoint) {
     flex-direction: column;
-    align-items: flex-start;
-  }
-
-  background-color: var(--app-bg-color);
-  padding: 0.5em 1rem;
-  border-top: 1px solid var(--app-border-color);
-}
-
-.controls {
-  @media screen and (max-width: $mobile-breakpoint) {
-    width: 100%;
-    gap: unset;
-    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 0.75rem;
   }
 }
 
-.playback {
+.desktopLeftSide {
   gap: 0.25em;
 }
 
@@ -54,8 +43,12 @@
   background-color: white;
   margin-right: 0.5rem;
   width: 5.5rem;
-  line-height: 1.75;
-  border-radius: var(--mantine-radius-sm);
+  line-height: 2;
+  border-radius: var(--mantine-radius-default);
+
+  @media screen and (max-width: $mobile-breakpoint) {
+    margin: 0;
+  }
 }
 
 .btnLabel {
