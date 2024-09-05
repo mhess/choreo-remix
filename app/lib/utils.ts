@@ -14,3 +14,13 @@ export const useMobileBreakpoint = () => {
 
 	return useMediaQuery(`(max-width: ${mobile})`);
 };
+
+// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+export const debounced = (fn: (...rest: any[]) => void, timeMs: number) => {
+	let timeoutId = 0;
+	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+	return (...args: any[]) => {
+		clearTimeout(timeoutId);
+		timeoutId = window.setTimeout(() => fn(...args), timeMs);
+	};
+};
