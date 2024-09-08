@@ -6,7 +6,8 @@
   "scripts": {
     "build": "remix vite:build",
     "dev": "remix vite:dev --port 5000",
-    "start": "dotenv -e .env remix-serve build/server/index.js"
+    "start": "dotenv -e .env remix-serve build/server/index.js",
+    "test": "vitest"
   },
   "type": "module",
   "keywords": [],
@@ -27,6 +28,9 @@
   "devDependencies": {
     "@biomejs/biome": "1.8.3",
     "@remix-run/dev": "^2.11.2",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/jest-dom": "^6.5.0",
+    "@testing-library/react": "^16.0.1",
     "@types/papaparse": "^5.3.14",
     "@types/react": "^18.3.4",
     "@types/react-dom": "^18.3.0",
@@ -34,10 +38,12 @@
     "@vercel/remix": "^2.11.2",
     "autoprefixer": "^10.4.20",
     "dotenv-cli": "^7.4.2",
+    "jsdom": "^25.0.0",
     "postcss": "^8.4.41",
     "postcss-preset-mantine": "^1.17.0",
     "postcss-simple-vars": "^7.0.1",
     "vite": "^5.4.2",
-    "vite-tsconfig-paths": "^5.0.1"
+    "vite-tsconfig-paths": "^5.0.1",
+    "vitest": "^2.0.5"
   }
 }
