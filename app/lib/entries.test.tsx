@@ -1,14 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { act, render, renderHook } from "@testing-library/react";
+import type { Mock } from "vitest";
+import { act, renderHook } from "@testing-library/react";
 
-import { PlayerContext } from "./spotify";
-import type { OnTickCallback, WrappedPlayer } from "./spotify";
+import type { WrappedPlayer } from "./spotify";
 
-import { EntriesContext, useEntries, useEntry } from "./entries";
+import { useEntries, STORAGE_KEY } from "./entries";
 import type { Entry } from "./entries";
-
-// FIXME: import this from entries.ts
-const STORAGE_KEY = "choreo-entries";
 
 const defaultEntry: Entry = { count: 0, timeMs: 0, note: "Start" };
 
@@ -23,12 +20,8 @@ const implantLSEntries = (entries: Entry[]) => {
 };
 
 describe("useEntries", () => {
-	beforeEach(async () => {
+	beforeEach(() => {
 		vi.useFakeTimers();
-
-		// FIXME: Remove this when module-level state is removed
-		const { result } = renderHook(() => useEntries(undefined));
-		await act(() => result.current.clear());
 	});
 
 	afterEach(() => {
@@ -162,33 +155,10 @@ describe("useEntries", () => {
 	});
 
 	describe("When provided a WrappedPlayer", () => {
-		const callbacks: OnTickCallback[] = [];
 		const player = {
-			addOnTick: (cb: OnTickCallback) => callbacks.push(cb),
-			removeOnTick: (cb: OnTickCallback) => {
-				const remaining = callbacks.filter((c) => c !== cb);
-				callbacks.splice(0, callbacks.length, ...remaining);
-			},
+			addOnTick: vi.fn(),
+			removeOnTick: vi.fn(),
 		} as unknown as WrappedPlayer;
-
-		const Entries = () => {
-			const entries = useEntries(player);
-			return (
-				<PlayerContext.Provider value={player}>
-					<EntriesContext.Provider value={entries}>
-						{entries.entries.map(({ timeMs }, index) => (
-							<FakeEntry key={timeMs} index={index} />
-						))}
-					</EntriesContext.Provider>
-				</PlayerContext.Provider>
-			);
-		};
-
-		const FakeEntry = ({ index }: { index: number }) => {
-			const { isHighlighted } = useEntry(index);
-
-			return <div>{`${index}: ${isHighlighted ? "highlighted" : "not"}`}</div>;
-		};
 
 		implantLSEntries([
 			{ count: 0, timeMs: 0, note: "" },
@@ -196,43 +166,65 @@ describe("useEntries", () => {
 			{ count: 3, timeMs: 205, note: "" },
 		]);
 
-		const tickWith = (timeMs: number) => {
-			for (const cb of callbacks) cb(timeMs);
-		};
+		it("Highlights, scrolls, and unmounts correctly entry with player ticking", async () => {
+			const { result, unmount } = renderHook(() => useEntries(player));
 
-		// TODO add checking for scrolling
-		it("Highlights correct entry while player is ticking", async () => {
-			const { getByText } = render(<Entries />);
+			const highlights = [false, false, false];
+			result.current.entries.forEach((_: Entry, index: number) => {
+				result.current.setHighlighter(index, (val: boolean) => {
+					highlights[index] = val;
+				});
+			});
 
-			await act(() => tickWith(0));
+			const $scroller = {
+				scrollTop: 0,
+				clientHeight: 100,
+				scrollTo(_newX: number, newTop: number) {
+					this.scrollTop = newTop;
+				},
+			} as HTMLElement;
+			result.current.scrollerRef.current = $scroller;
 
-			expect(getByText("0: highlighted")).toBeInTheDocument();
-			expect(getByText("1: not")).toBeInTheDocument();
-			expect(getByText("2: not")).toBeInTheDocument();
+			const entryElHeight = 50;
+			result.current.containerRef.current = {
+				childNodes: [0, 1, 2].map((i) => ({
+					clientHeight: entryElHeight,
+					offsetTop: 25 + i * entryElHeight,
+				})),
+			} as unknown as HTMLElement;
 
-			await act(() => tickWith(103));
+			expect(player.addOnTick).toHaveBeenCalledOnce();
+			const [[tickCallback]] = (player.addOnTick as Mock).mock.calls;
 
-			expect(getByText("0: not")).toBeInTheDocument();
-			expect(getByText("1: highlighted")).toBeInTheDocument();
-			expect(getByText("2: not")).toBeInTheDocument();
+			await act(() => tickCallback(0));
 
-			await act(() => tickWith(120));
+			expect(highlights).toEqual([true, false, false]);
+			expect($scroller.scrollTop).toEqual(0);
 
-			expect(getByText("0: not")).toBeInTheDocument();
-			expect(getByText("1: highlighted")).toBeInTheDocument();
-			expect(getByText("2: not")).toBeInTheDocument();
+			await act(() => tickCallback(103));
 
-			await act(() => tickWith(400));
+			expect(highlights).toEqual([false, true, false]);
+			expect($scroller.scrollTop).toEqual(25);
 
-			expect(getByText("0: not")).toBeInTheDocument();
-			expect(getByText("1: not")).toBeInTheDocument();
-			expect(getByText("2: highlighted")).toBeInTheDocument();
+			await act(() => tickCallback(120));
 
-			await act(() => tickWith(5));
+			expect(highlights).toEqual([false, true, false]);
+			expect($scroller.scrollTop).toEqual(25);
 
-			expect(getByText("0: highlighted")).toBeInTheDocument();
-			expect(getByText("1: not")).toBeInTheDocument();
-			expect(getByText("2: not")).toBeInTheDocument();
+			await act(() => tickCallback(400));
+
+			expect(highlights).toEqual([false, false, true]);
+			expect($scroller.scrollTop).toEqual(75);
+
+			await act(() => tickCallback(5));
+
+			expect(highlights).toEqual([true, false, false]);
+			expect($scroller.scrollTop).toEqual(75);
+
+			await act(() => unmount());
+
+			expect(player.removeOnTick).toHaveBeenCalledOnce();
+			expect(player.removeOnTick).toHaveBeenCalledWith(tickCallback);
 		});
 	});
 });

@@ -13,12 +13,12 @@ import type { WrappedPlayer } from "./spotify";
 
 export type Entry = { count: number; timeMs: number; note: string };
 
-type EntryWithHighlight = {
+export type EntryWithHighlight = {
 	entry: Entry;
 	highlighter?: (flag: boolean) => void;
 };
 
-const STORAGE_KEY = "choreo-entries";
+export const STORAGE_KEY = "choreo-entries";
 
 export const useEntries = (player: WrappedPlayer | undefined) => {
 	const entriesSetRef = useRef(new Set<number>());
@@ -30,7 +30,6 @@ export const useEntries = (player: WrappedPlayer | undefined) => {
 	const [renderState, render] = useRender();
 
 	const { current: entriesSet } = entriesSetRef;
-	const { current: entriesWithHighlight } = entriesWithHighlightRef;
 
 	useEffect(() => {
 		loadEntriesFromLocalStorage();
@@ -41,9 +40,9 @@ export const useEntries = (player: WrappedPlayer | undefined) => {
 	useEffect(() => {
 		if (!player) return;
 
-		if (entriesWithHighlight.length) player.addOnTick(highlightCurrentEntry);
+		player.addOnTick(highlightCurrentEntry);
 		return () => player.removeOnTick(highlightCurrentEntry);
-	}, [!!player, !!entriesWithHighlight.length]);
+	}, [!!player]);
 
 	const loadEntriesFromLocalStorage = () => {
 		const data = localStorage.getItem(STORAGE_KEY);
@@ -64,10 +63,12 @@ export const useEntries = (player: WrappedPlayer | undefined) => {
 		localStorage.setItem(STORAGE_KEY, JSON.stringify(getEntries()));
 	};
 
-	const getEntries = () => entriesWithHighlight.map(({ entry }) => entry);
+	const getEntries = () =>
+		entriesWithHighlightRef.current.map(({ entry }) => entry);
 
 	const highlightCurrentEntry = (timeMs: number) => {
-		if (!entriesWithHighlight.length) return;
+		const entries = entriesWithHighlightRef.current;
+		if (!entries.length) return;
 
 		const { current: highlightIndex } = highlightIndexRef;
 		const newIndex = getNewHighlightIndex(timeMs, highlightIndex);
@@ -75,8 +76,8 @@ export const useEntries = (player: WrappedPlayer | undefined) => {
 		if (newIndex === highlightIndex) return;
 
 		if (highlightIndex !== undefined)
-			entriesWithHighlight[highlightIndex]?.highlighter?.(false);
-		entriesWithHighlight[newIndex]?.highlighter?.(true);
+			entries[highlightIndex]?.highlighter?.(false);
+		entries[newIndex]?.highlighter?.(true);
 		highlightIndexRef.current = newIndex;
 		setEntriesScrollPosition(scrollerRef, containerRef, newIndex);
 	};
@@ -85,23 +86,24 @@ export const useEntries = (player: WrappedPlayer | undefined) => {
 		timeMs: number,
 		highlightIndex?: number,
 	): number => {
-		if (entriesWithHighlight.length === 1) return 0;
+		const entries = entriesWithHighlightRef.current;
+		if (entries.length === 1) return 0;
 
 		if (highlightIndex === undefined) return findHighlightIndex(timeMs);
 
-		const highlightEntry = entriesWithHighlight[highlightIndex];
+		const highlightEntry = entries[highlightIndex];
 		if (!highlightEntry) return findHighlightIndex(timeMs);
 
 		if (timeMs < highlightEntry.entry.timeMs) {
 			return findHighlightIndex(timeMs, 0, highlightIndex);
 		}
 
-		const nextEntry = entriesWithHighlight[highlightIndex + 1];
+		const nextEntry = entries[highlightIndex + 1];
 		if (!nextEntry || timeMs < nextEntry.entry.timeMs) {
 			return highlightIndex;
 		}
 
-		const nextNextEntry = entriesWithHighlight[highlightIndex + 2];
+		const nextNextEntry = entries[highlightIndex + 2];
 		if (!nextNextEntry || timeMs < nextNextEntry.entry.timeMs) {
 			return highlightIndex + 1;
 		}
@@ -113,22 +115,30 @@ export const useEntries = (player: WrappedPlayer | undefined) => {
 		findEntryIndex(...args) - 1;
 
 	const findEntryIndex = (timeMs: number, start = 0, end = -1): number => {
+		const entries = entriesWithHighlightRef.current;
 		let s = start;
-		let e = end > -1 ? end : entriesWithHighlight.length;
+		let e = end > -1 ? end : entries.length;
 
 		while (s !== e) {
 			const pivot = ((e - s) >> 1) + s;
-			if (entriesWithHighlight[pivot].entry.timeMs > timeMs) e = pivot;
+			if (entries[pivot].entry.timeMs > timeMs) e = pivot;
 			else s = pivot + 1;
 		}
 
 		return s;
 	};
 
+	const setHighlighter = (
+		index: number,
+		highlighter: (isHighlighted: boolean) => void,
+	) => {
+		entriesWithHighlightRef.current[index].highlighter = highlighter;
+	};
+
 	const debouncedStoreEntriesLocally = debounced(storeEntriesLocally, 2000);
 
 	const guessCountForIndex = (index: number, timeMs: number) => {
-		const priorTwo = entriesWithHighlight.slice(index - 2, index);
+		const priorTwo = entriesWithHighlightRef.current.slice(index - 2, index);
 		const priorCount = priorTwo.length;
 		const hasTwo = priorTwo.length === 2;
 		if (priorCount) {
@@ -152,14 +162,14 @@ export const useEntries = (player: WrappedPlayer | undefined) => {
 
 		const count = guessCountForIndex(index, timeMs);
 		const newEntry = { entry: { count, timeMs, note: "" } };
-		entriesWithHighlight.splice(index, 0, newEntry);
+		entriesWithHighlightRef.current.splice(index, 0, newEntry);
 		entriesSet.add(timeMs);
 		debouncedStoreEntriesLocally();
 		render();
 	};
 
 	const removeEntry = (index: number) => {
-		const [removed] = entriesWithHighlight.splice(index, 1);
+		const [removed] = entriesWithHighlightRef.current.splice(index, 1);
 		entriesSet.delete(removed.entry.timeMs);
 		debouncedStoreEntriesLocally();
 		render();
@@ -199,11 +209,11 @@ export const useEntries = (player: WrappedPlayer | undefined) => {
 
 	return useMemo(
 		() => ({
-			entriesWithHighlight,
-			entries: entriesWithHighlight.map(({ entry }) => entry),
+			setHighlighter,
+			entries: getEntries(),
 			scrollerRef,
 			containerRef,
-			debouncedStoreEntriesLocally,
+			entryModified: debouncedStoreEntriesLocally,
 			addEntry,
 			removeEntry,
 			saveToCSV,
@@ -238,33 +248,31 @@ export const EntriesContext = createContext(
 );
 
 export const useEntry = (index: number) => {
-	const { entriesWithHighlight, debouncedStoreEntriesLocally } =
-		useContext(EntriesContext);
-	const entryWithHighlight = entriesWithHighlight[index];
-	const { entry } = entryWithHighlight;
+	const { entries, setHighlighter, entryModified } = useContext(EntriesContext);
+	const entry = entries[index];
 
 	const [isHighlighted, setIsHighlighted] = useState(false);
 	const render = useRender()[1];
 
 	useEffect(() => {
-		entryWithHighlight.highlighter = setIsHighlighted;
-	}, [entryWithHighlight]);
+		setHighlighter(index, setIsHighlighted);
+	}, [entry]);
 
 	const setCount = (count: number) => {
 		entry.count = count;
-		debouncedStoreEntriesLocally();
+		entryModified();
 		render();
 	};
 
 	const setTimeMs = (timeMs: number) => {
 		entry.timeMs = timeMs;
-		debouncedStoreEntriesLocally();
+		entryModified();
 		render();
 	};
 
 	const setNote = (note: string) => {
 		entry.note = note;
-		debouncedStoreEntriesLocally();
+		entryModified();
 		render();
 	};
 
