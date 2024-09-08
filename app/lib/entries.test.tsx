@@ -4,14 +4,14 @@ import { act, renderHook } from "@testing-library/react";
 
 import type { WrappedPlayer } from "./spotify";
 
-import { useEntries, STORAGE_KEY } from "./entries";
+import { useEntries, ENTRIES_STORAGE_KEY } from "./entries";
 import type { Entry } from "./entries";
 
 const defaultEntry: Entry = { count: 0, timeMs: 0, note: "Start" };
 
 const implantLSEntries = (entries: Entry[]) => {
 	beforeEach(() => {
-		localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+		localStorage.setItem(ENTRIES_STORAGE_KEY, JSON.stringify(entries));
 	});
 
 	afterEach(() => {
@@ -61,7 +61,7 @@ describe("useEntries", () => {
 
 			vi.advanceTimersByTime(2000);
 
-			expect(localStorage.getItem(STORAGE_KEY)).toEqual(
+			expect(localStorage.getItem(ENTRIES_STORAGE_KEY)).toEqual(
 				JSON.stringify(expectedEntries),
 			);
 		});
@@ -133,7 +133,9 @@ describe("useEntries", () => {
 
 			vi.advanceTimersByTime(2000);
 
-			expect(localStorage.getItem(STORAGE_KEY)).toEqual(JSON.stringify([]));
+			expect(localStorage.getItem(ENTRIES_STORAGE_KEY)).toEqual(
+				JSON.stringify([]),
+			);
 		});
 	});
 
@@ -148,7 +150,7 @@ describe("useEntries", () => {
 
 			vi.advanceTimersByTime(2000);
 
-			expect(localStorage.getItem(STORAGE_KEY)).toEqual(
+			expect(localStorage.getItem(ENTRIES_STORAGE_KEY)).toEqual(
 				JSON.stringify([defaultEntry]),
 			);
 		});

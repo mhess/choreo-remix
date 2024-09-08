@@ -18,7 +18,7 @@ export type EntryWithHighlight = {
 	highlighter?: (flag: boolean) => void;
 };
 
-export const STORAGE_KEY = "choreo-entries";
+export const ENTRIES_STORAGE_KEY = "choreo-entries";
 
 export const useEntries = (player: WrappedPlayer | undefined) => {
 	const entriesSetRef = useRef(new Set<number>());
@@ -45,7 +45,7 @@ export const useEntries = (player: WrappedPlayer | undefined) => {
 	}, [!!player]);
 
 	const loadEntriesFromLocalStorage = () => {
-		const data = localStorage.getItem(STORAGE_KEY);
+		const data = localStorage.getItem(ENTRIES_STORAGE_KEY);
 		const stored = data ? JSON.parse(data) : null;
 		loadEntries(stored?.length ? stored : undefined);
 	};
@@ -60,7 +60,7 @@ export const useEntries = (player: WrappedPlayer | undefined) => {
 	};
 
 	const storeEntriesLocally = () => {
-		localStorage.setItem(STORAGE_KEY, JSON.stringify(getEntries()));
+		localStorage.setItem(ENTRIES_STORAGE_KEY, JSON.stringify(getEntries()));
 	};
 
 	const getEntries = () =>
