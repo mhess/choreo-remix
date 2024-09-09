@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Mock } from "vitest";
 import { act, renderHook } from "@testing-library/react";
 
-import type { WrappedPlayer } from "./spotify";
+import type { WrappedPlayer } from "./spotify/player";
 
 import { useEntries, ENTRIES_STORAGE_KEY } from "./entries";
 import type { Entry } from "./entries";

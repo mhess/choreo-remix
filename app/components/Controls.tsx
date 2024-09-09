@@ -19,10 +19,10 @@ import {
 	IconSun,
 } from "@tabler/icons-react";
 
-import { EntriesContext } from "../lib/entries";
-import { usePlayer } from "../lib/spotify";
-import type { OnTickCallback } from "../lib/spotify";
-import { displayMs, useMobileBreakpoint } from "../lib/utils";
+import { EntriesContext } from "~/lib/entries";
+import { usePlayer } from "~/lib/spotify/player";
+import type { OnTickCallback } from "~/lib/spotify/player";
+import { displayMs, useMobileBreakpoint } from "~/lib/utils";
 
 import TooltipWithClick from "./TooltipWithClick";
 
@@ -74,7 +74,7 @@ const TrackTime = () => {
 		const cb: OnTickCallback = (ms) => setTimeMs(ms);
 		player.addOnTick(cb);
 		return () => player.removeOnTick(cb);
-	}, []);
+	}, [player]);
 
 	return (
 		<TooltipWithClick label="Current track time">
@@ -142,7 +142,7 @@ const PlaybackButtons = (props: PolymorphicComponentProps<"div", BoxProps>) => {
 		const cb: Spotify.PlaybackStateListener = ({ paused }) => setPaused(paused);
 		player.addOnStateChange(cb);
 		return () => player.removeOnStateChange(cb);
-	}, []);
+	}, [player]);
 
 	const handleSeekDir = (ms: number) => async () => {
 		const state = await player.getCurrentState();

@@ -1,17 +1,9 @@
 import { useContext } from "react";
-import {
-	CloseButton,
-	Group,
-	TextInput,
-	Text,
-	useMantineTheme,
-	useComputedColorScheme,
-	darken,
-} from "@mantine/core";
+import { CloseButton, Group, TextInput, Text } from "@mantine/core";
 
-import { useEntry, EntriesContext } from "../lib/entries";
-import { usePlayer } from "../lib/spotify";
-import { displayMs } from "../lib/utils";
+import { useEntry, EntriesContext } from "~/lib/entries";
+import { usePlayer } from "~/lib/spotify/player";
+import { displayMs } from "~/lib/utils";
 import classes from "./Entry.module.css";
 
 export default ({ index }: { index: number }) => {

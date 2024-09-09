@@ -5,6 +5,7 @@ type ListenerMap = {
 	player_state_changed?: Spotify.PlaybackStateListener[];
 } & { [key in Spotify.ErrorTypes]?: Spotify.ErrorListener[] };
 
+// Used for rapid development
 export const getFakePlayer = () => {
 	const listeners = {} as ListenerMap;
 

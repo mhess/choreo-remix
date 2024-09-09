@@ -4,8 +4,13 @@ import { Box, Center, Container, Group, Text } from "@mantine/core";
 import { Link } from "@remix-run/react";
 import { useDisclosure } from "@mantine/hooks";
 
-import { useSpotifyPlayer, PlayerContext, PlayerStatus } from "~/lib/spotify";
-import type { SpotifyAuthToken, WrappedPlayer } from "~/lib/spotify";
+import {
+	useSpotifyPlayer,
+	PlayerContext,
+	PlayerStatus,
+} from "~/lib/spotify/player";
+import type { WrappedPlayer } from "~/lib/spotify/player";
+import type { SpotifyAuthToken } from "~/lib/spotify/auth";
 import { EntriesContext, useEntries } from "~/lib/entries";
 
 import classes from "./Editor.module.css";
@@ -43,7 +48,7 @@ const Entries = ({ player }: { player: WrappedPlayer }) => {
 		() => () => {
 			player.pause();
 		},
-		[],
+		[player],
 	);
 
 	return (

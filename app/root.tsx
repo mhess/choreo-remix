@@ -9,15 +9,15 @@ import {
 } from "@mantine/core";
 import "@mantine/core/styles.css";
 
-import appStylesHref from "./app.css?url";
-import classes from "./theme.module.css";
+import appStylesHref from "~/app.css?url";
+import classes from "~/theme.module.css";
 
-import { useSpotifyAuth, AuthStatus } from "./lib/spotify";
-import breakpoints from "./breakpoints";
+import { useSpotifyAuth, AuthStatus } from "~/lib/spotify/auth";
+import breakpoints from "~/breakpoints";
 
-import Editor from "./components/Editor";
-import Landing from "./components/Landing";
-import Loading from "./components/Loading";
+import Editor from "~/components/Editor";
+import Landing from "~/components/Landing";
+import Loading from "~/components/Loading";
 
 const theme = createTheme({
 	breakpoints,

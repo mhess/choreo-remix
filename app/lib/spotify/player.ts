@@ -1,6 +1,7 @@
 import { useEffect, useState, useContext, createContext } from "react";
-import { useLocation } from "@remix-run/react";
-import { getFakePlayer } from "./fakeSpotify";
+
+import type { SpotifyAuthToken } from "./auth";
+import { getFakePlayer } from "./fakePlayer";
 
 declare global {
 	interface Window {
@@ -8,85 +9,7 @@ declare global {
 	}
 }
 
-export enum AuthStatus {
-	LOADING = "loading",
-	NO_AUTH = "noAuth",
-	GOOD = "good",
-}
-
-const DEV_FAKE_PLAYER = false;
-
-const LS_TOKEN_KEY = "authToken";
-
-export const useSpotifyAuth = () => {
-	// Can't just grab the token from localStorage bc it's only available
-	// on the browser. Remix also renders this component on the server >:[
-	const [token, setToken] = useState<string>();
-	const [status, setStatus] = useState(AuthStatus.LOADING);
-	const location = useLocation();
-	const tokenInParams = DEV_FAKE_PLAYER
-		? "fake"
-		: new URLSearchParams(location.search).get("token");
-
-	useEffect(() => {
-		if (token) return;
-
-		// Use token from url search before LS bc LS token might be stale
-		if (tokenInParams) {
-			setToken(tokenInParams);
-			setStatus(AuthStatus.GOOD);
-			localStorage.setItem(LS_TOKEN_KEY, tokenInParams);
-
-			// Even if the search string manimpulation here is removed, the app still
-			// mounts/unmounts/mounts the root component ¯\_(ツ)_/¯
-			const newUrl = new URL(window.location.href);
-			newUrl.searchParams.delete("token");
-			window.history.replaceState(null, "", newUrl);
-			return;
-		}
-
-		const tokenFromLS = localStorage.getItem(LS_TOKEN_KEY);
-		if (tokenFromLS) {
-			setToken(tokenFromLS);
-			setStatus(AuthStatus.GOOD);
-			return;
-		}
-
-		setStatus(AuthStatus.NO_AUTH);
-	}, [tokenInParams]);
-
-	const reset = () => {
-		setToken(undefined);
-		localStorage.removeItem(LS_TOKEN_KEY);
-		setStatus(AuthStatus.NO_AUTH);
-	};
-
-	return { status, token: { value: token, reset } };
-};
-
-export type SpotifyAuthToken = ReturnType<typeof useSpotifyAuth>["token"];
-
 const SPOTIFY_SCRIPT_ID = "spotify-sdk-script";
-
-const getSpotifyPlayer = async (token: string): Promise<WrappedPlayer> => {
-	if (!document.getElementById(SPOTIFY_SCRIPT_ID)) {
-		const $script = document.createElement("script");
-		$script.id = SPOTIFY_SCRIPT_ID;
-		$script.src = "https://sdk.scdn.co/spotify-player.js";
-		document.body.appendChild($script);
-	}
-
-	return new Promise((resolve) => {
-		window.onSpotifyWebPlaybackSDKReady = () => {
-			const spotifyPlayer = new Spotify.Player({
-				name: "Choreo Player",
-				getOAuthToken: (cb) => cb(token),
-				volume: 0.5,
-			});
-			resolve(createWrappedPlayer(spotifyPlayer));
-		};
-	});
-};
 
 export enum PlayerStatus {
 	LOADING = "loading",
@@ -116,6 +39,7 @@ let tokenAndPromise: {
 	token: string;
 	promise: Promise<WrappedPlayer> | undefined;
 };
+
 export const useSpotifyPlayer = (authToken: SpotifyAuthToken) => {
 	const token = authToken.value as string;
 	const [player, setPlayer] = useState<WrappedPlayer>();
@@ -125,11 +49,11 @@ export const useSpotifyPlayer = (authToken: SpotifyAuthToken) => {
 		setStatus(state ? PlayerStatus.READY : PlayerStatus.NOT_CONNECTED);
 	};
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: no functions/data refs change between renders
 	useEffect(() => {
-		let promise: Promise<WrappedPlayer>;
 		// Use the player from the Window if it has a correct token
 		if (window.player && window.player.authToken.value === token) {
-			promise = Promise.resolve(window.player);
+			const promise = Promise.resolve(window.player);
 			tokenAndPromise = { token, promise };
 		} else if (
 			!tokenAndPromise ||
@@ -138,7 +62,7 @@ export const useSpotifyPlayer = (authToken: SpotifyAuthToken) => {
 		) {
 			// In this case the window.player would have a differnet token.
 			window.player?.disconnect();
-			promise =
+			const promise =
 				token === "fake"
 					? Promise.resolve(createWrappedPlayer(getFakePlayer()))
 					: getSpotifyPlayer(token);
@@ -178,6 +102,26 @@ export const useSpotifyPlayer = (authToken: SpotifyAuthToken) => {
 	}, [token]);
 
 	return { player, status };
+};
+
+const getSpotifyPlayer = async (token: string): Promise<WrappedPlayer> => {
+	if (!document.getElementById(SPOTIFY_SCRIPT_ID)) {
+		const $script = document.createElement("script");
+		$script.id = SPOTIFY_SCRIPT_ID;
+		$script.src = "https://sdk.scdn.co/spotify-player.js";
+		document.body.appendChild($script);
+	}
+
+	return new Promise((resolve) => {
+		window.onSpotifyWebPlaybackSDKReady = () => {
+			const spotifyPlayer = new Spotify.Player({
+				name: "Choreo Player",
+				getOAuthToken: (cb) => cb(token),
+				volume: 0.5,
+			});
+			resolve(createWrappedPlayer(spotifyPlayer));
+		};
+	});
 };
 
 export type OnTickCallback = (ms: number) => void;

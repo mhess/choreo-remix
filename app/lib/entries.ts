@@ -9,7 +9,7 @@ import {
 import Papa from "papaparse";
 
 import { debounced } from "./utils";
-import type { WrappedPlayer } from "./spotify";
+import type { WrappedPlayer } from "./spotify/player";
 
 export type Entry = { count: number; timeMs: number; note: string };
 
