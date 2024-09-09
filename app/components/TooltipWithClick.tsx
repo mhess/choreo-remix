@@ -1,7 +1,6 @@
 import { Tooltip } from "@mantine/core";
+import type { TooltipProps } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-
-type TooltipProps = Parameters<typeof Tooltip>[0];
 
 export default (props: TooltipProps) => {
 	const [isOpen, { open, close, toggle }] = useDisclosure(false);
