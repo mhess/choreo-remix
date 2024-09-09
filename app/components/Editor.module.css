@@ -1,5 +1,6 @@
 .entries {
   flex: 1;
+  position: relative;
   overflow-y: scroll;
   scrollbar-width: none;
 }

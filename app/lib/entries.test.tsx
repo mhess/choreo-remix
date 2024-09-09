@@ -22,6 +22,7 @@ const implantLSEntries = (entries: Entry[]) => {
 describe("useEntries", () => {
 	beforeEach(() => {
 		localStorage.clear();
+		vi.clearAllMocks();
 		vi.useFakeTimers();
 	});
 

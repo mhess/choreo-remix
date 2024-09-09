@@ -56,8 +56,7 @@ const Entries = ({ player }: { player: WrappedPlayer }) => {
 			{isHelpOpen && <EntryHeader />}
 			<Box
 				className={classes.entries}
-				pos="relative"
-				style={{ paddingBottom: isHelpOpen ? 0 : "2rem" }}
+				pb={isHelpOpen ? 0 : "2rem"}
 				ref={scrollerRef as MutableRefObject<HTMLDivElement>}
 			>
 				{!isHelpOpen && <EntryHeader />}

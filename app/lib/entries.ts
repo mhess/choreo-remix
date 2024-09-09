@@ -250,7 +250,8 @@ export const EntriesContext = createContext(
 );
 
 export const useEntry = (index: number) => {
-	const { entries, setHighlighter, entryModified } = useContext(EntriesContext);
+	const { entries, setHighlighter, entryModified, removeEntry } =
+		useContext(EntriesContext);
 	const entry = entries[index];
 
 	const [isHighlighted, setIsHighlighted] = useState(false);
@@ -273,7 +274,7 @@ export const useEntry = (index: number) => {
 		render();
 	};
 
-	return { ...entry, setCount, setNote, isHighlighted };
+	return { ...entry, setCount, setNote, isHighlighted, remove: removeEntry };
 };
 
 const useRender = (): [number, (input?: number) => void] => {
