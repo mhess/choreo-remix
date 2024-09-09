@@ -131,7 +131,7 @@ export const useEntries = (player: WrappedPlayer | undefined) => {
 
 	const setHighlighter = (
 		index: number,
-		highlighter: (isHighlighted: boolean) => void,
+		highlighter?: (isHighlighted: boolean) => void,
 	) => {
 		entriesWithHighlightRef.current[index].highlighter = highlighter;
 	};
@@ -248,34 +248,6 @@ const setEntriesScrollPosition = (
 export const EntriesContext = createContext(
 	{} as ReturnType<typeof useEntries>,
 );
-
-export const useEntry = (index: number) => {
-	const { entries, setHighlighter, entryModified, removeEntry } =
-		useContext(EntriesContext);
-	const entry = entries[index];
-
-	const [isHighlighted, setIsHighlighted] = useState(false);
-	const render = useRender()[1];
-
-	// biome-ignore lint/correctness/useExhaustiveDependencies: setHighlighter function always behaves the same
-	useEffect(() => {
-		setHighlighter(index, setIsHighlighted);
-	}, [index]);
-
-	const setCount = (count: number) => {
-		entry.count = count;
-		entryModified();
-		render();
-	};
-
-	const setNote = (note: string) => {
-		entry.note = note;
-		entryModified();
-		render();
-	};
-
-	return { ...entry, setCount, setNote, isHighlighted, remove: removeEntry };
-};
 
 const useRender = (): [number, (input?: number) => void] => {
 	const [state, setState] = useState(0);

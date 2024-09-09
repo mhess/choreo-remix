@@ -62,31 +62,33 @@ describe("Entry", () => {
 		expect(screen.getByLabelText("note")).toHaveValue("Note");
 	});
 
-	describe("When it's registered highlighter gets called", () => {
-		it("Highlights correctly", async () => {
-			render(<Entry index={0} />, {
-				wrapper: getWrapper(player, useEntriesOutput),
-			});
-
-			expect(screen.getByRole("row")).not.toHaveClass(classes.highlight);
-
-			expect(useEntriesOutput.setHighlighter).toHaveBeenCalledOnce();
-			expect(useEntriesOutput.setHighlighter).toHaveBeenCalledWith(
-				0,
-				expect.any(Function),
-			);
-
-			const highlighter = (useEntriesOutput.setHighlighter as Mock).mock
-				.calls[0][1];
-
-			await act(() => highlighter(true));
-
-			expect(screen.getByRole("row")).toHaveClass(classes.highlight);
-
-			await act(() => highlighter(false));
-
-			expect(screen.getByRole("row")).not.toHaveClass(classes.highlight);
+	it("Highlights correctly and unregisters on unmount", async () => {
+		const { unmount } = render(<Entry index={0} />, {
+			wrapper: getWrapper(player, useEntriesOutput),
 		});
+
+		expect(screen.getByRole("row")).not.toHaveClass(classes.highlight);
+
+		expect(useEntriesOutput.setHighlighter).toHaveBeenCalledOnce();
+		expect(useEntriesOutput.setHighlighter).toHaveBeenCalledWith(
+			0,
+			expect.any(Function),
+		);
+
+		const highlighter = (useEntriesOutput.setHighlighter as Mock).mock
+			.calls[0][1];
+
+		await act(() => highlighter(true));
+
+		expect(screen.getByRole("row")).toHaveClass(classes.highlight);
+
+		await act(() => highlighter(false));
+
+		expect(screen.getByRole("row")).not.toHaveClass(classes.highlight);
+
+		await act(() => unmount());
+
+		expect(useEntriesOutput.setHighlighter).toHaveBeenLastCalledWith(0);
 	});
 
 	describe("When the count gets modified", () => {
