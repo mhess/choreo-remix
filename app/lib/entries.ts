@@ -31,6 +31,7 @@ export const useEntries = (player: WrappedPlayer | undefined) => {
 
 	const { current: entriesSet } = entriesSetRef;
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: functions shouldn't change
 	useEffect(() => {
 		loadEntriesFromLocalStorage();
 		render();
@@ -42,7 +43,7 @@ export const useEntries = (player: WrappedPlayer | undefined) => {
 
 		player.addOnTick(highlightCurrentEntry);
 		return () => player.removeOnTick(highlightCurrentEntry);
-	}, [!!player]);
+	}, [player]);
 
 	const loadEntriesFromLocalStorage = () => {
 		const data = localStorage.getItem(ENTRIES_STORAGE_KEY);
@@ -207,6 +208,7 @@ export const useEntries = (player: WrappedPlayer | undefined) => {
 		render();
 	};
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: functions always operate the same
 	return useMemo(
 		() => ({
 			setHighlighter,
@@ -254,18 +256,13 @@ export const useEntry = (index: number) => {
 	const [isHighlighted, setIsHighlighted] = useState(false);
 	const render = useRender()[1];
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: setHighlighter function always behaves the same
 	useEffect(() => {
 		setHighlighter(index, setIsHighlighted);
-	}, [entry]);
+	}, [index]);
 
 	const setCount = (count: number) => {
 		entry.count = count;
-		entryModified();
-		render();
-	};
-
-	const setTimeMs = (timeMs: number) => {
-		entry.timeMs = timeMs;
 		entryModified();
 		render();
 	};
@@ -276,7 +273,7 @@ export const useEntry = (index: number) => {
 		render();
 	};
 
-	return { ...entry, setCount, setTimeMs, setNote, isHighlighted };
+	return { ...entry, setCount, setNote, isHighlighted };
 };
 
 const useRender = (): [number, (input?: number) => void] => {

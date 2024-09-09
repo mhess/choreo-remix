@@ -21,6 +21,7 @@ const implantLSEntries = (entries: Entry[]) => {
 
 describe("useEntries", () => {
 	beforeEach(() => {
+		localStorage.clear();
 		vi.useFakeTimers();
 	});
 
@@ -196,7 +197,7 @@ describe("useEntries", () => {
 			} as unknown as HTMLElement;
 
 			expect(player.addOnTick).toHaveBeenCalledOnce();
-			const [[tickCallback]] = (player.addOnTick as Mock).mock.calls;
+			const tickCallback = (player.addOnTick as Mock).mock.calls[0][0];
 
 			await act(() => tickCallback(0));
 
