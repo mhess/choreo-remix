@@ -15,24 +15,21 @@ import { displayMs } from "../lib/utils";
 import classes from "./Entry.module.css";
 
 export default ({ index }: { index: number }) => {
-	const theme = useMantineTheme();
-	const isDark = useComputedColorScheme() === "dark";
 	const { removeEntry } = useContext(EntriesContext);
 	const entry = useEntry(index);
 	const player = usePlayer();
-	const { count, timeMs, note, isHighlighted } = entry;
-
-	let highlightColor = theme.colors.orange[4];
-	if (isDark) highlightColor = darken(highlightColor, 0.5);
+	const { count, setCount, timeMs, note, setNote, isHighlighted } = entry;
 
 	const handleCountChange = (event: React.ChangeEvent<HTMLInputElement>) =>
-		entry.setCount(Number(event.target.value));
+		setCount(Number(event.target.value));
 
 	const handleNoteChange = (event: React.ChangeEvent<HTMLInputElement>) =>
-		entry.setNote(event.target.value);
+		setNote(event.target.value);
 
 	return (
-		<Group className={classes.entry} bg={isHighlighted ? highlightColor : ""}>
+		<Group
+			className={`${classes.entry}${isHighlighted ? ` ${classes.highlight}` : ""}`}
+		>
 			<TextInput
 				classNames={{ input: classes.countInput }}
 				value={Number(count).toString()}

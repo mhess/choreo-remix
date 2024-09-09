@@ -3,6 +3,10 @@
   .entry:nth-child(odd) {
     background-color: var(--mantine-color-gray-8);
   }
+
+  .highlight.entry {
+    background-color: darken(var(--mantine-color-orange-4), 0.5);
+  }
 }
 
 .entry {
@@ -13,6 +17,10 @@
 
 .entry:nth-child(odd) {
   background-color: var(--mantine-color-gray-2);
+}
+
+.highlight.entry {
+  background-color: var(--mantine-color-orange-4);
 }
 
 .timestamp {
