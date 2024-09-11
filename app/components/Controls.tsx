@@ -1,28 +1,21 @@
 import React, { useContext, useEffect, useState } from "react";
-import {
-	Button,
-	Group,
-	Text,
-	Tooltip,
-	useComputedColorScheme,
-	useMantineColorScheme,
-} from "@mantine/core";
+import { useAtom } from "jotai";
+import { Button, Group, Text, Tooltip } from "@mantine/core";
 import type { PolymorphicComponentProps, BoxProps } from "@mantine/core";
 import {
 	IconHelp,
-	IconMoon,
 	IconPlayerPause,
 	IconPlayerPlay,
 	IconPlaylistAdd,
 	IconRewindBackward5,
 	IconRewindForward5,
-	IconSun,
 } from "@tabler/icons-react";
 
 import { EntriesContext } from "~/lib/entries";
 import { usePlayer } from "~/lib/spotify/player";
-import type { OnTickCallback } from "~/lib/spotify/player";
+import type { OnTickCallback } from "~/lib/player";
 import { displayMs, useMobileBreakpoint } from "~/lib/utils";
+import { playerPausedAtom, useEstablishedPlayer } from "~/lib/atoms";
 
 import TooltipWithClick from "./TooltipWithClick";
 
@@ -31,12 +24,11 @@ import classes from "./Controls.module.css";
 export default ({ help }: { help: Help }) => {
 	const isMobile = useMobileBreakpoint();
 	const { addEntry } = useContext(EntriesContext);
-	const player = usePlayer();
+	const player = useEstablishedPlayer();
 
 	const handleAddEntry = async () => {
-		const state = await player.getCurrentState();
-		if (!state) return;
-		addEntry(state.position);
+		const timeMs = await player.getCurrentTime();
+		addEntry(timeMs);
 	};
 
 	return (
@@ -60,7 +52,6 @@ export default ({ help }: { help: Help }) => {
 			<PlaybackButtons hiddenFrom="mobile" />
 			<Group mt={isMobile ? "0.5rem" : undefined}>
 				<HelpButton help={help} />
-				<ToggleColorScheme />
 			</Group>
 		</Group>
 	);
@@ -68,7 +59,7 @@ export default ({ help }: { help: Help }) => {
 
 const TrackTime = () => {
 	const [timeMs, setTimeMs] = useState(0);
-	const player = usePlayer();
+	const player = useEstablishedPlayer();
 
 	useEffect(() => {
 		const cb: OnTickCallback = (ms) => setTimeMs(ms);
@@ -120,34 +111,14 @@ const HelpButton = ({ help }: { help: Help }) => {
 	);
 };
 
-const ToggleColorScheme = () => {
-	const { toggleColorScheme } = useMantineColorScheme();
-	const isLight = useComputedColorScheme() === "light";
-
-	return (
-		<Tooltip label="Toggle light/dark mode" w={173}>
-			<Button variant="outline" onClick={toggleColorScheme}>
-				{React.createElement(isLight ? IconSun : IconMoon, { size: "1.25rem" })}
-			</Button>
-		</Tooltip>
-	);
-};
-
 const PlaybackButtons = (props: PolymorphicComponentProps<"div", BoxProps>) => {
 	const isMobile = useMobileBreakpoint();
-	const player = usePlayer();
-	const [paused, setPaused] = useState(false);
-
-	useEffect(() => {
-		const cb: Spotify.PlaybackStateListener = ({ paused }) => setPaused(paused);
-		player.addOnStateChange(cb);
-		return () => player.removeOnStateChange(cb);
-	}, [player]);
+	const player = useEstablishedPlayer();
+	const [paused] = useAtom(playerPausedAtom);
 
 	const handleSeekDir = (ms: number) => async () => {
-		const state = await player.getCurrentState();
-		if (!state) return;
-		player.seekTo(ms + state.position);
+		const time = await player.getCurrentTime();
+		player.seekTo(ms + time);
 	};
 
 	const btnProps = {
@@ -161,7 +132,7 @@ const PlaybackButtons = (props: PolymorphicComponentProps<"div", BoxProps>) => {
 				<IconRewindBackward5 size="1.25rem" />
 			</Button>
 			<Button
-				onClick={() => player.togglePlay()}
+				onClick={() => player[paused ? "play" : "pause"]()}
 				title={paused ? "Play" : "Pause"}
 				{...btnProps}
 			>

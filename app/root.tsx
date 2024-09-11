@@ -2,7 +2,6 @@ import { Links, Meta, Scripts, ScrollRestoration } from "@remix-run/react";
 import type { LinksFunction, MetaFunction } from "@remix-run/node";
 import {
 	Button,
-	Center,
 	ColorSchemeScript,
 	MantineProvider,
 	createTheme,
@@ -12,12 +11,10 @@ import "@mantine/core/styles.css";
 import appStylesHref from "~/app.css?url";
 import classes from "~/theme.module.css";
 
-import { useSpotifyAuth, AuthStatus } from "~/lib/spotify/auth";
 import breakpoints from "~/breakpoints";
 
 import Editor from "~/components/Editor";
-import Landing from "~/components/Landing";
-import Loading from "~/components/Loading";
+import Header from "~/components/Header";
 
 const theme = createTheme({
 	breakpoints,
@@ -78,21 +75,10 @@ export const Layout = ({ children }: { children: React.ReactNode }) => (
 );
 
 export default function App() {
-	const { status, token } = useSpotifyAuth();
-
-	return status === AuthStatus.GOOD ? (
-		<Editor token={token} />
-	) : (
-		<NotAuthenticated status={status} />
+	return (
+		<>
+			<Header />
+			<Editor />
+		</>
 	);
 }
-
-const NotAuthenticated = ({ status }: { status: AuthStatus }) => (
-	<Center h="100%">
-		{status === AuthStatus.LOADING ? (
-			<Loading message="Loading" />
-		) : (
-			<Landing />
-		)}
-	</Center>
-);

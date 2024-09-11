@@ -1,34 +1,44 @@
-import { useContext, useEffect, useState } from "react";
-import { Box, Burger, Button, Group, Menu, Text } from "@mantine/core";
-import { IconChevronDown } from "@tabler/icons-react";
+import { atom, useAtom } from "jotai";
+import React, { useContext } from "react";
+import {
+	Box,
+	Burger,
+	Button,
+	Group,
+	Menu,
+	Text,
+	Tooltip,
+	useComputedColorScheme,
+	useMantineColorScheme,
+} from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import { IconChevronDown, IconMoon, IconSun } from "@tabler/icons-react";
 
-import type { WrappedPlayer } from "~/lib/spotify";
 import { EntriesContext } from "~/lib/entries";
+import { platformAtom, playerAtom } from "~/lib/atoms";
+import type { Platform } from "~/lib/atoms";
 
 import TooltipWithClick from "./TooltipWithClick";
 
 import classes from "./Header.module.css";
+import {
+	spotifyPlaybackStateAtom,
+	spotifyPlayerAtom,
+} from "~/lib/spotify/player";
+import { spotifyTokenAtom } from "~/lib/spotify/auth";
 
-export default ({
-	player,
-	logout,
-}: {
-	player: WrappedPlayer | undefined;
-	logout: () => void;
-}) => {
-	const [track, setTrack] = useState<Spotify.Track>();
+const trackNameAtom = atom((get) =>
+	get(platformAtom) === "spotify"
+		? get(spotifyPlaybackStateAtom)?.track_window.current_track.name
+		: "youtube_track",
+);
 
-	useEffect(() => {
-		if (!player) return;
+export default () => {
+	const [platform] = useAtom(platformAtom);
+	const [player] = useAtom(playerAtom);
 
-		const cb: Spotify.PlaybackStateListener = ({ track_window }) =>
-			setTrack(track_window.current_track);
-		player.addOnStateChange(cb);
-		return () => player.removeOnStateChange(cb);
-	}, [player]);
-
-	const artists = track?.artists.map(({ name }) => name).join(", ");
+	const isSpotify = platform === "spotify";
+	const isPlayerReady = !!player;
 
 	return (
 		<Group component="header" className={classes.header}>
@@ -36,28 +46,15 @@ export default ({
 				<Text className={classes.logo} span>
 					Choreo
 				</Text>
-				{track && (
-					<Text className={classes.trackInfo} span>
-						<Text fw={700} span>
-							{artists}
-						</Text>
-						: {track.name}
-					</Text>
-				)}
+				{isPlayerReady && isSpotify && <SpotifyTrackInfo />}
 			</Group>
-			<Group className={classes.headerRightSide}>
-				{track && (
+			<Group
+				className={classes.headerRightSide}
+				justify={isSpotify ? "space-between" : "right"}
+			>
+				{isPlayerReady && (
 					<>
-						<TooltipWithClick
-							ta="center"
-							w={225}
-							multiline
-							label="Use a Spotify desktop or mobile app to change the track."
-						>
-							<Button variant="outline" className={classes.changeTrack}>
-								Change?
-							</Button>
-						</TooltipWithClick>
+						{isSpotify && <SpotifyChangeButton />}
 						<Box visibleFrom="mobile">
 							<Menu trigger="hover">
 								<Menu.Target>
@@ -69,25 +66,60 @@ export default ({
 										/>
 									</Button>
 								</Menu.Target>
-								<MenuDropdown trackName={track.name} />
+								<ActionsMenuDropdown />
 							</Menu>
 						</Box>
 					</>
 				)}
 			</Group>
-			<Button visibleFrom="mobile" onClick={logout}>
-				Log Out
-			</Button>
-			<BurgerMenu trackName={track?.name} logout={logout} />
+			<Group gap="xs">
+				<SelectPlaformButton />
+				<ToggleColorScheme />
+				<BurgerMenu />
+			</Group>
 		</Group>
 	);
 };
 
-const MenuDropdown = ({
-	trackName,
-	logout,
-}: { trackName?: string; logout?: () => void }) => {
+const SpotifyTrackInfo = () => {
+	const [state] = useAtom(spotifyPlaybackStateAtom);
+	const track = state?.track_window.current_track;
+
+	const artists = track?.artists.map(({ name }) => name).join(", ");
+
+	return (
+		track && (
+			<Text className={classes.trackInfo} span>
+				<Text fw={700} span>
+					{artists}
+				</Text>
+				: {track.name}
+			</Text>
+		)
+	);
+};
+
+const SpotifyChangeButton = () => {
+	const [player] = useAtom(spotifyPlayerAtom);
+
+	return !player ? null : (
+		<TooltipWithClick
+			ta="center"
+			w={225}
+			multiline
+			label="Use a Spotify desktop or mobile app to change the track."
+		>
+			<Button variant="outline" className={classes.changeTrack}>
+				Change?
+			</Button>
+		</TooltipWithClick>
+	);
+};
+
+const ActionsMenuDropdown = () => {
 	const { saveToCSV, loadFromCSV, clear } = useContext(EntriesContext);
+	const [trackName] = useAtom(trackNameAtom);
+	const [spotifyToken, setSpotifyToken] = useAtom(spotifyTokenAtom);
 
 	const handleSaveCSV = () => {
 		const formattedTrackName = (trackName as string)
@@ -129,16 +161,17 @@ const MenuDropdown = ({
 						<Menu.Item onClick={clear}>Clear</Menu.Item>
 					</>
 				)}
-				{logout && <Menu.Item onClick={logout}>Log Out</Menu.Item>}
+				{spotifyToken && (
+					<Menu.Item onClick={() => setSpotifyToken(undefined)}>
+						Log Out of Spotify
+					</Menu.Item>
+				)}
 			</Menu.Dropdown>
 		</>
 	);
 };
 
-const BurgerMenu = ({
-	trackName,
-	logout,
-}: { trackName?: string; logout: () => void }) => {
+const BurgerMenu = () => {
 	const [opened, { toggle, close }] = useDisclosure(false);
 
 	return (
@@ -146,7 +179,50 @@ const BurgerMenu = ({
 			<Menu.Target>
 				<Burger opened={opened} onClick={toggle} hiddenFrom="mobile" />
 			</Menu.Target>
-			<MenuDropdown trackName={trackName} logout={logout} />
+			<ActionsMenuDropdown />
+		</Menu>
+	);
+};
+
+const ToggleColorScheme = () => {
+	const { toggleColorScheme } = useMantineColorScheme();
+	const isLight = useComputedColorScheme() === "light";
+
+	return (
+		<Tooltip label="Toggle light/dark mode" w={173}>
+			<Button variant="outline" onClick={toggleColorScheme}>
+				{React.createElement(isLight ? IconSun : IconMoon, { size: "1.25rem" })}
+			</Button>
+		</Tooltip>
+	);
+};
+
+const nameByPlatform: Record<Exclude<Platform, "landing">, string> = {
+	spotify: "Spotify",
+	youtube: "Youtube",
+};
+
+const SelectPlaformButton = () => {
+	const [platform, setPlatform] = useAtom(platformAtom);
+
+	const content =
+		platform === "landing" ? "Select Platform" : nameByPlatform[platform];
+
+	return (
+		<Menu>
+			<Menu.Target>
+				<Button visibleFrom="mobile" variant="outline">
+					{content}
+				</Button>
+			</Menu.Target>
+			<Menu.Dropdown>
+				{platform !== "spotify" && (
+					<Menu.Item onClick={() => setPlatform("spotify")}>Spotify</Menu.Item>
+				)}
+				{platform !== "youtube" && (
+					<Menu.Item onClick={() => setPlatform("youtube")}>Youtube</Menu.Item>
+				)}
+			</Menu.Dropdown>
 		</Menu>
 	);
 };

@@ -2,7 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import { CloseButton, Group, Text } from "@mantine/core";
 
 import { EntriesContext } from "~/lib/entries";
-import { usePlayer } from "~/lib/spotify/player";
+import { useEstablishedPlayer } from "~/lib/atoms";
 import { displayMs } from "~/lib/utils";
 
 import TextInputWithState from "./TextInputWithState";
@@ -12,14 +12,12 @@ import classes from "./Entry.module.css";
 export default ({ index }: { index: number }) => {
 	const { entries, setHighlighter, entryModified, removeEntry } =
 		useContext(EntriesContext);
-	const player = usePlayer();
+	const player = useEstablishedPlayer();
 	const [isHighlighted, setIsHighlighted] = useState(false);
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: setHighlighter function always behaves the same
 	useEffect(() => {
 		setHighlighter(index, setIsHighlighted);
-		return () => setHighlighter(index);
-	}, [index]);
+	}, [index, setHighlighter]);
 
 	const entry = entries[index];
 	const { count, timeMs, note } = entry;

@@ -47,8 +47,8 @@
 
 .headerRightSide {
   flex: 1;
-  justify-content: space-between;
   flex-wrap: nowrap;
+  margin-right: var(--mantine-spacing-xs);
 }
 
 .changeTrack {
@@ -69,8 +69,7 @@
 }
 
 .actions {
-  margin-right: 0.5rem;
-
+  transform: translateY(-1px);
   &:active {
     transform: none;
   }

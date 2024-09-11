@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Mock } from "vitest";
 import { act, renderHook } from "@testing-library/react";
 
-import type { WrappedPlayer } from "./spotify/player";
+import type { Player } from "./player";
 
 import { useEntries, ENTRIES_STORAGE_KEY } from "./entries";
 import type { Entry } from "./entries";
@@ -162,7 +162,7 @@ describe("useEntries", () => {
 		const player = {
 			addOnTick: vi.fn(),
 			removeOnTick: vi.fn(),
-		} as unknown as WrappedPlayer;
+		} as unknown as Player;
 
 		implantLSEntries([
 			{ count: 0, timeMs: 0, note: "" },

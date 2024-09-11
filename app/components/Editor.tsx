@@ -1,122 +1,51 @@
-import { useEffect, useContext } from "react";
-import type { MutableRefObject } from "react";
-import { Box, Center, Container, Group, Text } from "@mantine/core";
-import { Link } from "@remix-run/react";
-import { useDisclosure } from "@mantine/hooks";
+import { useEffect } from "react";
+import { useAtom } from "jotai";
+import { useLocation } from "@remix-run/react";
 
-import {
-	useSpotifyPlayer,
-	PlayerContext,
-	PlayerStatus,
-} from "~/lib/spotify/player";
-import type { WrappedPlayer } from "~/lib/spotify/player";
-import type { SpotifyAuthToken } from "~/lib/spotify/auth";
-import { EntriesContext, useEntries } from "~/lib/entries";
+import { platformAtom, useEstablishedPlayer, type Platform } from "~/lib/atoms";
+import { SPOTIFY_TOKEN_URL_PARAM, spotifyTokenAtom } from "~/lib/spotify/auth";
 
-import classes from "./Editor.module.css";
-import Loading from "./Loading";
-import Header from "./Header";
-import Controls from "./Controls";
-import Entry from "./Entry";
-import Help from "./Help";
+import Landing from "./Landing";
+import Entries from "./Entries";
+import SpotifyEditor from "./SpotifyEditor";
 
-export default ({ token }: { token: SpotifyAuthToken }) => {
-	const { player, status } = useSpotifyPlayer(token);
-	const entries = useEntries(player);
+export default () => {
+	const platform = useSpotifyTokenForPlatform();
 
-	const isPlayerReady = status === PlayerStatus.READY && !!player;
-
-	return (
-		<EntriesContext.Provider value={entries}>
-			<Header player={player} logout={token.reset} />
-			{isPlayerReady ? (
-				<Entries player={player} />
-			) : (
-				<Center mx="1rem" h="100%">
-					{messageByStatus[status]}
-				</Center>
-			)}
-		</EntriesContext.Provider>
-	);
+	switch (platform) {
+		case "spotify":
+			return <SpotifyEditor />;
+		case "youtube":
+			return <YoutubeEditor />;
+		default:
+			return <Landing />;
+	}
 };
 
-const Entries = ({ player }: { player: WrappedPlayer }) => {
-	const { entries, scrollerRef, containerRef } = useContext(EntriesContext);
-	const [isHelpOpen, { toggle }] = useDisclosure(false);
-
-	useEffect(
-		() => () => {
-			player.pause();
-		},
-		[player],
+export const useSpotifyTokenForPlatform = (): Platform => {
+	const location = useLocation();
+	const [atomPlatform, setAtomPlatform] = useAtom(platformAtom);
+	const [, setToken] = useAtom(spotifyTokenAtom);
+	const tokenInParams = new URLSearchParams(location.search).get(
+		SPOTIFY_TOKEN_URL_PARAM,
 	);
 
-	return (
-		<PlayerContext.Provider value={player}>
-			{isHelpOpen && <EntryHeader />}
-			<Box
-				className={classes.entries}
-				pb={isHelpOpen ? 0 : "2rem"}
-				ref={scrollerRef as MutableRefObject<HTMLDivElement>}
-			>
-				{!isHelpOpen && <EntryHeader />}
-				<Box ref={containerRef as MutableRefObject<HTMLDivElement>}>
-					{entries.map(({ timeMs }, index) => (
-						<Entry key={timeMs} index={index} />
-					))}
-				</Box>
-				{isHelpOpen && (
-					<Help scrollerRef={scrollerRef} containerRef={containerRef} />
-				)}
-			</Box>
-			<Controls help={{ isShowing: isHelpOpen, toggle }} />
-		</PlayerContext.Provider>
-	);
+	useEffect(() => {
+		if (!tokenInParams) return;
+
+		setToken(tokenInParams);
+		setAtomPlatform("spotify");
+
+		const newUrl = new URL(window.location.href);
+		newUrl.searchParams.delete(SPOTIFY_TOKEN_URL_PARAM);
+		window.history.replaceState(null, "", newUrl);
+	}, [tokenInParams, setAtomPlatform, setToken]);
+
+	return tokenInParams ? "spotify" : atomPlatform;
 };
 
-const EntryHeader = () => (
-	<Group className={classes.entryHeader}>
-		<Text className={classes.count}>count</Text>
-		<Text className={classes.timestamp}>timestamp</Text>
-		<Text pl="sm">note</Text>
-	</Group>
-);
+const YoutubeEditor = () => {
+	const player = useEstablishedPlayer();
 
-const TryAgain = ({ message }: { message: string }) => (
-	<Text>
-		{message} Would you like to try to <Link to="auth/login">log&nbsp;in</Link>{" "}
-		again?
-	</Text>
-);
-
-const messageByStatus: Record<PlayerStatus, React.ReactNode> = {
-	[PlayerStatus.READY]: "shouldn't happen!",
-	[PlayerStatus.LOADING]: <Loading message="Connecting to Spotify" />,
-	[PlayerStatus.NOT_CONNECTED]: (
-		<Container ta="center" size="xs">
-			<Text>
-				Please connect to the "Choreo Player" device on your Spotify player.
-				Ensure that your other device is on the same network as this one.
-			</Text>
-			<Text mt="sm">
-				See this{" "}
-				<a
-					href="https://support.spotify.com/us/article/spotify-connect/"
-					rel="noreferrer"
-					target="_blank"
-				>
-					article
-				</a>{" "}
-				if you're having trouble.
-			</Text>
-		</Container>
-	),
-	[PlayerStatus.PLAYBACK_ERROR]: (
-		<TryAgain message="There was an error with playback." />
-	),
-	[PlayerStatus.INIT_ERROR]: <TryAgain message="Initialization Failed." />,
-	[PlayerStatus.ACCT_ERROR]: (
-		<TryAgain message="There was a problem with your account. Spotify requires a premium account for application access." />
-	),
-	[PlayerStatus.AUTH_ERROR]: <TryAgain message="Could not authorize access." />,
+	return player ? <Entries /> : <div>TODO</div>;
 };

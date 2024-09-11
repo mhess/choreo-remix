@@ -6,32 +6,40 @@ import { createTheme, MantineProvider } from "@mantine/core";
 import userEvent from "@testing-library/user-event";
 import type { UserEvent } from "@testing-library/user-event";
 
-import { PlayerContext } from "~/lib/spotify/player";
-import type { WrappedPlayer } from "~/lib/spotify/player";
+import type { Player } from "~/lib/player";
 
 import { EntriesContext } from "~/lib/entries";
 
 import Entry from "./Entry";
 import classes from "./Entry.module.css";
 
+import { AtomsProvider } from "testUtils";
+import { platformAtom } from "~/lib/atoms";
+import { spotifyPlayerAtom } from "~/lib/spotify/player";
+
 type UseEntriesOutput = ContextType<typeof EntriesContext>;
 
 const getWrapper =
-	(player: WrappedPlayer, entries: UseEntriesOutput) =>
+	(player: Player, entries: UseEntriesOutput) =>
 	({ children }: React.PropsWithChildren) => (
-		<MantineProvider theme={createTheme({})}>
-			<PlayerContext.Provider value={player}>
+		<AtomsProvider
+			initialValues={[
+				[platformAtom, "spotify"],
+				[spotifyPlayerAtom, player],
+			]}
+		>
+			<MantineProvider theme={createTheme({})}>
 				<EntriesContext.Provider value={entries}>
 					<div role="table">{children}</div>
 				</EntriesContext.Provider>
-			</PlayerContext.Provider>
-		</MantineProvider>
+			</MantineProvider>
+		</AtomsProvider>
 	);
 
 describe("Entry", () => {
 	let user: UserEvent;
 	let useEntriesOutput: UseEntriesOutput;
-	let player: WrappedPlayer;
+	let player: Player;
 
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -45,7 +53,7 @@ describe("Entry", () => {
 			removeEntry: vi.fn(),
 		} as unknown as UseEntriesOutput;
 
-		player = { seekTo: vi.fn() } as unknown as WrappedPlayer;
+		player = { seekTo: vi.fn() } as unknown as Player;
 	});
 
 	it("It displays the correct count, timestamp, and note", () => {
@@ -62,7 +70,7 @@ describe("Entry", () => {
 		expect(screen.getByLabelText("note")).toHaveValue("Note");
 	});
 
-	it("Highlights correctly and unregisters on unmount", async () => {
+	it("Highlights correctly", async () => {
 		const { unmount } = render(<Entry index={0} />, {
 			wrapper: getWrapper(player, useEntriesOutput),
 		});
@@ -85,10 +93,6 @@ describe("Entry", () => {
 		await act(() => highlighter(false));
 
 		expect(screen.getByRole("row")).not.toHaveClass(classes.highlight);
-
-		await act(() => unmount());
-
-		expect(useEntriesOutput.setHighlighter).toHaveBeenLastCalledWith(0);
 	});
 
 	describe("When the count gets modified", () => {

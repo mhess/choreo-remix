@@ -4,12 +4,12 @@ import {
 	useRef,
 	useMemo,
 	createContext,
-	useContext,
+	useCallback,
 } from "react";
 import Papa from "papaparse";
 
 import { debounced } from "./utils";
-import type { WrappedPlayer } from "./spotify/player";
+import type { Player } from "./player";
 
 export type Entry = { count: number; timeMs: number; note: string };
 
@@ -20,7 +20,7 @@ export type EntryWithHighlight = {
 
 export const ENTRIES_STORAGE_KEY = "choreo-entries";
 
-export const useEntries = (player: WrappedPlayer | undefined) => {
+export const useEntries = (player: Player | undefined) => {
 	const entriesSetRef = useRef(new Set<number>());
 	const entriesWithHighlightRef = useRef<EntryWithHighlight[]>([]);
 	const highlightIndexRef = useRef<number>();
@@ -31,12 +31,17 @@ export const useEntries = (player: WrappedPlayer | undefined) => {
 
 	const { current: entriesSet } = entriesSetRef;
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: functions shouldn't change
+	const loadEntriesFromLocalStorage = useCallback(() => {
+		const data = localStorage.getItem(ENTRIES_STORAGE_KEY);
+		const stored = data ? JSON.parse(data) : null;
+		loadEntries(stored?.length ? stored : undefined);
+	}, []);
+
 	useEffect(() => {
 		loadEntriesFromLocalStorage();
 		render();
 		return () => storeEntriesLocally();
-	}, []);
+	}, [loadEntriesFromLocalStorage, render]);
 
 	useEffect(() => {
 		if (!player) return;
@@ -44,12 +49,6 @@ export const useEntries = (player: WrappedPlayer | undefined) => {
 		player.addOnTick(highlightCurrentEntry);
 		return () => player.removeOnTick(highlightCurrentEntry);
 	}, [player]);
-
-	const loadEntriesFromLocalStorage = () => {
-		const data = localStorage.getItem(ENTRIES_STORAGE_KEY);
-		const stored = data ? JSON.parse(data) : null;
-		loadEntries(stored?.length ? stored : undefined);
-	};
 
 	const loadEntries = (entries?: Entry[]) => {
 		const nonEmptyEntries = entries || [{ count: 0, timeMs: 0, note: "Start" }];
@@ -133,11 +132,14 @@ export const useEntries = (player: WrappedPlayer | undefined) => {
 		index: number,
 		highlighter?: (isHighlighted: boolean) => void,
 	) => {
-		entriesWithHighlightRef.current[index].highlighter = highlighter;
+		const entry = entriesWithHighlightRef.current[index];
+		entry.highlighter = highlighter;
 	};
 
 	const debouncedStoreEntriesLocally = debounced(storeEntriesLocally, 2000);
 
+	// FIXME: This can give negative numbers when adding entry between two
+	//        entries that already have counts.
 	const guessCountForIndex = (index: number, timeMs: number) => {
 		const priorTwo = entriesWithHighlightRef.current.slice(index - 2, index);
 		const priorCount = priorTwo.length;
@@ -252,9 +254,7 @@ export const EntriesContext = createContext(
 const useRender = (): [number, (input?: number) => void] => {
 	const [state, setState] = useState(0);
 
-	useEffect(() => {
-		return () => {};
-	}, []);
+	const render = useCallback(() => setState((p) => p + 1), []);
 
-	return [state, (input?: number) => setState(input ? input : (p) => p + 1)];
+	return [state, render];
 };

@@ -33,6 +33,13 @@ export const getFakePlayer = () => {
 			currentState.position = Date.now() - playStarted;
 			invokeStateListeners();
 		},
+		async resume() {
+			const { paused, position } = currentState;
+			if (!paused) return;
+			playStarted = Date.now() - position;
+			currentState.paused = false;
+			invokeStateListeners();
+		},
 		async connect() {
 			return true;
 		},
@@ -50,15 +57,8 @@ export const getFakePlayer = () => {
 			currentState = { ...currentState, position: bounded };
 		},
 		async togglePlay() {
-			const { paused, position } = currentState;
-			if (paused) playStarted = Date.now() - position;
-			const newPosition = paused ? position : Date.now() - playStarted;
-			currentState = {
-				...currentState,
-				paused: !paused,
-				position: newPosition,
-			};
-			invokeStateListeners();
+			const { paused } = currentState;
+			return this[paused ? "resume" : "pause"]();
 		},
 		addListener(eventName, callback) {
 			const callbacks = listeners[eventName];
