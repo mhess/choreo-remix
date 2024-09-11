@@ -12,7 +12,6 @@ import {
 } from "@tabler/icons-react";
 
 import { EntriesContext } from "~/lib/entries";
-import { usePlayer } from "~/lib/spotify/player";
 import type { OnTickCallback } from "~/lib/player";
 import { displayMs, useMobileBreakpoint } from "~/lib/utils";
 import { playerPausedAtom, useEstablishedPlayer } from "~/lib/atoms";

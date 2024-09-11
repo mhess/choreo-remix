@@ -17,15 +17,16 @@ import { IconChevronDown, IconMoon, IconSun } from "@tabler/icons-react";
 import { EntriesContext } from "~/lib/entries";
 import { platformAtom, playerAtom } from "~/lib/atoms";
 import type { Platform } from "~/lib/atoms";
-
-import TooltipWithClick from "./TooltipWithClick";
-
-import classes from "./Header.module.css";
 import {
 	spotifyPlaybackStateAtom,
 	spotifyPlayerAtom,
 } from "~/lib/spotify/player";
 import { spotifyTokenAtom } from "~/lib/spotify/auth";
+import { youTubeVideoIdAtom } from "~/lib/youtube";
+
+import TooltipWithClick from "./TooltipWithClick";
+
+import classes from "./Header.module.css";
 
 const trackNameAtom = atom((get) =>
 	get(platformAtom) === "spotify"
@@ -120,6 +121,8 @@ const ActionsMenuDropdown = () => {
 	const { saveToCSV, loadFromCSV, clear } = useContext(EntriesContext);
 	const [trackName] = useAtom(trackNameAtom);
 	const [spotifyToken, setSpotifyToken] = useAtom(spotifyTokenAtom);
+	const [platform] = useAtom(platformAtom);
+	const [ytVideoId, setYtVideoId] = useAtom(youTubeVideoIdAtom);
 
 	const handleSaveCSV = () => {
 		const formattedTrackName = (trackName as string)
@@ -159,6 +162,11 @@ const ActionsMenuDropdown = () => {
 						</Menu.Item>
 						<Menu.Item onClick={handleSaveCSV}>Save to CSV</Menu.Item>
 						<Menu.Item onClick={clear}>Clear</Menu.Item>
+						{platform === "youtube" && ytVideoId && (
+							<Menu.Item onClick={() => setYtVideoId(undefined)}>
+								Change YouTube Video
+							</Menu.Item>
+						)}
 					</>
 				)}
 				{spotifyToken && (

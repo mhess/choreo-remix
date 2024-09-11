@@ -2,12 +2,12 @@ import { useEffect } from "react";
 import { useAtom } from "jotai";
 import { useLocation } from "@remix-run/react";
 
-import { platformAtom, useEstablishedPlayer, type Platform } from "~/lib/atoms";
+import { platformAtom, type Platform } from "~/lib/atoms";
 import { SPOTIFY_TOKEN_URL_PARAM, spotifyTokenAtom } from "~/lib/spotify/auth";
 
 import Landing from "./Landing";
-import Entries from "./Entries";
 import SpotifyEditor from "./SpotifyEditor";
+import YoutubeEditor from "./YoutubeEditor";
 
 export default () => {
 	const platform = useSpotifyTokenForPlatform();
@@ -42,10 +42,4 @@ export const useSpotifyTokenForPlatform = (): Platform => {
 	}, [tokenInParams, setAtomPlatform, setToken]);
 
 	return tokenInParams ? "spotify" : atomPlatform;
-};
-
-const YoutubeEditor = () => {
-	const player = useEstablishedPlayer();
-
-	return player ? <Entries /> : <div>TODO</div>;
 };

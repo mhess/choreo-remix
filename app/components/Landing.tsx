@@ -2,7 +2,7 @@ import { Container, Text, Title, Stack } from "@mantine/core";
 
 export default () => {
 	return (
-		<Container size="sm" mt="sm">
+		<Container mt="sm">
 			<Stack gap="md">
 				<Title>Welcome to the Choreo App!</Title>
 				<Text>

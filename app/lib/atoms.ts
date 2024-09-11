@@ -2,13 +2,11 @@ import { atom, useAtom } from "jotai";
 import type { Atom } from "jotai";
 import { spotifyPlaybackStateAtom, spotifyPlayerAtom } from "./spotify/player";
 import type { Player } from "./player";
-import { youtubePlayerStateAtom } from "./youtube";
+import { youTubePlayerAtom, youTubePlayerStateAtom } from "./youtube";
 
 export type Platform = "youtube" | "spotify" | "landing";
 
-export const platformAtom = atom<Platform>("landing");
-
-export const youTubePlayerAtom = atom<Player>();
+export const platformAtom = atom<Platform>("youtube");
 
 const playerAtomByPlatform: Record<Platform, Atom<Player | undefined>> = {
 	spotify: spotifyPlayerAtom,
@@ -25,7 +23,9 @@ export const playerPausedAtom = atom<boolean>((get) => {
 
 	if (platform === "spotify")
 		return get(spotifyPlaybackStateAtom)?.paused as boolean;
-	if (platform === "youtube") return get(youtubePlayerStateAtom) !== 1;
+	// Can't use YT.PlayerState.PLAYING bc that variable doesn't exist on server
+	// 1 = YT.PlayerState.PLAYING
+	if (platform === "youtube") return get(youTubePlayerStateAtom) !== 1;
 	return true;
 });
 

@@ -6,15 +6,19 @@ import {
 	MantineProvider,
 	createTheme,
 } from "@mantine/core";
+import { Provider as JotaiProvider } from "jotai";
+
 import "@mantine/core/styles.css";
 
 import appStylesHref from "~/app.css?url";
 import classes from "~/theme.module.css";
 
+import { YT_PLAYER_EL_ID } from "~/lib/youtube";
 import breakpoints from "~/breakpoints";
 
 import Editor from "~/components/Editor";
 import Header from "~/components/Header";
+import store from "~/lib/stateStore";
 
 const theme = createTheme({
 	breakpoints,
@@ -36,6 +40,7 @@ const theme = createTheme({
 			},
 		}),
 		Tooltip: { defaultProps: { withArrow: true } },
+		Container: { defaultProps: { size: "xs" } },
 	},
 });
 
@@ -70,15 +75,16 @@ export const Layout = ({ children }: { children: React.ReactNode }) => (
 			</MantineProvider>
 			<ScrollRestoration />
 			<Scripts />
+			<div id={YT_PLAYER_EL_ID} />
 		</body>
 	</html>
 );
 
 export default function App() {
 	return (
-		<>
+		<JotaiProvider store={store}>
 			<Header />
 			<Editor />
-		</>
+		</JotaiProvider>
 	);
 }

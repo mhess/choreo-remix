@@ -4,7 +4,6 @@ import { atom, useAtom } from "jotai";
 import { getFakePlayer } from "./fakePlayer";
 import { getPlaybackListenerForTick } from "../player";
 import type { PlaybackListener, OnTickCallback, Player } from "../player";
-import { spotifyTokenAtom } from "./auth";
 
 declare global {
 	interface Window {
@@ -14,7 +13,7 @@ declare global {
 
 const SPOTIFY_SCRIPT_ID = "spotify-sdk-script";
 
-export enum PlayerStatus {
+export enum SpotifyPlayerStatus {
 	LOADING = "loading",
 	NOT_CONNECTED = "deviceNotConnected",
 	INIT_ERROR = "initializationError",
@@ -36,7 +35,7 @@ const playerEvents: PlayerEvent[] = [
 ];
 
 export const spotifyPlayerAtom = atom<SpotifyPlayer>();
-export const spotifyPlayerStatusAtom = atom(PlayerStatus.LOADING);
+export const spotifyPlayerStatusAtom = atom(SpotifyPlayerStatus.LOADING);
 export const spotifyPlaybackStateAtom = atom<Spotify.PlaybackState | null>(
 	null,
 );
@@ -70,7 +69,7 @@ export const useSpotifyPlayer = (token?: string) => {
 			window.spotifyPlayer?.disconnect();
 			const promise =
 				token === "fake"
-					? Promise.resolve(createWrappedSpotifyPlayer(getFakePlayer(), token))
+					? Promise.resolve(wrapSpotifyPlayer(getFakePlayer(), token))
 					: getSpotifyPlayer(token);
 			tokenAndPromise = { token, promise };
 		}
@@ -78,12 +77,14 @@ export const useSpotifyPlayer = (token?: string) => {
 		const onPlayerStateChanged = (state: Spotify.PlaybackState | null) => {
 			setState(state);
 			if (state) setPlayer(window.spotifyPlayer);
-			setStatus(state ? PlayerStatus.READY : PlayerStatus.NOT_CONNECTED);
+			setStatus(
+				state ? SpotifyPlayerStatus.READY : SpotifyPlayerStatus.NOT_CONNECTED,
+			);
 		};
 
 		tokenAndPromise.promise?.then(async (wp) => {
 			if (!(await wp.connect())) {
-				setStatus(PlayerStatus.INIT_ERROR);
+				setStatus(SpotifyPlayerStatus.INIT_ERROR);
 				return;
 			}
 
@@ -94,16 +95,20 @@ export const useSpotifyPlayer = (token?: string) => {
 			wp.addListener("player_state_changed", onPlayerStateChanged);
 			wp.addListener("playback_error", (obj) => {
 				console.log(`playback error ${JSON.stringify(obj)}`);
-				setStatus(PlayerStatus.PLAYBACK_ERROR);
+				setStatus(SpotifyPlayerStatus.PLAYBACK_ERROR);
 			});
 			wp.addListener("initialization_error", () =>
-				setStatus(PlayerStatus.INIT_ERROR),
+				setStatus(SpotifyPlayerStatus.INIT_ERROR),
 			);
 			wp.addListener("authentication_error", () =>
-				setStatus(PlayerStatus.AUTH_ERROR),
+				setStatus(SpotifyPlayerStatus.AUTH_ERROR),
 			);
-			wp.addListener("account_error", () => setStatus(PlayerStatus.ACCT_ERROR));
-			wp.addListener("ready", () => setStatus(PlayerStatus.NOT_CONNECTED));
+			wp.addListener("account_error", () =>
+				setStatus(SpotifyPlayerStatus.ACCT_ERROR),
+			);
+			wp.addListener("ready", () =>
+				setStatus(SpotifyPlayerStatus.NOT_CONNECTED),
+			);
 		});
 
 		return () => {
@@ -130,7 +135,7 @@ const getSpotifyPlayer = async (token: string): Promise<SpotifyPlayer> => {
 				getOAuthToken: (cb) => cb(token),
 				volume: 0.5,
 			});
-			resolve(createWrappedSpotifyPlayer(spotifyPlayer, token));
+			resolve(wrapSpotifyPlayer(spotifyPlayer, token));
 		};
 	});
 };
@@ -139,7 +144,7 @@ export interface SpotifyPlayer extends Player, Spotify.Player {
 	authToken: string;
 }
 
-const createWrappedSpotifyPlayer = (
+const wrapSpotifyPlayer = (
 	player: Spotify.Player,
 	authToken: string,
 ): SpotifyPlayer => {

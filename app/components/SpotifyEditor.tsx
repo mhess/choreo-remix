@@ -4,7 +4,7 @@ import { Center, Container, Text } from "@mantine/core";
 import { Link } from "@remix-run/react";
 
 import {
-	PlayerStatus,
+	SpotifyPlayerStatus,
 	spotifyPlayerAtom,
 	useSpotifyPlayer,
 } from "~/lib/spotify/player";
@@ -34,7 +34,7 @@ export default () => {
 			</Center>
 		);
 
-	const isPlayerReady = status === PlayerStatus.READY && player;
+	const isPlayerReady = status === SpotifyPlayerStatus.READY && player;
 
 	return isPlayerReady ? (
 		<Entries />
@@ -52,11 +52,11 @@ const TryAgain = ({ message }: { message: string }) => (
 	</Text>
 );
 
-const messageByStatus: Record<PlayerStatus, React.ReactNode> = {
-	[PlayerStatus.READY]: "shouldn't happen!",
-	[PlayerStatus.LOADING]: <Loading message="Connecting to Spotify" />,
-	[PlayerStatus.NOT_CONNECTED]: (
-		<Container ta="center" size="xs">
+const messageByStatus: Record<SpotifyPlayerStatus, React.ReactNode> = {
+	[SpotifyPlayerStatus.READY]: "shouldn't happen!",
+	[SpotifyPlayerStatus.LOADING]: <Loading message="Connecting to Spotify" />,
+	[SpotifyPlayerStatus.NOT_CONNECTED]: (
+		<Container ta="center">
 			<Text>
 				Please connect to the "Choreo Player" device on your Spotify player.
 				Ensure that your other device is on the same network as this one.
@@ -74,12 +74,16 @@ const messageByStatus: Record<PlayerStatus, React.ReactNode> = {
 			</Text>
 		</Container>
 	),
-	[PlayerStatus.PLAYBACK_ERROR]: (
+	[SpotifyPlayerStatus.PLAYBACK_ERROR]: (
 		<TryAgain message="There was an error with playback." />
 	),
-	[PlayerStatus.INIT_ERROR]: <TryAgain message="Initialization Failed." />,
-	[PlayerStatus.ACCT_ERROR]: (
+	[SpotifyPlayerStatus.INIT_ERROR]: (
+		<TryAgain message="Initialization Failed." />
+	),
+	[SpotifyPlayerStatus.ACCT_ERROR]: (
 		<TryAgain message="There was a problem with your account. Spotify requires a premium account for application access." />
 	),
-	[PlayerStatus.AUTH_ERROR]: <TryAgain message="Could not authorize access." />,
+	[SpotifyPlayerStatus.AUTH_ERROR]: (
+		<TryAgain message="Could not authorize access." />
+	),
 };
