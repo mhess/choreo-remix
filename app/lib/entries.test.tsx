@@ -2,10 +2,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Mock } from "vitest";
 import { act, renderHook } from "@testing-library/react";
 
-import type { Player } from "./player";
+import { AtomsProvider } from "testUtils";
 
-import { useEntries, ENTRIES_STORAGE_KEY } from "./entries";
 import type { Entry } from "./entries";
+import { platformAtom } from "./atoms";
+import { spotifyPlayerAtom } from "./spotify/player";
+import type { Player } from "./player";
+import { useEntries, ENTRIES_STORAGE_KEY } from "./entries";
 
 const defaultEntry: Entry = { count: 0, timeMs: 0, note: "Start" };
 
@@ -36,7 +39,7 @@ describe("useEntries", () => {
 		implantLSEntries(storedEntries);
 
 		it("Loads those entries", () => {
-			const { result } = renderHook(() => useEntries(undefined));
+			const { result } = renderHook(() => useEntries());
 
 			expect(result.current.entries).toEqual(storedEntries);
 		});
@@ -44,7 +47,7 @@ describe("useEntries", () => {
 
 	describe("When there are no entries stored in localStorage", () => {
 		it("Loads the default entry", () => {
-			const { result } = renderHook(() => useEntries(undefined));
+			const { result } = renderHook(() => useEntries());
 
 			expect(result.current.entries).toEqual([defaultEntry]);
 		});
@@ -52,7 +55,7 @@ describe("useEntries", () => {
 
 	describe("Adding an entry", () => {
 		it("Adds the entry to rendered entries and to localStorage", async () => {
-			const { result } = renderHook(() => useEntries(undefined));
+			const { result } = renderHook(() => useEntries());
 
 			await act(() => result.current.addEntry(2));
 
@@ -77,7 +80,7 @@ describe("useEntries", () => {
 			implantLSEntries(priorEntries);
 
 			it("Correctly fills in the count for the new entry", async () => {
-				const { result } = renderHook(() => useEntries(undefined));
+				const { result } = renderHook(() => useEntries());
 
 				await act(() => result.current.addEntry(302));
 
@@ -97,7 +100,7 @@ describe("useEntries", () => {
 			implantLSEntries(existingEntries);
 
 			it("Places it correctly", async () => {
-				const { result } = renderHook(() => useEntries(undefined));
+				const { result } = renderHook(() => useEntries());
 
 				await act(() => result.current.addEntry(299));
 
@@ -114,7 +117,7 @@ describe("useEntries", () => {
 
 		describe("When new entry has same timestamp as existing entry", () => {
 			it("Does not add the entry", async () => {
-				const { result } = renderHook(() => useEntries(undefined));
+				const { result } = renderHook(() => useEntries());
 
 				expect(result.current.entries).toEqual([defaultEntry]);
 
@@ -127,7 +130,7 @@ describe("useEntries", () => {
 
 	describe("Removing an entry", () => {
 		it("Removes the rendered entries and in localStorage", async () => {
-			const { result } = renderHook(() => useEntries(undefined));
+			const { result } = renderHook(() => useEntries());
 
 			await act(() => result.current.removeEntry(0));
 
@@ -145,7 +148,7 @@ describe("useEntries", () => {
 		implantLSEntries([{ count: 1, timeMs: 101, note: "one" }]);
 
 		it("Removes all entries and replaces with default in rendered and localStorage", async () => {
-			const { result } = renderHook(() => useEntries(undefined));
+			const { result } = renderHook(() => useEntries());
 			await act(() => result.current.clear());
 
 			expect(result.current.entries).toEqual([defaultEntry]);
@@ -158,11 +161,24 @@ describe("useEntries", () => {
 		});
 	});
 
-	describe("When provided a WrappedPlayer", () => {
+	describe("When provided a Player", () => {
 		const player = {
 			addOnTick: vi.fn(),
 			removeOnTick: vi.fn(),
 		} as unknown as Player;
+
+		const getWrapper =
+			(player: Player) =>
+			({ children }: React.PropsWithChildren) => (
+				<AtomsProvider
+					initialValues={[
+						[platformAtom, "spotify"],
+						[spotifyPlayerAtom, player],
+					]}
+				>
+					{children}
+				</AtomsProvider>
+			);
 
 		implantLSEntries([
 			{ count: 0, timeMs: 0, note: "" },
@@ -171,7 +187,9 @@ describe("useEntries", () => {
 		]);
 
 		it("Highlights, scrolls, and unmounts correctly entry with player ticking", async () => {
-			const { result, unmount } = renderHook(() => useEntries(player));
+			const { result, unmount } = renderHook(() => useEntries(), {
+				wrapper: getWrapper(player),
+			});
 
 			const highlights = [false, false, false];
 			result.current.entries.forEach((_: Entry, index: number) => {

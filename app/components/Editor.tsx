@@ -8,8 +8,10 @@ import { SPOTIFY_TOKEN_URL_PARAM, spotifyTokenAtom } from "~/lib/spotify/auth";
 import Landing from "./Landing";
 import SpotifyEditor from "./SpotifyEditor";
 import YoutubeEditor from "./YoutubeEditor";
+import { entriesAtom, useEntries } from "~/lib/entries";
 
 export default () => {
+	useSetUpEntries();
 	const platform = useSpotifyTokenForPlatform();
 
 	switch (platform) {
@@ -22,7 +24,16 @@ export default () => {
 	}
 };
 
-export const useSpotifyTokenForPlatform = (): Platform => {
+const useSetUpEntries = () => {
+	const entries = useEntries();
+	const [, setEntries] = useAtom(entriesAtom);
+
+	useEffect(() => {
+		setEntries(entries);
+	}, [entries, setEntries]);
+};
+
+const useSpotifyTokenForPlatform = (): Platform => {
 	const location = useLocation();
 	const [atomPlatform, setAtomPlatform] = useAtom(platformAtom);
 	const [, setToken] = useAtom(spotifyTokenAtom);

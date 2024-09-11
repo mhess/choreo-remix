@@ -3,11 +3,11 @@ import { atomWithStorage } from "jotai/utils";
 
 export const SPOTIFY_TOKEN_URL_PARAM = "spotifyToken";
 
-export const spotifyTokenAtom = atomWithStorage<string | undefined>(
+export const spotifyTokenAtom = atomWithStorage<string | null>(
 	SPOTIFY_TOKEN_URL_PARAM,
-	undefined,
+	null,
 );
 
 export const resetSpotifyTokenAtom = atom(null, (_, set) =>
-	set(spotifyTokenAtom, undefined),
+	set(spotifyTokenAtom, null),
 );

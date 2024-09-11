@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAtom } from "jotai";
 import { Button, Group, Text, Tooltip } from "@mantine/core";
 import type { PolymorphicComponentProps, BoxProps } from "@mantine/core";
@@ -11,7 +11,7 @@ import {
 	IconRewindForward5,
 } from "@tabler/icons-react";
 
-import { EntriesContext } from "~/lib/entries";
+import { useEntriesData } from "~/lib/entries";
 import type { OnTickCallback } from "~/lib/player";
 import { displayMs, useMobileBreakpoint } from "~/lib/utils";
 import { playerPausedAtom, useEstablishedPlayer } from "~/lib/atoms";
@@ -22,7 +22,7 @@ import classes from "./Controls.module.css";
 
 export default ({ help }: { help: Help }) => {
 	const isMobile = useMobileBreakpoint();
-	const { addEntry } = useContext(EntriesContext);
+	const { addEntry } = useEntriesData();
 	const player = useEstablishedPlayer();
 
 	const handleAddEntry = async () => {

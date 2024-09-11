@@ -1,7 +1,7 @@
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { CloseButton, Group, Text } from "@mantine/core";
 
-import { EntriesContext } from "~/lib/entries";
+import { useEntriesData } from "~/lib/entries";
 import { useEstablishedPlayer } from "~/lib/atoms";
 import { displayMs } from "~/lib/utils";
 
@@ -11,7 +11,7 @@ import classes from "./Entry.module.css";
 
 export default ({ index }: { index: number }) => {
 	const { entries, setHighlighter, entryModified, removeEntry } =
-		useContext(EntriesContext);
+		useEntriesData();
 	const player = useEstablishedPlayer();
 	const [isHighlighted, setIsHighlighted] = useState(false);
 

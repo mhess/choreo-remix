@@ -1,15 +1,9 @@
-import {
-	useState,
-	useEffect,
-	useRef,
-	useMemo,
-	createContext,
-	useCallback,
-} from "react";
+import { atom, useAtom } from "jotai";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import Papa from "papaparse";
 
 import { debounced } from "./utils";
-import type { Player } from "./player";
+import { playerAtom } from "./atoms";
 
 export type Entry = { count: number; timeMs: number; note: string };
 
@@ -18,9 +12,16 @@ export type EntryWithHighlight = {
 	highlighter?: (flag: boolean) => void;
 };
 
+export type EntriesData = ReturnType<typeof useEntries>;
+
+export const entriesAtom = atom<EntriesData>();
+
+export const useEntriesData = () => useAtom(entriesAtom)[0] as EntriesData;
+
 export const ENTRIES_STORAGE_KEY = "choreo-entries";
 
-export const useEntries = (player: Player | undefined) => {
+export const useEntries = () => {
+	const [player] = useAtom(playerAtom);
 	const entriesSetRef = useRef(new Set<number>());
 	const entriesWithHighlightRef = useRef<EntryWithHighlight[]>([]);
 	const highlightIndexRef = useRef<number>();
@@ -205,6 +206,7 @@ export const useEntries = (player: Player | undefined) => {
 	};
 
 	const clear = () => {
+		console.log("here");
 		loadEntries();
 		storeEntriesLocally();
 		render();
@@ -246,10 +248,6 @@ const setEntriesScrollPosition = (
 		}
 	}
 };
-
-export const EntriesContext = createContext(
-	{} as ReturnType<typeof useEntries>,
-);
 
 const useRender = (): [number, (input?: number) => void] => {
 	const [state, setState] = useState(0);

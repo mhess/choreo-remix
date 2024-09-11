@@ -1,4 +1,3 @@
-import type { ContextType } from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { Mock } from "vitest";
 import { act, render, screen } from "@testing-library/react";
@@ -8,7 +7,7 @@ import type { UserEvent } from "@testing-library/user-event";
 
 import type { Player } from "~/lib/player";
 
-import { EntriesContext } from "~/lib/entries";
+import { entriesAtom, type EntriesData } from "~/lib/entries";
 
 import Entry from "./Entry";
 import classes from "./Entry.module.css";
@@ -17,28 +16,25 @@ import { AtomsProvider } from "testUtils";
 import { platformAtom } from "~/lib/atoms";
 import { spotifyPlayerAtom } from "~/lib/spotify/player";
 
-type UseEntriesOutput = ContextType<typeof EntriesContext>;
-
 const getWrapper =
-	(player: Player, entries: UseEntriesOutput) =>
+	(player: Player, entriesData: EntriesData) =>
 	({ children }: React.PropsWithChildren) => (
 		<AtomsProvider
 			initialValues={[
 				[platformAtom, "spotify"],
 				[spotifyPlayerAtom, player],
+				[entriesAtom, entriesData],
 			]}
 		>
 			<MantineProvider theme={createTheme({})}>
-				<EntriesContext.Provider value={entries}>
-					<div role="table">{children}</div>
-				</EntriesContext.Provider>
+				<div role="table">{children}</div>
 			</MantineProvider>
 		</AtomsProvider>
 	);
 
 describe("Entry", () => {
 	let user: UserEvent;
-	let useEntriesOutput: UseEntriesOutput;
+	let useEntriesOutput: EntriesData;
 	let player: Player;
 
 	beforeEach(() => {
@@ -51,7 +47,7 @@ describe("Entry", () => {
 			setHighlighter: vi.fn(),
 			entryModified: vi.fn(),
 			removeEntry: vi.fn(),
-		} as unknown as UseEntriesOutput;
+		} as unknown as EntriesData;
 
 		player = { seekTo: vi.fn() } as unknown as Player;
 	});

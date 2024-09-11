@@ -3,19 +3,18 @@ import type { MutableRefObject } from "react";
 import { Box, Group, Text } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 
-import { EntriesContext, useEntries } from "~/lib/entries";
+import { useEstablishedPlayer } from "~/lib/atoms";
+import { useEntriesData } from "~/lib/entries";
 
 import Help from "./Help";
 import Controls from "./Controls";
 import Entry from "./Entry";
 
 import classes from "./Entries.module.css";
-import { useEstablishedPlayer } from "~/lib/atoms";
 
 export default () => {
 	const player = useEstablishedPlayer();
-	const entriesContextValue = useEntries(player);
-	const { scrollerRef, containerRef, entries } = entriesContextValue;
+	const { scrollerRef, containerRef, entries } = useEntriesData();
 	const [isHelpOpen, { toggle }] = useDisclosure(false);
 
 	useEffect(
@@ -26,7 +25,7 @@ export default () => {
 	);
 
 	return (
-		<EntriesContext.Provider value={entriesContextValue}>
+		<>
 			{isHelpOpen && <EntryHeader />}
 			<Box
 				className={classes.entries}
@@ -44,7 +43,7 @@ export default () => {
 				)}
 			</Box>
 			<Controls help={{ isShowing: isHelpOpen, toggle }} />
-		</EntriesContext.Provider>
+		</>
 	);
 };
 

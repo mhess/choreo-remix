@@ -1,5 +1,5 @@
 import { atom, useAtom } from "jotai";
-import React, { useContext } from "react";
+import React from "react";
 import {
 	Box,
 	Burger,
@@ -14,7 +14,7 @@ import {
 import { useDisclosure } from "@mantine/hooks";
 import { IconChevronDown, IconMoon, IconSun } from "@tabler/icons-react";
 
-import { EntriesContext } from "~/lib/entries";
+import { useEntriesData } from "~/lib/entries";
 import { platformAtom, playerAtom } from "~/lib/atoms";
 import type { Platform } from "~/lib/atoms";
 import {
@@ -37,6 +37,7 @@ const trackNameAtom = atom((get) =>
 export default () => {
 	const [platform] = useAtom(platformAtom);
 	const [player] = useAtom(playerAtom);
+	const entries = useEntriesData();
 
 	const isSpotify = platform === "spotify";
 	const isPlayerReady = !!player;
@@ -56,27 +57,29 @@ export default () => {
 				{isPlayerReady && (
 					<>
 						{isSpotify && <SpotifyChangeButton />}
-						<Box visibleFrom="mobile">
-							<Menu trigger="hover">
-								<Menu.Target>
-									<Button variant="outline" className={classes.actions}>
-										Actions
-										<IconChevronDown
-											size="1.25rem"
-											style={{ transform: "translateY(0.125rem)" }}
-										/>
-									</Button>
-								</Menu.Target>
-								<ActionsMenuDropdown />
-							</Menu>
-						</Box>
+						{entries && (
+							<Box visibleFrom="mobile">
+								<Menu trigger="hover">
+									<Menu.Target>
+										<Button variant="outline" className={classes.actions}>
+											Actions
+											<IconChevronDown
+												size="1.25rem"
+												style={{ transform: "translateY(0.125rem)" }}
+											/>
+										</Button>
+									</Menu.Target>
+									<ActionsMenuDropdown />
+								</Menu>
+							</Box>
+						)}
 					</>
 				)}
 			</Group>
 			<Group gap="xs">
 				<SelectPlaformButton />
 				<ToggleColorScheme />
-				<BurgerMenu />
+				{entries && <BurgerMenu />}
 			</Group>
 		</Group>
 	);
@@ -118,7 +121,7 @@ const SpotifyChangeButton = () => {
 };
 
 const ActionsMenuDropdown = () => {
-	const { saveToCSV, loadFromCSV, clear } = useContext(EntriesContext);
+	const { saveToCSV, loadFromCSV, clear } = useEntriesData();
 	const [trackName] = useAtom(trackNameAtom);
 	const [spotifyToken, setSpotifyToken] = useAtom(spotifyTokenAtom);
 	const [platform] = useAtom(platformAtom);
@@ -163,14 +166,14 @@ const ActionsMenuDropdown = () => {
 						<Menu.Item onClick={handleSaveCSV}>Save to CSV</Menu.Item>
 						<Menu.Item onClick={clear}>Clear</Menu.Item>
 						{platform === "youtube" && ytVideoId && (
-							<Menu.Item onClick={() => setYtVideoId(undefined)}>
+							<Menu.Item onClick={() => setYtVideoId(null)}>
 								Change YouTube Video
 							</Menu.Item>
 						)}
 					</>
 				)}
 				{spotifyToken && (
-					<Menu.Item onClick={() => setSpotifyToken(undefined)}>
+					<Menu.Item onClick={() => setSpotifyToken(null)}>
 						Log Out of Spotify
 					</Menu.Item>
 				)}

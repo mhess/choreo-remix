@@ -30,9 +30,9 @@ export const youTubePlayerStatusAtom = atom<YouTubePlayerStatus>(
 	YouTubePlayerStatus.LOADING,
 );
 export const youTubePlayerAtom = atom<YouTubePlayer>();
-export const youTubeVideoIdAtom = atomWithStorage<string | undefined>(
+export const youTubeVideoIdAtom = atomWithStorage<string | null>(
 	"yt-video-id",
-	undefined,
+	null,
 );
 
 export const YT_PLAYER_EL_ID = "ytplayer";
