@@ -1,0 +1,12 @@
+.flex {
+  justify-content: center;
+  width: 100%;
+  overflow: hidden;
+}
+
+.stack {
+  margin: 2rem 1rem 1rem;
+  align-items: center;
+  flex: 1;
+  max-width: 40rem;
+}

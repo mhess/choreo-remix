@@ -5,6 +5,7 @@ import {
 	Flex,
 	Stack,
 	Text,
+	TextInput,
 	useComputedColorScheme,
 	useMantineTheme,
 } from "@mantine/core";
@@ -15,9 +16,10 @@ import {
 	YouTubePlayerStatus,
 } from "~/lib/youtube";
 
-import TextInputWithState from "./TextInputWithState";
 import Loading from "./Loading";
 import Entries from "./Entries";
+
+import classes from "./YouTubeEditor.module.css";
 
 export default () => {
 	const { status, setVideoId } = useYouTubePlayer();
@@ -37,13 +39,13 @@ export default () => {
 };
 
 const UrlForm = ({ setVideoId }: { setVideoId: (id: string) => void }) => {
-	const urlRef = useRef("");
+	const [url, setUrl] = useState("");
 	const scheme = useComputedColorScheme();
 	const theme = useMantineTheme();
 	const [error, setError] = useState(false);
 
 	const handleLoad = () => {
-		const videoId = extractVideoIdFromUrl(urlRef.current);
+		const videoId = extractVideoIdFromUrl(url);
 		if (!videoId) setError(true);
 		else setVideoId(videoId);
 	};
@@ -53,19 +55,20 @@ const UrlForm = ({ setVideoId }: { setVideoId: (id: string) => void }) => {
 	const logoLight = theme.colors.violet[9];
 
 	return (
-		<Flex justify="center" mt="2rem" w="100%">
-			<Stack align="center" maw="50rem" flex={1}>
-				<Text>Please enter/paste in a YouTube video URL</Text>
-				<TextInputWithState
+		<Flex className={classes.flex}>
+			<Stack className={classes.stack}>
+				<Text>Please enter or paste in a YouTube video URL</Text>
+				<TextInput
 					w="100%"
-					initValue=""
+					value={url}
 					error={error && "Not a valid YouTube video URL"}
-					onChange={(s) => {
+					onChange={(e) => {
 						setError(false);
-						urlRef.current = s;
+						setUrl(e.target.value);
 					}}
 				/>
 				<Button
+					disabled={!url.length}
 					variant="filled"
 					size="sm"
 					color={isDark ? logoDark : logoLight}
