@@ -1,9 +1,8 @@
 import { useRef, useState } from "react";
-import { useAtom } from "jotai";
 import {
 	Button,
 	Center,
-	Container,
+	Flex,
 	Stack,
 	Text,
 	useComputedColorScheme,
@@ -54,8 +53,8 @@ const UrlForm = ({ setVideoId }: { setVideoId: (id: string) => void }) => {
 	const logoLight = theme.colors.violet[9];
 
 	return (
-		<Container mt="2rem" size="lg">
-			<Stack align="center">
+		<Flex justify="center" mt="2rem" w="100%">
+			<Stack align="center" maw="50rem" flex={1}>
 				<Text>Please enter/paste in a YouTube video URL</Text>
 				<TextInputWithState
 					w="100%"
@@ -75,7 +74,7 @@ const UrlForm = ({ setVideoId }: { setVideoId: (id: string) => void }) => {
 					Load
 				</Button>
 			</Stack>
-		</Container>
+		</Flex>
 	);
 };
 
