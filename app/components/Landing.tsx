@@ -1,9 +1,11 @@
-import { Container, Text, Title, Stack } from "@mantine/core";
+import { Center, Text, Title, Stack } from "@mantine/core";
+
+import classes from "./Landing.module.css";
 
 export default () => {
 	return (
-		<Container mt="sm">
-			<Stack gap="md">
+		<Center className={classes.center}>
+			<Stack className={classes.stack}>
 				<Title>Welcome to the Choreo App!</Title>
 				<Text>
 					Choreo is an app that helps you compose choreography to music.
@@ -16,6 +18,6 @@ export default () => {
 					files for later.
 				</Text>
 			</Stack>
-		</Container>
+		</Center>
 	);
 };

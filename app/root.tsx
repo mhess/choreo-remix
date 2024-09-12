@@ -3,6 +3,8 @@ import type { LinksFunction, MetaFunction } from "@remix-run/node";
 import {
 	Button,
 	ColorSchemeScript,
+	type MantineColorScheme,
+	type MantineColorSchemeManager,
 	MantineProvider,
 	createTheme,
 } from "@mantine/core";
@@ -44,6 +46,22 @@ const theme = createTheme({
 	},
 });
 
+const getColorSchemeManager = () => {
+	let scheme: MantineColorScheme = "light";
+
+	return {
+		get: () => scheme,
+		set: (val: MantineColorScheme) => {
+			scheme = val;
+		},
+		subscribe: () => {},
+		unsubscribe: () => {},
+		clear: () => {},
+	};
+};
+
+const colorSchemeManager: MantineColorSchemeManager = getColorSchemeManager();
+
 export const meta: MetaFunction = () => [
 	{ charSet: "utf-8" },
 	{
@@ -70,7 +88,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => (
 			<ColorSchemeScript />
 		</head>
 		<body>
-			<MantineProvider defaultColorScheme="auto" theme={theme}>
+			<MantineProvider theme={theme} colorSchemeManager={colorSchemeManager}>
 				{children}
 			</MantineProvider>
 			<ScrollRestoration />
