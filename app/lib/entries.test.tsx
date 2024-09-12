@@ -1,14 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Mock } from "vitest";
-import { act, renderHook } from "@testing-library/react";
+import { act, renderHook, type RenderHookResult } from "@testing-library/react";
 
 import { AtomsProvider } from "testUtils";
 
-import type { Entry } from "./entries";
-import { platformAtom } from "./atoms";
+import type { EntriesData, Entry } from "./entries";
+import { type Platform, platformAtom } from "./atoms";
 import { spotifyPlayerAtom } from "./spotify/player";
 import type { Player } from "./player";
 import { useEntries, ENTRIES_STORAGE_KEY } from "./entries";
+import { createStore } from "jotai";
+import { _TESTING_ONLY_setPlayer, type YouTubePlayer } from "./youtube";
 
 const defaultEntry: Entry = { count: 0, timeMs: 0, note: "Start" };
 
@@ -38,7 +40,7 @@ describe("useEntries", () => {
 
 		implantLSEntries(storedEntries);
 
-		it("Loads those entries", () => {
+		it("Renders those entries on mount", () => {
 			const { result } = renderHook(() => useEntries());
 
 			expect(result.current.entries).toEqual(storedEntries);
@@ -46,7 +48,7 @@ describe("useEntries", () => {
 	});
 
 	describe("When there are no entries stored in localStorage", () => {
-		it("Loads the default entry", () => {
+		it("Renders the default entry", () => {
 			const { result } = renderHook(() => useEntries());
 
 			expect(result.current.entries).toEqual([defaultEntry]);
@@ -99,7 +101,7 @@ describe("useEntries", () => {
 
 			implantLSEntries(existingEntries);
 
-			it("Places it correctly", async () => {
+			it("Places the new entry correctly", async () => {
 				const { result } = renderHook(() => useEntries());
 
 				await act(() => result.current.addEntry(299));
@@ -162,23 +164,29 @@ describe("useEntries", () => {
 	});
 
 	describe("When provided a Player", () => {
-		const player = {
-			addOnTick: vi.fn(),
-			removeOnTick: vi.fn(),
-		} as unknown as Player;
+		const store = createStore();
 
-		const getWrapper =
-			(player: Player) =>
-			({ children }: React.PropsWithChildren) => (
-				<AtomsProvider
-					initialValues={[
-						[platformAtom, "spotify"],
-						[spotifyPlayerAtom, player],
-					]}
-				>
-					{children}
-				</AtomsProvider>
-			);
+		const getPlayer = (platform: Platform) =>
+			({
+				platform,
+				addOnTick: vi.fn(),
+				removeOnTick: vi.fn(),
+			}) as unknown as Player;
+
+		const spotifyPlayer = getPlayer("spotify");
+		const youTubePlayer = getPlayer("youtube");
+
+		const wrapper = ({ children }: React.PropsWithChildren) => (
+			<AtomsProvider
+				store={store}
+				initialValues={[
+					[platformAtom, "spotify"],
+					[spotifyPlayerAtom, spotifyPlayer],
+				]}
+			>
+				{children}
+			</AtomsProvider>
+		);
 
 		implantLSEntries([
 			{ count: 0, timeMs: 0, note: "" },
@@ -186,17 +194,24 @@ describe("useEntries", () => {
 			{ count: 3, timeMs: 205, note: "" },
 		]);
 
-		it("Highlights, scrolls, and unmounts correctly entry with player ticking", async () => {
-			const { result, unmount } = renderHook(() => useEntries(), {
-				wrapper: getWrapper(player),
-			});
-
+		const setUpEntryHighlighting = (
+			result: RenderHookResult<EntriesData, Record<string, never>>["result"],
+		) => {
 			const highlights = [false, false, false];
+
 			result.current.entries.forEach((_: Entry, index: number) => {
 				result.current.setHighlighter(index, (val: boolean) => {
 					highlights[index] = val;
 				});
 			});
+
+			return highlights;
+		};
+
+		it("Highlights, scrolls, and unmounts correctly entry with player ticking", async () => {
+			const { result, unmount } = renderHook(() => useEntries(), { wrapper });
+
+			const highlights = setUpEntryHighlighting(result);
 
 			const $scroller = {
 				scrollTop: 0,
@@ -215,8 +230,8 @@ describe("useEntries", () => {
 				})),
 			} as unknown as HTMLElement;
 
-			expect(player.addOnTick).toHaveBeenCalledOnce();
-			const tickCallback = (player.addOnTick as Mock).mock.calls[0][0];
+			expect(spotifyPlayer.addOnTick).toHaveBeenCalledOnce();
+			const tickCallback = (spotifyPlayer.addOnTick as Mock).mock.calls[0][0];
 
 			await act(() => tickCallback(0));
 
@@ -245,8 +260,43 @@ describe("useEntries", () => {
 
 			await act(() => unmount());
 
-			expect(player.removeOnTick).toHaveBeenCalledOnce();
-			expect(player.removeOnTick).toHaveBeenCalledWith(tickCallback);
+			expect(spotifyPlayer.removeOnTick).toHaveBeenCalledOnce();
+			expect(spotifyPlayer.removeOnTick).toHaveBeenCalledWith(tickCallback);
+		});
+
+		it("Correctly re-highlights the first entry after the player has changed", async () => {
+			const { result } = renderHook(() => useEntries(), { wrapper });
+
+			const highlights = setUpEntryHighlighting(result);
+
+			expect(spotifyPlayer.addOnTick).toHaveBeenCalledOnce();
+			const spotifyTickCallback = (spotifyPlayer.addOnTick as Mock).mock
+				.calls[0][0];
+
+			await act(() => spotifyTickCallback(0));
+
+			expect(highlights).toEqual([true, false, false]);
+
+			await act(() => {
+				store.set(_TESTING_ONLY_setPlayer, youTubePlayer as YouTubePlayer);
+				store.set(platformAtom, "youtube");
+			});
+
+			// Entries get re-rendered on platform change
+			highlights.splice(0, highlights.length, false, false, false);
+
+			expect(spotifyPlayer.removeOnTick).toHaveBeenCalledOnce();
+			expect(spotifyPlayer.removeOnTick).toHaveBeenCalledWith(
+				spotifyTickCallback,
+			);
+
+			expect(youTubePlayer.addOnTick).toHaveBeenCalledOnce();
+			const youTubeTickCallback = (youTubePlayer.addOnTick as Mock).mock
+				.calls[0][0];
+
+			await act(() => youTubeTickCallback(0));
+
+			expect(highlights).toEqual([true, false, false]);
 		});
 	});
 });

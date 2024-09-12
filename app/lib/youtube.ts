@@ -18,27 +18,61 @@ declare global {
 	}
 }
 
-export enum YouTubePlayerStatus {
-	LOADING = "loading",
-	LOADED = "loaded",
-	BUFFERING = "buffering",
-	READY = "ready",
+export interface YouTubePlayer extends Player {
+	ytPlayer: YTPlayerWithVideoData;
 }
 
-export const youTubePlayerStateAtom = atom<YT.PlayerState>();
-export const youTubePlayerStatusAtom = atom<YouTubePlayerStatus>(
-	YouTubePlayerStatus.LOADING,
-);
-export const youTubePlayerAtom = atom<YouTubePlayer>();
-export const youTubeVideoIdAtom = atomWithStorage<string | null>(
-	"yt-video-id",
+type YTPlayerWithVideoData = YT.Player & {
+	getVideoData: () => { author: string; title: string };
+};
+
+export enum YouTubePlayerStatus {
+	LOADING = "Player has not loaded yet",
+	LOADED = "Player has loaded",
+	BUFFERING = "Waiting for video to load",
+	READY = "Ready",
+}
+
+const playerStateAtom = atom<YT.PlayerState>();
+export const youTubePausedAtom = atom((get) => get(playerStateAtom) !== 1);
+
+const statusAtom = atom(YouTubePlayerStatus.LOADING);
+
+const privatePlayerAtom = atom<YouTubePlayer>();
+export const _TESTING_ONLY_setPlayer = atom(
 	null,
+	(_, set, player: YouTubePlayer) => {
+		set(privatePlayerAtom, player);
+		set(statusAtom, YouTubePlayerStatus.READY);
+	},
 );
+
+export const youTubePlayerAtom = atom<YouTubePlayer | undefined>((get) => {
+	const isReady = get(statusAtom) === YouTubePlayerStatus.READY;
+	const player = get(privatePlayerAtom);
+	return isReady && player ? player : undefined;
+});
+
+const videoDataAtom = atom((get) => {
+	const player = get(youTubePlayerAtom);
+	return player ? player.ytPlayer.getVideoData() : undefined;
+});
+
+export const youTubeArtistAtom = atom(
+	(get) => get(videoDataAtom)?.author || "",
+);
+export const youTubeTrackNameAtom = atom(
+	(get) => get(videoDataAtom)?.title || "",
+);
+
+const videoIdAtom = atomWithStorage<string | null>("yt-video-id", null);
+
+export const youTubeClearVideoId = () => store.set(videoIdAtom, null);
 
 export const YT_PLAYER_EL_ID = "ytplayer";
 const YT_SCRIPT_ID = "yt-api-script";
 
-const getYoutubePlayer = async (): Promise<YouTubePlayer> => {
+const getYouTubePlayer = async (): Promise<YouTubePlayer> => {
 	if (!document.getElementById(YT_SCRIPT_ID)) {
 		const $script = document.createElement("script");
 		$script.id = YT_SCRIPT_ID;
@@ -46,19 +80,15 @@ const getYoutubePlayer = async (): Promise<YouTubePlayer> => {
 		document.body.appendChild($script);
 	}
 
-	if (window.ytPlayerPromise) return window.ytPlayerPromise;
-
-	window.ytPlayerPromise = new Promise((resolve) => {
+	return new Promise((resolve) => {
 		window.onYouTubeIframeAPIReady = () => {
 			const player = new YT.Player(YT_PLAYER_EL_ID, {
 				height: "0",
 				width: "0",
 				playerVars: { playsinline: 1 },
 				events: {
-					onReady: () => {
-						resolve(wrapYoutubePlayer(player));
-						store.set(youTubePlayerStatusAtom, YouTubePlayerStatus.LOADED);
-					},
+					onReady: () =>
+						resolve(wrapYoutubePlayer(player as YTPlayerWithVideoData)),
 					onError: (e) => console.error(`Youtube initialization error ${e}`),
 				},
 			});
@@ -66,59 +96,54 @@ const getYoutubePlayer = async (): Promise<YouTubePlayer> => {
 			window.ytPlayer = player;
 		};
 	});
-
-	return window.ytPlayerPromise;
 };
 
-export interface YouTubePlayer
-	extends Player,
-		Omit<YT.Player, "getCurrentTime" | "seekTo"> {
-	setVideoId: (videoId: string) => void;
-}
-
-const wrapYoutubePlayer = (player: YT.Player): YouTubePlayer => {
+const wrapYoutubePlayer = (ytPlayer: YTPlayerWithVideoData): YouTubePlayer => {
 	const onTickCallbacks: OnTickCallback[] = [];
-	const originalSeekTo = player.seekTo;
-	const originalGetCurrentTime = player.getCurrentTime;
+
+	let lastTimestamp: number;
+	let lastCurTime: number;
+
+	const getMs = () => ytPlayer.getCurrentTime() * 1000;
 
 	const tick = async (ms?: number) => {
-		const timeMs = ms ? ms : await player.getCurrentTime();
+		const timeMs = ms !== undefined ? ms : getMs();
 		for (const cb of onTickCallbacks) cb(timeMs);
 	};
 
 	const playbackListenerForTick = getPlaybackListenerForTick(tick);
 
-	player.addEventListener("onStateChange", ({ data: state }) => {
-		console.log({ state });
+	ytPlayer.addEventListener("onStateChange", ({ data: state }) => {
+		store.set(playerStateAtom, state);
 
-		if (state === YT.PlayerState.UNSTARTED)
-			store.set(youTubePlayerStatusAtom, YouTubePlayerStatus.READY);
+		if (state === YT.PlayerState.CUED) {
+			store.set(statusAtom, YouTubePlayerStatus.READY);
+		}
 
-		store.set(youTubePlayerStateAtom, state);
 		const isPaused = state !== YT.PlayerState.PLAYING;
 		playbackListenerForTick(isPaused);
 	});
 
-	const additionalProperties = {
-		setVideoId(videoId: string) {
-			store.set(youTubeVideoIdAtom, videoId);
-			store.set(youTubePlayerStatusAtom, YouTubePlayerStatus.BUFFERING);
-		},
+	return {
+		ytPlayer,
 		async play() {
-			player.playVideo();
+			ytPlayer.playVideo();
 		},
 		async pause() {
-			player.pauseVideo();
+			ytPlayer.pauseVideo();
 		},
-		seekTo(ms: number) {
-			originalSeekTo.call(player, ms / 1000, false);
-			tick(ms);
+		async seekTo(ms: number) {
+			const posMs = ms < 0 ? 0 : ms;
+			// @ts-ignore: seekTo() call with 2 args seems to break the player
+			ytPlayer.seekTo(posMs / 1000);
+			tick(posMs);
 		},
 		async getCurrentTime() {
-			return originalGetCurrentTime.call(player) * 1000;
+			return getMs();
 		},
-		async addOnTick(cb: OnTickCallback) {
-			cb(await player.getCurrentTime());
+		addOnTick(cb: OnTickCallback) {
+			console.log("adding tick");
+			cb(getMs());
 			onTickCallbacks.push(cb);
 		},
 		removeOnTick(callback: OnTickCallback) {
@@ -127,8 +152,6 @@ const wrapYoutubePlayer = (player: YT.Player): YouTubePlayer => {
 			if (index > -1) onTickCallbacks.splice(index, 1);
 		},
 	};
-
-	return Object.assign(player, additionalProperties);
 };
 
 export const extractVideoIdFromUrl = (urlString: string) => {
@@ -144,12 +167,21 @@ export const extractVideoIdFromUrl = (urlString: string) => {
 };
 
 export const useYouTubePlayer = () => {
-	const [player, setPlayer] = useAtom(youTubePlayerAtom);
+	const [player, setPlayer] = useAtom(privatePlayerAtom);
+	const [status, setStatus] = useAtom(statusAtom);
+	const [videoId, setVideoId] = useAtom(videoIdAtom);
 
 	useEffect(() => {
-		if (!window.ytPlayerPromise) getYoutubePlayer();
-		window.ytPlayerPromise?.then(setPlayer);
+		if (!window.ytPlayerPromise) window.ytPlayerPromise = getYouTubePlayer();
+		window.ytPlayerPromise.then(setPlayer);
 	}, [setPlayer]);
 
-	return player;
+	useEffect(() => {
+		if (videoId && player) {
+			setStatus(YouTubePlayerStatus.BUFFERING);
+			player.ytPlayer.cueVideoById(videoId);
+		} else setStatus(YouTubePlayerStatus[player ? "LOADED" : "LOADING"]);
+	}, [player, videoId, setStatus]);
+
+	return { status, setVideoId };
 };

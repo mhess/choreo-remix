@@ -35,10 +35,31 @@ const playerEvents: PlayerEvent[] = [
 ];
 
 export const spotifyPlayerAtom = atom<SpotifyPlayer>();
-export const spotifyPlayerStatusAtom = atom(SpotifyPlayerStatus.LOADING);
-export const spotifyPlaybackStateAtom = atom<Spotify.PlaybackState | null>(
-	null,
+
+const playerStatusAtom = atom(SpotifyPlayerStatus.LOADING);
+
+const playbackStateAtom = atom<Spotify.PlaybackState | null>(null);
+
+export const spotifyPausedAtom = atom((get) => {
+	const state = get(playbackStateAtom);
+	return state ? state.paused : true;
+});
+
+const currenTrackAtom = atom(
+	(get) => get(playbackStateAtom)?.track_window.current_track,
 );
+
+export const spotifyArtistAtom = atom((get) => {
+	const track = get(currenTrackAtom);
+	if (!track) return "";
+
+	return track.artists.map(({ name }) => name).join(", ");
+});
+
+export const spotifyTrackNameAtom = atom((get) => {
+	const track = get(currenTrackAtom);
+	return track ? track.name : "";
+});
 
 // This variable is needed because the root component gets mounted/unmounted
 // which can cause multiple player instances to get initialized if the data is
@@ -48,10 +69,10 @@ let tokenAndPromise: {
 	promise: Promise<SpotifyPlayer> | undefined;
 };
 
-export const useSpotifyPlayer = (token?: string) => {
+export const useSpotifyPlayer = (token: string | null) => {
 	const [player, setPlayer] = useAtom(spotifyPlayerAtom);
-	const [status, setStatus] = useAtom(spotifyPlayerStatusAtom);
-	const [, setState] = useAtom(spotifyPlaybackStateAtom);
+	const [status, setStatus] = useAtom(playerStatusAtom);
+	const [, setState] = useAtom(playbackStateAtom);
 
 	useEffect(() => {
 		if (!token) return;

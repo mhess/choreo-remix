@@ -1,32 +1,61 @@
 import { atom, useAtom } from "jotai";
 import type { Atom } from "jotai";
-import { spotifyPlaybackStateAtom, spotifyPlayerAtom } from "./spotify/player";
+import {
+	spotifyPlayerAtom,
+	spotifyPausedAtom,
+	spotifyArtistAtom,
+	spotifyTrackNameAtom,
+} from "./spotify/player";
 import type { Player } from "./player";
-import { youTubePlayerAtom, youTubePlayerStateAtom } from "./youtube";
+import {
+	youTubePlayerAtom,
+	youTubePausedAtom,
+	youTubeTrackNameAtom,
+	youTubeArtistAtom,
+} from "./youtube";
 
 export type Platform = "youtube" | "spotify" | "landing";
 
-export const platformAtom = atom<Platform>("youtube");
+export const platformAtom = atom<Platform>("landing");
 
-const playerAtomByPlatform: Record<Platform, Atom<Player | undefined>> = {
-	spotify: spotifyPlayerAtom,
-	youtube: youTubePlayerAtom,
-	landing: atom(undefined),
+const atomsByPlatform: Record<
+	Platform,
+	Record<string, Atom<Player | undefined | boolean | string>>
+> = {
+	spotify: {
+		player: spotifyPlayerAtom,
+		paused: spotifyPausedAtom,
+		artist: spotifyArtistAtom,
+		trackName: spotifyTrackNameAtom,
+	},
+	youtube: {
+		player: youTubePlayerAtom,
+		paused: youTubePausedAtom,
+		artist: youTubeArtistAtom,
+		trackName: youTubeTrackNameAtom,
+	},
+	landing: {
+		player: atom(undefined),
+		paused: atom(true),
+		artist: atom(""),
+		trackName: atom(""),
+	},
 };
 
-export const playerAtom = atom((get) =>
-	get(playerAtomByPlatform[get(platformAtom)]),
+export const playerAtom = atom(
+	(get) => get(atomsByPlatform[get(platformAtom)].player) as Player,
 );
 
-export const playerPausedAtom = atom<boolean>((get) => {
-	const platform = get(platformAtom);
+export const playerPausedAtom = atom(
+	(get) => get(atomsByPlatform[get(platformAtom)].paused) as boolean,
+);
 
-	if (platform === "spotify")
-		return get(spotifyPlaybackStateAtom)?.paused as boolean;
-	// Can't use YT.PlayerState.PLAYING bc that variable doesn't exist on server
-	// 1 = YT.PlayerState.PLAYING
-	if (platform === "youtube") return get(youTubePlayerStateAtom) !== 1;
-	return true;
-});
+export const artistAtom = atom(
+	(get) => get(atomsByPlatform[get(platformAtom)].artist) as string,
+);
+
+export const trackNameAtom = atom(
+	(get) => get(atomsByPlatform[get(platformAtom)].trackName) as string,
+);
 
 export const useEstablishedPlayer = () => useAtom(playerAtom)[0] as Player;

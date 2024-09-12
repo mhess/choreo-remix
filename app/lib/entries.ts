@@ -46,7 +46,7 @@ export const useEntries = () => {
 
 	useEffect(() => {
 		if (!player) return;
-
+		highlightIndexRef.current = undefined;
 		player.addOnTick(highlightCurrentEntry);
 		return () => player.removeOnTick(highlightCurrentEntry);
 	}, [player]);
@@ -206,7 +206,6 @@ export const useEntries = () => {
 	};
 
 	const clear = () => {
-		console.log("here");
 		loadEntries();
 		storeEntriesLocally();
 		render();

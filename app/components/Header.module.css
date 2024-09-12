@@ -69,7 +69,6 @@
 }
 
 .actions {
-  transform: translateY(-1px);
   &:active {
     transform: none;
   }

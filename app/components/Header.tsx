@@ -1,4 +1,4 @@
-import { atom, useAtom } from "jotai";
+import { useAtom } from "jotai";
 import React from "react";
 import {
 	Box,
@@ -15,24 +15,19 @@ import { useDisclosure } from "@mantine/hooks";
 import { IconChevronDown, IconMoon, IconSun } from "@tabler/icons-react";
 
 import { useEntriesData } from "~/lib/entries";
-import { platformAtom, playerAtom } from "~/lib/atoms";
-import type { Platform } from "~/lib/atoms";
 import {
-	spotifyPlaybackStateAtom,
-	spotifyPlayerAtom,
-} from "~/lib/spotify/player";
+	artistAtom,
+	platformAtom,
+	playerAtom,
+	trackNameAtom,
+} from "~/lib/atoms";
+import type { Platform } from "~/lib/atoms";
 import { spotifyTokenAtom } from "~/lib/spotify/auth";
-import { youTubeVideoIdAtom } from "~/lib/youtube";
+import { youTubeClearVideoId } from "~/lib/youtube";
 
 import TooltipWithClick from "./TooltipWithClick";
 
 import classes from "./Header.module.css";
-
-const trackNameAtom = atom((get) =>
-	get(platformAtom) === "spotify"
-		? get(spotifyPlaybackStateAtom)?.track_window.current_track.name
-		: "youtube_track",
-);
 
 export default () => {
 	const [platform] = useAtom(platformAtom);
@@ -40,7 +35,6 @@ export default () => {
 	const entries = useEntriesData();
 
 	const isSpotify = platform === "spotify";
-	const isPlayerReady = !!player;
 
 	return (
 		<Group component="header" className={classes.header}>
@@ -48,16 +42,16 @@ export default () => {
 				<Text className={classes.logo} span>
 					Choreo
 				</Text>
-				{isPlayerReady && isSpotify && <SpotifyTrackInfo />}
+				{player && <TrackInfo />}
 			</Group>
 			<Group
 				className={classes.headerRightSide}
 				justify={isSpotify ? "space-between" : "right"}
 			>
-				{isPlayerReady && (
+				{player && (
 					<>
 						{isSpotify && <SpotifyChangeButton />}
-						{entries && (
+						{player && (
 							<Box visibleFrom="mobile">
 								<Menu trigger="hover">
 									<Menu.Target>
@@ -85,26 +79,27 @@ export default () => {
 	);
 };
 
-const SpotifyTrackInfo = () => {
-	const [state] = useAtom(spotifyPlaybackStateAtom);
-	const track = state?.track_window.current_track;
-
-	const artists = track?.artists.map(({ name }) => name).join(", ");
+const TrackInfo = () => {
+	const [artist] = useAtom(artistAtom);
+	const [trackName] = useAtom(trackNameAtom);
 
 	return (
-		track && (
-			<Text className={classes.trackInfo} span>
-				<Text fw={700} span>
-					{artists}
-				</Text>
-				: {track.name}
-			</Text>
-		)
+		<Text className={classes.trackInfo} span>
+			{artist.length > 0 && (
+				<>
+					<Text fw={700} span>
+						{artist}
+					</Text>
+					:{" "}
+				</>
+			)}
+			{trackName}
+		</Text>
 	);
 };
 
 const SpotifyChangeButton = () => {
-	const [player] = useAtom(spotifyPlayerAtom);
+	const [player] = useAtom(playerAtom);
 
 	return !player ? null : (
 		<TooltipWithClick
@@ -125,7 +120,7 @@ const ActionsMenuDropdown = () => {
 	const [trackName] = useAtom(trackNameAtom);
 	const [spotifyToken, setSpotifyToken] = useAtom(spotifyTokenAtom);
 	const [platform] = useAtom(platformAtom);
-	const [ytVideoId, setYtVideoId] = useAtom(youTubeVideoIdAtom);
+	const [player] = useAtom(playerAtom);
 
 	const handleSaveCSV = () => {
 		const formattedTrackName = (trackName as string)
@@ -160,13 +155,13 @@ const ActionsMenuDropdown = () => {
 								component="label"
 								htmlFor="csv-upload"
 							>
-								Load from CSV
+								Load entries from CSV
 							</Box>
 						</Menu.Item>
-						<Menu.Item onClick={handleSaveCSV}>Save to CSV</Menu.Item>
-						<Menu.Item onClick={clear}>Clear</Menu.Item>
-						{platform === "youtube" && ytVideoId && (
-							<Menu.Item onClick={() => setYtVideoId(null)}>
+						<Menu.Item onClick={handleSaveCSV}>Save entries to CSV</Menu.Item>
+						<Menu.Item onClick={clear}>Clear entries</Menu.Item>
+						{platform === "youtube" && player && (
+							<Menu.Item onClick={youTubeClearVideoId}>
 								Change YouTube Video
 							</Menu.Item>
 						)}

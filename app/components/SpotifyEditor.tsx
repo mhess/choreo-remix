@@ -16,7 +16,7 @@ import { playerAtom } from "~/lib/atoms";
 
 export default () => {
 	const [token] = useAtom(spotifyTokenAtom);
-	const { status, player: spotifyPlayer } = useSpotifyPlayer("fake");
+	const { status, player: spotifyPlayer } = useSpotifyPlayer(token);
 	const [, setSpotifyPlayer] = useAtom(spotifyPlayerAtom);
 	const [player] = useAtom(playerAtom);
 

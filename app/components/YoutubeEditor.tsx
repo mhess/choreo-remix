@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useAtom } from "jotai";
 import {
 	Button,
@@ -14,9 +14,6 @@ import {
 	extractVideoIdFromUrl,
 	useYouTubePlayer,
 	YouTubePlayerStatus,
-	youTubePlayerStatusAtom,
-	youTubeVideoIdAtom,
-	type YouTubePlayer,
 } from "~/lib/youtube";
 
 import TextInputWithState from "./TextInputWithState";
@@ -24,30 +21,23 @@ import Loading from "./Loading";
 import Entries from "./Entries";
 
 export default () => {
-	const player = useYouTubePlayer();
-	const [status] = useAtom(youTubePlayerStatusAtom);
-	const [videoId] = useAtom(youTubeVideoIdAtom);
+	const { status, setVideoId } = useYouTubePlayer();
 
-	useEffect(() => {
-		if (player && videoId && status !== YouTubePlayerStatus.LOADING)
-			player.cueVideoById(videoId);
-	}, [player, videoId, status]);
-
-	if (videoId && status === YouTubePlayerStatus.READY) return <Entries />;
-
-	const isWaitingForUrl =
-		!videoId && player && status === YouTubePlayerStatus.LOADED;
-
-	return isWaitingForUrl ? (
-		<UrlForm player={player} />
-	) : (
-		<Center h="100%">
-			<Loading message="Loading YouTube Player" />
-		</Center>
-	);
+	switch (status) {
+		case YouTubePlayerStatus.LOADING:
+			return <CenteredLoading message="Loading YouTube player" />;
+		case YouTubePlayerStatus.LOADED:
+			return <UrlForm setVideoId={setVideoId} />;
+		case YouTubePlayerStatus.BUFFERING:
+			return <CenteredLoading message="Waiting for video to load" />;
+		case YouTubePlayerStatus.READY:
+			return <Entries />;
+		default:
+			return <Center>Oops! Something went wrong!</Center>;
+	}
 };
 
-const UrlForm = ({ player }: { player: YouTubePlayer }) => {
+const UrlForm = ({ setVideoId }: { setVideoId: (id: string) => void }) => {
 	const urlRef = useRef("");
 	const scheme = useComputedColorScheme();
 	const theme = useMantineTheme();
@@ -56,7 +46,7 @@ const UrlForm = ({ player }: { player: YouTubePlayer }) => {
 	const handleLoad = () => {
 		const videoId = extractVideoIdFromUrl(urlRef.current);
 		if (!videoId) setError(true);
-		else player.setVideoId(videoId);
+		else setVideoId(videoId);
 	};
 
 	const isDark = scheme === "dark";
@@ -64,7 +54,7 @@ const UrlForm = ({ player }: { player: YouTubePlayer }) => {
 	const logoLight = theme.colors.violet[9];
 
 	return (
-		<Container mt="2rem" size="md">
+		<Container mt="2rem" size="lg">
 			<Stack align="center">
 				<Text>Please enter/paste in a YouTube video URL</Text>
 				<TextInputWithState
@@ -88,3 +78,9 @@ const UrlForm = ({ player }: { player: YouTubePlayer }) => {
 		</Container>
 	);
 };
+
+const CenteredLoading = ({ message }: { message: string }) => (
+	<Center h="100%">
+		<Loading message={message} />
+	</Center>
+);
