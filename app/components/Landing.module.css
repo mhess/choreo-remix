@@ -1,7 +1,7 @@
-.center {
+.flex {
   width: 100%;
-  height: 100%;
   overflow-y: auto;
+  justify-content: center;
 
   @media screen and (max-width: $mobile-breakpoint) {
     padding-top: 1rem;
@@ -10,8 +10,23 @@
 }
 
 .stack {
+  width: 100%;
   overflow-y: auto;
   max-width: 36rem;
-  margin: 1rem;
+  margin: 2rem 1rem 1rem;
   gap: var(--mantine-spacing-md);
+}
+
+.btn {
+  background-color: var(--app-bg-color);
+
+  :root[data-mantine-color-scheme="dark"] & {
+    background-color: var(--app-bg-color-dark);
+
+    border-color: var(--app-border-color-dark);
+
+    &:hover {
+      background-color: lighten(var(--app-bg-color-dark), 0.05);
+    }
+  }
 }

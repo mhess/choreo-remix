@@ -1,6 +1,6 @@
 import { useAtom } from "jotai";
 import { useEffect } from "react";
-import { Center, Container, Text } from "@mantine/core";
+import { Center, Container, Stack, Text } from "@mantine/core";
 import { Link } from "@remix-run/react";
 
 import {
@@ -48,7 +48,7 @@ export default () => {
 const TryAgain = ({ message }: { message: string }) => (
 	<Text>
 		{message} Would you like to try to <Link to="auth/login">log&nbsp;in</Link>{" "}
-		again?
+		to Spotify again?
 	</Text>
 );
 
@@ -56,12 +56,14 @@ const messageByStatus: Record<SpotifyPlayerStatus, React.ReactNode> = {
 	[SpotifyPlayerStatus.READY]: "shouldn't happen!",
 	[SpotifyPlayerStatus.LOADING]: <Loading message="Connecting to Spotify" />,
 	[SpotifyPlayerStatus.NOT_CONNECTED]: (
-		<Container ta="center">
+		<Stack align="center">
 			<Text>
 				Please connect to the "Choreo Player" device on your Spotify player.
+			</Text>
+			<Text>
 				Ensure that your other device is on the same network as this one.
 			</Text>
-			<Text mt="sm">
+			<Text>
 				See this{" "}
 				<a
 					href="https://support.spotify.com/us/article/spotify-connect/"
@@ -72,7 +74,7 @@ const messageByStatus: Record<SpotifyPlayerStatus, React.ReactNode> = {
 				</a>{" "}
 				if you're having trouble.
 			</Text>
-		</Container>
+		</Stack>
 	),
 	[SpotifyPlayerStatus.PLAYBACK_ERROR]: (
 		<TryAgain message="There was an error with playback." />

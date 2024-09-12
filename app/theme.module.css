@@ -22,11 +22,11 @@
 }
 
 .outlineBtn {
-  color: var(--app-font-color);
-  border-color: var(--app-font-color);
+  color: var(--mantine-color-gray-7);
+  border-color: var(--mantin-color-gray-7);
 
   &:hover {
-    color: var(--app-font-color);
+    color: var(--mantine-color-gray-8);
   }
 
   :root[data-mantine-color-scheme="dark"] & {

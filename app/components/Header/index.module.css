@@ -17,7 +17,7 @@
   align-items: center;
   flex-wrap: nowrap;
   gap: 0;
-  padding: 0.375rem var(--mantine-spacing-md);
+  padding: 0 var(--mantine-spacing-md);
   background-color: var(--mantine-color-green-0);
   border-bottom: 1px solid var(--app-border-color);
 
@@ -27,6 +27,8 @@
 }
 
 .logo {
+  padding: 0.5rem;
+  cursor: pointer;
   color: var(--mantine-color-violet-9);
   text-transform: uppercase;
   font-weight: bold;
@@ -64,16 +66,8 @@
   }
 }
 
-.loadLabel {
-  cursor: pointer;
-}
-
 .actions {
   &:active {
     transform: none;
   }
-}
-
-.fileInput {
-  display: none;
 }

@@ -1,0 +1,24 @@
+
+:root[data-mantine-color-scheme="dark"] {
+  .spotify {
+    fill: var(--mantine-color-green-3);
+  }
+
+  .tube {
+    fill: #ae0909;
+  }
+  .play {
+    fill: #d8caca;
+  }
+}
+
+.tube {
+  fill: #f00;
+}
+.play {
+  fill: #fff;
+}
+
+.spotify {
+  fill: var(--mantine-color-green-7);
+}
