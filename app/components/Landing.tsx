@@ -20,11 +20,18 @@ export default () => {
 					Choreo is an app that helps you compose choreography to music.
 				</Text>
 				<Text>
-					The app can use audio from Youtube or your Spotify premium account to
-					set up a web player that allows you to annotate time points in a track
-					while it's playing. You can use these annotations to navigate around
-					the song easily. The app allows you to save these annotations to CSV
-					files for later.
+					The app can use audio from{" "}
+					<Text fw={700} span>
+						Youtube
+					</Text>{" "}
+					or your{" "}
+					<Text fw={700} span>
+						Spotify
+					</Text>{" "}
+					premium account to set up a web player that allows you to annotate
+					time points in a track while it's playing. You can use these
+					annotations to navigate around the song easily. The app allows you to
+					save these annotations to CSV files for later.
 				</Text>
 				<Group mt="1rem">
 					<Button
@@ -45,7 +52,7 @@ export default () => {
 						onClick={() => selectPlatform("spotify")}
 					>
 						<Group gap="xs">
-							<span>Use Spotify</span>
+							<span>Use Spotify Premium</span>
 							<Spotify height="20" />
 						</Group>
 					</Button>
