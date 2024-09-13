@@ -29,12 +29,12 @@ export const _TESTING_ONLY_setAudioFilePlayer = atom(
 	},
 );
 
-const setFile = (file: File) => {
+const setFile = (file?: File) => {
 	store.set(audioFileAtom, file);
 	store.set(statusAtom, FilePlayerStatus[file ? "LOADING" : "NO_FILE"]);
 };
 
-export const audioFileClearFile = () => store.set(audioFileAtom, undefined);
+export const audioFileClearFile = () => setFile(undefined);
 
 class AudioFilePlayer extends PlatformPlayer {
 	$audioEl: HTMLAudioElement;

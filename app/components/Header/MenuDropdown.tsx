@@ -18,6 +18,7 @@ import { youTubeClearVideoId } from "~/lib/youtube";
 import PlatformItems from "./PlatformItems";
 
 import classes from "./MenuDropdown.module.css";
+import { audioFileClearFile } from "~/lib/audioFile";
 
 export default () => {
 	const { saveToCSV, loadFromCSV, clear } = useEntriesData();
@@ -73,6 +74,12 @@ export default () => {
 		</Menu.Item>
 	);
 
+	const audioFileGroup = player && platform === "audioFile" && (
+		<Menu.Item key="change-file" onClick={audioFileClearFile}>
+			Change Audio File
+		</Menu.Item>
+	);
+
 	const lightDarkGroup = isMobile && (
 		<Menu.Item key="color-scheme" onClick={toggleColorScheme}>
 			<Group gap="0.25rem">
@@ -85,8 +92,9 @@ export default () => {
 	const groupsToRender = [
 		entriesGroup,
 		platformGroup,
-		youTubeGroup,
 		spotifyLogoutGroup,
+		youTubeGroup,
+		audioFileGroup,
 		lightDarkGroup,
 	].filter(Boolean) as ReactElement[];
 
