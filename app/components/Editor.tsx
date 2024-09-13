@@ -3,7 +3,7 @@ import { useAtom } from "jotai";
 import { useLocation } from "@remix-run/react";
 
 import { platformAtom, type Platform } from "~/lib/atoms";
-import { SPOTIFY_TOKEN_URL_PARAM, spotifyTokenAtom } from "~/lib/spotify/auth";
+import { SPOTIFY_TOKEN_URL_PARAM, spotifyTokenAtom } from "~/lib/spotify";
 
 import Landing from "./Landing";
 import SpotifyEditor from "./SpotifyEditor";

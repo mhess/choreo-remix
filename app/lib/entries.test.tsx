@@ -6,7 +6,7 @@ import { AtomsProvider } from "testUtils";
 
 import type { EntriesData, Entry } from "./entries";
 import { type Platform, platformAtom } from "./atoms";
-import { spotifyPlayerAtom } from "./spotify/player";
+import { spotifyPlayerAtom } from "./spotify";
 import type { Player } from "./player";
 import { useEntries, ENTRIES_STORAGE_KEY } from "./entries";
 import { createStore } from "jotai";

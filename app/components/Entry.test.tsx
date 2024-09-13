@@ -6,15 +6,14 @@ import userEvent from "@testing-library/user-event";
 import type { UserEvent } from "@testing-library/user-event";
 
 import type { Player } from "~/lib/player";
-
+import { platformAtom } from "~/lib/atoms";
+import { spotifyPlayerAtom } from "~/lib/spotify";
 import { entriesAtom, type EntriesData } from "~/lib/entries";
 
 import Entry from "./Entry";
 import classes from "./Entry.module.css";
 
 import { AtomsProvider } from "testUtils";
-import { platformAtom } from "~/lib/atoms";
-import { spotifyPlayerAtom } from "~/lib/spotify/player";
 
 const getWrapper =
 	(player: Player, entriesData: EntriesData) =>

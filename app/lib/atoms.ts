@@ -5,7 +5,7 @@ import {
 	spotifyPausedAtom,
 	spotifyArtistAtom,
 	spotifyTrackNameAtom,
-} from "./spotify/player";
+} from "./spotify";
 import type { Player } from "./player";
 import {
 	youTubePlayerAtom,

@@ -1,7 +1,7 @@
 import type { LoaderFunctionArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 
-import { SPOTIFY_TOKEN_URL_PARAM } from "~/lib/spotify/auth";
+import { SPOTIFY_TOKEN_URL_PARAM } from "~/lib/spotify";
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	const url = new URL(request.url);

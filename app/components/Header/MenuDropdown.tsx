@@ -12,7 +12,7 @@ import { IconMoon, IconSun } from "@tabler/icons-react";
 import { useMobileBreakpoint } from "~/lib/utils";
 import { platformAtom, playerAtom, trackNameAtom } from "~/lib/atoms";
 import { useEntriesData } from "~/lib/entries";
-import { spotifyTokenAtom } from "~/lib/spotify/auth";
+import { spotifyTokenAtom } from "~/lib/spotify";
 import { youTubeClearVideoId } from "~/lib/youtube";
 
 import PlatformItems from "./PlatformItems";

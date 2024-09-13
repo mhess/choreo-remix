@@ -7,8 +7,8 @@ import {
 	SpotifyPlayerStatus,
 	spotifyPlayerAtom,
 	useSpotifyPlayer,
-} from "~/lib/spotify/player";
-import { spotifyTokenAtom } from "~/lib/spotify/auth";
+	spotifyTokenAtom,
+} from "~/lib/spotify";
 
 import Entries from "./Entries";
 import Loading from "./Loading";

@@ -1,5 +1,6 @@
 import { useEffect, useContext, createContext } from "react";
 import { atom, useAtom } from "jotai";
+import { atomWithStorage } from "jotai/utils";
 
 import { getFakePlayer } from "./fakePlayer";
 import { getPlaybackListenerForTick } from "../player";
@@ -11,8 +12,6 @@ declare global {
 	}
 }
 
-const SPOTIFY_SCRIPT_ID = "spotify-sdk-script";
-
 export enum SpotifyPlayerStatus {
 	LOADING = "loading",
 	NOT_CONNECTED = "deviceNotConnected",
@@ -22,6 +21,18 @@ export enum SpotifyPlayerStatus {
 	PLAYBACK_ERROR = "playbackError",
 	READY = "ready",
 }
+
+export const SPOTIFY_TOKEN_URL_PARAM = "spotifyToken";
+const SPOTIFY_SCRIPT_ID = "spotify-sdk-script";
+
+export const spotifyTokenAtom = atomWithStorage<string | null>(
+	SPOTIFY_TOKEN_URL_PARAM,
+	null,
+);
+
+export const resetSpotifyTokenAtom = atom(null, (_, set) =>
+	set(spotifyTokenAtom, null),
+);
 
 type PlayerEvent = Parameters<Spotify.Player["removeListener"]>[0];
 
