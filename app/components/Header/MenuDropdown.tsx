@@ -9,6 +9,7 @@ import {
 import { useAtom } from "jotai";
 import { IconMoon, IconSun } from "@tabler/icons-react";
 
+import { useMobileBreakpoint } from "~/lib/utils";
 import { platformAtom, playerAtom, trackNameAtom } from "~/lib/atoms";
 import { useEntriesData } from "~/lib/entries";
 import { spotifyTokenAtom } from "~/lib/spotify/auth";
@@ -26,6 +27,7 @@ export default () => {
 	const [player] = useAtom(playerAtom);
 	const { toggleColorScheme } = useMantineColorScheme();
 	const isLight = useComputedColorScheme() === "light";
+	const isMobile = useMobileBreakpoint();
 
 	const handleSaveCSV = () => {
 		const formattedTrackName = (trackName as string)
@@ -57,6 +59,8 @@ export default () => {
 		</>
 	);
 
+	const platformGroup = isMobile && <PlatformItems />;
+
 	const youTubeGroup = player && platform === "youtube" && (
 		<Menu.Item onClick={youTubeClearVideoId}>Change YouTube Video</Menu.Item>
 	);
@@ -67,25 +71,7 @@ export default () => {
 		</Menu.Item>
 	);
 
-	const groups = (
-		[entriesGroup, youTubeGroup, spotifyLogoutGroup].filter(
-			Boolean,
-		) as ReactElement[]
-	).reduce((groupsWithDividers, el, index, groups) => {
-		groupsWithDividers.push(el);
-		if (index < groups.length - 1) groupsWithDividers.push(<Menu.Divider />);
-		return groupsWithDividers;
-	}, [] as ReactElement[]);
-
-	groups.splice(
-		entriesGroup ? 1 : 0,
-		0,
-		<PlatformGroup hasGroupAbove={!!entriesGroup} />,
-	);
-
-	if (groups.length) groups.push(<Menu.Divider />);
-
-	const lightDarkGroup = (
+	const lightDarkGroup = isMobile && (
 		<Menu.Item hiddenFrom="mobile" onClick={toggleColorScheme}>
 			<Group gap="0.25rem">
 				{createElement(isLight ? IconSun : IconMoon, { size: "1.25rem" })}{" "}
@@ -94,7 +80,22 @@ export default () => {
 		</Menu.Item>
 	);
 
-	groups.push(lightDarkGroup);
+	const groupsToRender = [
+		entriesGroup,
+		platformGroup,
+		youTubeGroup,
+		spotifyLogoutGroup,
+		lightDarkGroup,
+	].filter(Boolean) as ReactElement[];
+
+	const groupsWithDividers = groupsToRender.reduce(
+		(output, el, index, groups) => {
+			output.push(el);
+			if (index < groups.length - 1) output.push(<Menu.Divider />);
+			return output;
+		},
+		[] as ReactElement[],
+	);
 
 	return (
 		<>
@@ -106,14 +107,7 @@ export default () => {
 				type="file"
 				onChange={handleLoadCSV}
 			/>
-			<Menu.Dropdown>{groups}</Menu.Dropdown>
+			<Menu.Dropdown>{groupsWithDividers}</Menu.Dropdown>
 		</>
 	);
 };
-
-const PlatformGroup = ({ hasGroupAbove }: { hasGroupAbove: boolean }) => (
-	<Box hiddenFrom="mobile">
-		{hasGroupAbove && <Menu.Divider />}
-		<PlatformItems />
-	</Box>
-);
