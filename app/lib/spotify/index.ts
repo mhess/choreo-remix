@@ -74,7 +74,7 @@ let tokenAndPromise: {
 
 export const useSpotifyPlayer = (token: string | null) => {
 	const [player, setPlayer] = useAtom(playerAtom);
-	const [status, setStatus] = useAtom(statusAtom);
+	const [status] = useAtom(statusAtom);
 
 	useEffect(() => {
 		if (!token) return;

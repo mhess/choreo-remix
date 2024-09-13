@@ -22,16 +22,20 @@ export default () => {
 				<Text>
 					The app can use audio from{" "}
 					<Text fw={700} span>
-						Youtube
+						Youtube,
 					</Text>{" "}
-					or your{" "}
+					a{" "}
 					<Text fw={700} span>
 						Spotify
 					</Text>{" "}
-					premium account to set up a web player that allows you to annotate
-					time points in a track while it's playing. You can use these
-					annotations to navigate around the song easily. The app allows you to
-					save these annotations to CSV files for later.
+					premium account, or a{" "}
+					<Text fw={700} span>
+						local file
+					</Text>{" "}
+					to set up a web player that allows you to annotate time points in a
+					track while it's playing. You can use these annotations to navigate
+					around the song easily. The app allows you to save these annotations
+					to CSV files for later.
 				</Text>
 				<Group justify="center" mt="1rem">
 					<Button
