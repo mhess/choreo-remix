@@ -4,24 +4,50 @@ import { act, render, screen } from "@testing-library/react";
 import { createTheme, MantineProvider } from "@mantine/core";
 import userEvent from "@testing-library/user-event";
 import type { UserEvent } from "@testing-library/user-event";
+import { createStore } from "jotai";
 
-import type { Player } from "~/lib/player";
 import { platformAtom } from "~/lib/atoms";
-import { spotifyPlayerAtom } from "~/lib/spotify";
 import { entriesAtom, type EntriesData } from "~/lib/entries";
 
 import Entry from "./Entry";
 import classes from "./Entry.module.css";
 
 import { AtomsProvider } from "testUtils";
+import {
+	_TESTING_ONLY_setSpotifyPlayer,
+	type SpotifyPlayer,
+} from "~/lib/spotify";
 
-const getWrapper =
-	(player: Player, entriesData: EntriesData) =>
-	({ children }: React.PropsWithChildren) => (
+describe("Entry", () => {
+	let user: UserEvent;
+	let entriesData: EntriesData;
+	let player: SpotifyPlayer;
+	let store: ReturnType<typeof createStore>;
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+
+		store = createStore();
+
+		user = userEvent.setup();
+
+		entriesData = {
+			entries: [{ count: 5, timeMs: 123456, note: "Note" }],
+			setHighlighter: vi.fn(),
+			entryModified: vi.fn(),
+			removeEntry: vi.fn(),
+		} as unknown as EntriesData;
+
+		player = { seekTo: vi.fn() } as unknown as SpotifyPlayer;
+
+		store.set(_TESTING_ONLY_setSpotifyPlayer, player);
+	});
+
+	const wrapper = ({ children }: React.PropsWithChildren) => (
 		<AtomsProvider
+			store={store}
 			initialValues={[
 				[platformAtom, "spotify"],
-				[spotifyPlayerAtom, player],
 				[entriesAtom, entriesData],
 			]}
 		>
@@ -31,30 +57,8 @@ const getWrapper =
 		</AtomsProvider>
 	);
 
-describe("Entry", () => {
-	let user: UserEvent;
-	let useEntriesOutput: EntriesData;
-	let player: Player;
-
-	beforeEach(() => {
-		vi.clearAllMocks();
-
-		user = userEvent.setup();
-
-		useEntriesOutput = {
-			entries: [{ count: 5, timeMs: 123456, note: "Note" }],
-			setHighlighter: vi.fn(),
-			entryModified: vi.fn(),
-			removeEntry: vi.fn(),
-		} as unknown as EntriesData;
-
-		player = { seekTo: vi.fn() } as unknown as Player;
-	});
-
 	it("It displays the correct count, timestamp, and note", () => {
-		render(<Entry index={0} />, {
-			wrapper: getWrapper(player, useEntriesOutput),
-		});
+		render(<Entry index={0} />, { wrapper });
 
 		expect(screen.getByLabelText("count")).toHaveValue(5);
 
@@ -66,20 +70,17 @@ describe("Entry", () => {
 	});
 
 	it("Highlights correctly", async () => {
-		const { unmount } = render(<Entry index={0} />, {
-			wrapper: getWrapper(player, useEntriesOutput),
-		});
+		render(<Entry index={0} />, { wrapper });
 
 		expect(screen.getByRole("row")).not.toHaveClass(classes.highlight);
 
-		expect(useEntriesOutput.setHighlighter).toHaveBeenCalledOnce();
-		expect(useEntriesOutput.setHighlighter).toHaveBeenCalledWith(
+		expect(entriesData.setHighlighter).toHaveBeenCalledOnce();
+		expect(entriesData.setHighlighter).toHaveBeenCalledWith(
 			0,
 			expect.any(Function),
 		);
 
-		const highlighter = (useEntriesOutput.setHighlighter as Mock).mock
-			.calls[0][1];
+		const highlighter = (entriesData.setHighlighter as Mock).mock.calls[0][1];
 
 		await act(() => highlighter(true));
 
@@ -92,9 +93,7 @@ describe("Entry", () => {
 
 	describe("When the count gets modified", () => {
 		it("Updates both the rendered UI and the entries data", async () => {
-			render(<Entry index={0} />, {
-				wrapper: getWrapper(player, useEntriesOutput),
-			});
+			render(<Entry index={0} />, { wrapper });
 
 			const inputLabel = "count";
 			await user.clear(screen.getByLabelText(inputLabel));
@@ -102,16 +101,14 @@ describe("Entry", () => {
 
 			const expectedValue = 10;
 			expect(screen.getByLabelText(inputLabel)).toHaveValue(expectedValue);
-			expect(useEntriesOutput.entryModified).toHaveBeenCalled();
-			expect(useEntriesOutput.entries[0][inputLabel]).toEqual(expectedValue);
+			expect(entriesData.entryModified).toHaveBeenCalled();
+			expect(entriesData.entries[0][inputLabel]).toEqual(expectedValue);
 		});
 	});
 
 	describe("When the timestamp is clicked", () => {
 		it("Seeks to the correct time on the player", async () => {
-			render(<Entry index={0} />, {
-				wrapper: getWrapper(player, useEntriesOutput),
-			});
+			render(<Entry index={0} />, { wrapper });
 
 			await user.click(screen.getByRole("button", { name: "Seek to 2:03.45" }));
 
@@ -122,9 +119,7 @@ describe("Entry", () => {
 
 	describe("When the note gets modified", () => {
 		it("Updates both the rendered UI and the entries data", async () => {
-			render(<Entry index={0} />, {
-				wrapper: getWrapper(player, useEntriesOutput),
-			});
+			render(<Entry index={0} />, { wrapper });
 
 			const inputLabel = "note";
 			const expectedValue = "New note";
@@ -132,21 +127,19 @@ describe("Entry", () => {
 			await user.type(screen.getByLabelText(inputLabel), expectedValue);
 
 			expect(screen.getByLabelText(inputLabel)).toHaveValue(expectedValue);
-			expect(useEntriesOutput.entryModified).toHaveBeenCalled();
-			expect(useEntriesOutput.entries[0][inputLabel]).toEqual(expectedValue);
+			expect(entriesData.entryModified).toHaveBeenCalled();
+			expect(entriesData.entries[0][inputLabel]).toEqual(expectedValue);
 		});
 	});
 
 	describe("When delete button is clicked", () => {
 		it(`Calls the "removeEntry" entries function`, async () => {
-			render(<Entry index={0} />, {
-				wrapper: getWrapper(player, useEntriesOutput),
-			});
+			render(<Entry index={0} />, { wrapper });
 
 			await user.click(screen.getByRole("button", { name: "Delete Entry" }));
 
-			expect(useEntriesOutput.removeEntry).toHaveBeenCalledOnce();
-			expect(useEntriesOutput.removeEntry).toHaveBeenCalledWith(0);
+			expect(entriesData.removeEntry).toHaveBeenCalledOnce();
+			expect(entriesData.removeEntry).toHaveBeenCalledWith(0);
 		});
 	});
 });

@@ -6,11 +6,11 @@ import { AtomsProvider } from "testUtils";
 
 import type { EntriesData, Entry } from "./entries";
 import { type Platform, platformAtom } from "./atoms";
-import { spotifyPlayerAtom } from "./spotify";
+import { _TESTING_ONLY_setSpotifyPlayer, type SpotifyPlayer } from "./spotify";
 import type { Player } from "./player";
 import { useEntries, ENTRIES_STORAGE_KEY } from "./entries";
 import { createStore } from "jotai";
-import { _TESTING_ONLY_setPlayer, type YouTubePlayer } from "./youtube";
+import { _TESTING_ONLY_setYouTubePlayer, type YouTubePlayer } from "./youtube";
 
 const defaultEntry: Entry = { count: 0, timeMs: 0, note: "Start" };
 
@@ -164,7 +164,7 @@ describe("useEntries", () => {
 	});
 
 	describe("When provided a Player", () => {
-		const store = createStore();
+		let store: ReturnType<typeof createStore>;
 
 		const getPlayer = (platform: Platform) =>
 			({
@@ -173,17 +173,11 @@ describe("useEntries", () => {
 				removeOnTick: vi.fn(),
 			}) as unknown as Player;
 
-		const spotifyPlayer = getPlayer("spotify");
-		const youTubePlayer = getPlayer("youtube");
+		const spotifyPlayer = getPlayer("spotify") as SpotifyPlayer;
+		const youTubePlayer = getPlayer("youtube") as YouTubePlayer;
 
 		const wrapper = ({ children }: React.PropsWithChildren) => (
-			<AtomsProvider
-				store={store}
-				initialValues={[
-					[platformAtom, "spotify"],
-					[spotifyPlayerAtom, spotifyPlayer],
-				]}
-			>
+			<AtomsProvider store={store} initialValues={[[platformAtom, "spotify"]]}>
 				{children}
 			</AtomsProvider>
 		);
@@ -207,6 +201,11 @@ describe("useEntries", () => {
 
 			return highlights;
 		};
+
+		beforeEach(() => {
+			store = createStore();
+			store.set(_TESTING_ONLY_setSpotifyPlayer, spotifyPlayer);
+		});
 
 		it("Highlights, scrolls, and unmounts correctly entry with player ticking", async () => {
 			const { result, unmount } = renderHook(() => useEntries(), { wrapper });
@@ -278,7 +277,7 @@ describe("useEntries", () => {
 			expect(highlights).toEqual([true, false, false]);
 
 			await act(() => {
-				store.set(_TESTING_ONLY_setPlayer, youTubePlayer as YouTubePlayer);
+				store.set(_TESTING_ONLY_setYouTubePlayer, youTubePlayer);
 				store.set(platformAtom, "youtube");
 			});
 

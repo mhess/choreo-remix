@@ -4,11 +4,7 @@ import { useEffect } from "react";
 
 import store from "~/lib/stateStore";
 
-import {
-	getPlaybackListenerForTick,
-	type OnTickCallback,
-	type Player,
-} from "./player";
+import { Player } from "./player";
 
 declare global {
 	interface Window {
@@ -16,10 +12,6 @@ declare global {
 		ytPlayerPromise?: Promise<YouTubePlayer>;
 		ytPlayer: YT.Player;
 	}
-}
-
-export interface YouTubePlayer extends Player {
-	ytPlayer: YTPlayerWithVideoData;
 }
 
 type YTPlayerWithVideoData = YT.Player & {
@@ -39,7 +31,7 @@ export const youTubePausedAtom = atom((get) => get(playerStateAtom) !== 1);
 const statusAtom = atom(YouTubePlayerStatus.LOADING);
 
 const privatePlayerAtom = atom<YouTubePlayer>();
-export const _TESTING_ONLY_setPlayer = atom(
+export const _TESTING_ONLY_setYouTubePlayer = atom(
 	null,
 	(_, set, player: YouTubePlayer) => {
 		set(privatePlayerAtom, player);
@@ -88,7 +80,7 @@ const getYouTubePlayer = async (): Promise<YouTubePlayer> => {
 				playerVars: { playsinline: 1 },
 				events: {
 					onReady: () =>
-						resolve(wrapYoutubePlayer(player as YTPlayerWithVideoData)),
+						resolve(new YouTubePlayer(player as YTPlayerWithVideoData)),
 					onError: (e) => console.error(`Youtube initialization error ${e}`),
 				},
 			});
@@ -98,61 +90,48 @@ const getYouTubePlayer = async (): Promise<YouTubePlayer> => {
 	});
 };
 
-const wrapYoutubePlayer = (ytPlayer: YTPlayerWithVideoData): YouTubePlayer => {
-	const onTickCallbacks: OnTickCallback[] = [];
+class YouTubePlayer extends Player {
+	ytPlayer: YTPlayerWithVideoData;
 
-	let lastTimestamp: number;
-	let lastCurTime: number;
+	constructor(ytPlayer: YTPlayerWithVideoData) {
+		super();
 
-	const getMs = () => ytPlayer.getCurrentTime() * 1000;
+		this.ytPlayer = ytPlayer;
 
-	const tick = async (ms?: number) => {
-		const timeMs = ms !== undefined ? ms : getMs();
-		for (const cb of onTickCallbacks) cb(timeMs);
-	};
+		ytPlayer.addEventListener("onStateChange", ({ data: state }) => {
+			store.set(playerStateAtom, state);
 
-	const playbackListenerForTick = getPlaybackListenerForTick(tick);
+			if (state === YT.PlayerState.CUED) {
+				store.set(statusAtom, YouTubePlayerStatus.READY);
+			}
 
-	ytPlayer.addEventListener("onStateChange", ({ data: state }) => {
-		store.set(playerStateAtom, state);
+			const isPaused = state !== YT.PlayerState.PLAYING;
+			this._onPlaybackChange(isPaused);
+		});
+	}
 
-		if (state === YT.PlayerState.CUED) {
-			store.set(statusAtom, YouTubePlayerStatus.READY);
-		}
+	async play() {
+		this.ytPlayer.playVideo();
+	}
 
-		const isPaused = state !== YT.PlayerState.PLAYING;
-		playbackListenerForTick(isPaused);
-	});
+	async pause() {
+		this.ytPlayer.pauseVideo();
+	}
 
-	return {
-		ytPlayer,
-		async play() {
-			ytPlayer.playVideo();
-		},
-		async pause() {
-			ytPlayer.pauseVideo();
-		},
-		async seekTo(ms: number) {
-			const posMs = ms < 0 ? 0 : ms;
-			// @ts-ignore: seekTo() call with 2 args seems to break the player
-			ytPlayer.seekTo(posMs / 1000);
-			tick(posMs);
-		},
-		async getCurrentTime() {
-			return getMs();
-		},
-		addOnTick(cb: OnTickCallback) {
-			console.log("adding tick");
-			cb(getMs());
-			onTickCallbacks.push(cb);
-		},
-		removeOnTick(callback: OnTickCallback) {
-			if (!onTickCallbacks.length) return;
-			const index = onTickCallbacks.findIndex((cb) => cb === callback);
-			if (index > -1) onTickCallbacks.splice(index, 1);
-		},
-	};
-};
+	async seekTo(ms: number) {
+		const posMs = ms < 0 ? 0 : ms;
+		// @ts-ignore: seekTo() call with 2 args seems to break the player
+		this.ytPlayer.seekTo(posMs / 1000);
+		this._tick(posMs);
+	}
+
+	async getCurrentTime() {
+		return this.ytPlayer.getCurrentTime() * 1000;
+	}
+}
+
+type YouTubePlayerType = InstanceType<typeof YouTubePlayer>;
+export type { YouTubePlayerType as YouTubePlayer };
 
 export const extractVideoIdFromUrl = (urlString: string) => {
 	try {

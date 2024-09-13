@@ -1,4 +1,4 @@
-import { createElement, type ReactElement } from "react";
+import { createElement, Fragment, type ReactElement } from "react";
 import {
 	Box,
 	Group,
@@ -44,7 +44,7 @@ export default () => {
 	};
 
 	const entriesGroup = player && (
-		<>
+		<Fragment key="entries">
 			<Menu.Item>
 				<Box
 					className={classes.loadLabel}
@@ -56,23 +56,25 @@ export default () => {
 			</Menu.Item>
 			<Menu.Item onClick={handleSaveCSV}>Save entries to CSV</Menu.Item>
 			<Menu.Item onClick={clear}>Clear entries</Menu.Item>
-		</>
+		</Fragment>
 	);
 
-	const platformGroup = isMobile && <PlatformItems />;
+	const platformGroup = isMobile && <PlatformItems key="platform" />;
 
 	const youTubeGroup = player && platform === "youtube" && (
-		<Menu.Item onClick={youTubeClearVideoId}>Change YouTube Video</Menu.Item>
+		<Menu.Item key="change-yt" onClick={youTubeClearVideoId}>
+			Change YouTube Video
+		</Menu.Item>
 	);
 
 	const spotifyLogoutGroup = spotifyToken && platform === "spotify" && (
-		<Menu.Item onClick={() => setSpotifyToken(null)}>
+		<Menu.Item key="log-out" onClick={() => setSpotifyToken(null)}>
 			Log Out of Spotify
 		</Menu.Item>
 	);
 
 	const lightDarkGroup = isMobile && (
-		<Menu.Item hiddenFrom="mobile" onClick={toggleColorScheme}>
+		<Menu.Item key="color-scheme" onClick={toggleColorScheme}>
 			<Group gap="0.25rem">
 				{createElement(isLight ? IconSun : IconMoon, { size: "1.25rem" })}{" "}
 				Toggle light/dark
@@ -91,7 +93,9 @@ export default () => {
 	const groupsWithDividers = groupsToRender.reduce(
 		(output, el, index, groups) => {
 			output.push(el);
-			if (index < groups.length - 1) output.push(<Menu.Divider />);
+			if (index < groups.length - 1)
+				// biome-ignore lint/suspicious/noArrayIndexKey: an element with the same key will be the same element
+				output.push(<Menu.Divider key={`div-${index}`} />);
 			return output;
 		},
 		[] as ReactElement[],

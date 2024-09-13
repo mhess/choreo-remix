@@ -1,27 +1,50 @@
-export type PlaybackListener = (paused: boolean) => void;
 export type OnTickCallback = (ms: number) => void;
 export type Tick = (ms?: number) => void;
 
-export interface Player {
-	play: () => Promise<void>;
-	pause: () => Promise<void>;
-	seekTo: (ms: number) => void;
-	getCurrentTime: () => Promise<number>;
-	addOnTick: (cb: OnTickCallback) => void;
-	removeOnTick: (cb: OnTickCallback) => void;
-}
+export class Player {
+	_onTickCallbacks: OnTickCallback[] = [];
+	_tickIntervalId?: number = undefined;
 
-export const getPlaybackListenerForTick = (tick: Tick) => {
-	let tickIntervalId: number | undefined;
-
-	return (paused: boolean) => {
+	_onPlaybackChange(paused: boolean) {
 		if (!paused) {
-			if (tickIntervalId === undefined) {
-				tickIntervalId = window.setInterval(tick, 100);
+			if (this._tickIntervalId === undefined) {
+				this._tickIntervalId = window.setInterval(this._tick.bind(this), 100);
 			}
-		} else if (tickIntervalId !== undefined) {
-			window.clearInterval(tickIntervalId);
-			tickIntervalId = undefined;
+		} else if (this._tickIntervalId !== undefined) {
+			window.clearInterval(this._tickIntervalId);
+			this._tickIntervalId = undefined;
 		}
-	};
-};
+	}
+
+	async _tick(ms?: number) {
+		const timeMs = ms !== undefined ? ms : await this.getCurrentTime();
+		for (const cb of this._onTickCallbacks) cb(timeMs);
+	}
+
+	async play() {
+		throw "play() not implemented!";
+	}
+
+	async pause() {
+		throw "pause() not implemented!";
+	}
+
+	seekTo(ms: number) {
+		throw "seekTo() not implemented!";
+	}
+
+	async getCurrentTime(): Promise<number> {
+		throw "getCurrentTime() not implemented!";
+	}
+
+	async addOnTick(cb: OnTickCallback) {
+		cb(await this.getCurrentTime());
+		this._onTickCallbacks.push(cb);
+	}
+
+	removeOnTick(callback: OnTickCallback) {
+		if (!this._onTickCallbacks.length) return;
+		const index = this._onTickCallbacks.findIndex((cb) => cb === callback);
+		if (index > -1) this._onTickCallbacks.splice(index, 1);
+	}
+}

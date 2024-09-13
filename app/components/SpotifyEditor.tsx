@@ -16,13 +16,7 @@ import { playerAtom } from "~/lib/atoms";
 
 export default () => {
 	const [token] = useAtom(spotifyTokenAtom);
-	const { status, player: spotifyPlayer } = useSpotifyPlayer(token);
-	const [, setSpotifyPlayer] = useAtom(spotifyPlayerAtom);
-	const [player] = useAtom(playerAtom);
-
-	useEffect(() => {
-		setSpotifyPlayer(spotifyPlayer);
-	}, [spotifyPlayer, setSpotifyPlayer]);
+	const status = useSpotifyPlayer(token);
 
 	if (!token)
 		return (
@@ -34,9 +28,7 @@ export default () => {
 			</Center>
 		);
 
-	const isPlayerReady = status === SpotifyPlayerStatus.READY && player;
-
-	return isPlayerReady ? (
+	return status === SpotifyPlayerStatus.READY ? (
 		<Entries />
 	) : (
 		<Center mx="1rem" h="100%">

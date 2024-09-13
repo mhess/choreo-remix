@@ -17,3 +17,11 @@ Object.defineProperty(window, "matchMedia", {
 		dispatchEvent: () => {},
 	}),
 });
+
+declare global {
+	interface Window {
+		__testing__: boolean;
+	}
+}
+
+window.__testing__ = true;
