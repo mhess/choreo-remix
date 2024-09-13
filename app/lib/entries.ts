@@ -14,9 +14,22 @@ export type EntryWithHighlight = {
 
 export type EntriesData = ReturnType<typeof useEntries>;
 
-export const entriesAtom = atom<EntriesData>();
+const entriesDataAtom = atom<EntriesData>();
+export const _TESTING_ONLY_setEntriesData = atom(
+	null,
+	(_, set, entriesData: EntriesData) => set(entriesDataAtom, entriesData),
+);
 
-export const useEntriesData = () => useAtom(entriesAtom)[0] as EntriesData;
+export const useSetUpEntries = () => {
+	const entries = useEntries();
+	const [, setEntries] = useAtom(entriesDataAtom);
+
+	useEffect(() => {
+		setEntries(entries);
+	}, [entries, setEntries]);
+};
+
+export const useEntriesData = () => useAtom(entriesDataAtom)[0] as EntriesData;
 
 export const ENTRIES_STORAGE_KEY = "choreo-entries";
 

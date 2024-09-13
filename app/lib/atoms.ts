@@ -1,51 +1,21 @@
 import { atom, useAtom } from "jotai";
-import type { Atom } from "jotai";
 
-import {
-	spotifyPlayerAtom,
-	spotifyPausedAtom,
-	spotifyArtistAtom,
-	spotifyTrackNameAtom,
-} from "./spotify";
-import {
-	youTubePlayerAtom,
-	youTubePausedAtom,
-	youTubeTrackNameAtom,
-	youTubeArtistAtom,
-} from "./youtube";
-import {
-	audioFilePausedAtom,
-	audioFilePlayerAtom,
-	audioFileTrackNameAtom,
-} from "./audioFile";
-import type { Player } from "./player";
+import { atoms as spotify } from "./spotify";
+import { atoms as youtube } from "./youtube";
+import { atoms as audioFile } from "./audioFile";
+import type { PlaformAtoms, PlatformPlayer } from "./player";
 
 export type Platform = "youtube" | "spotify" | "audioFile" | "landing";
 
-export const platformAtom = atom<Platform>("audioFile");
+export const platformAtom = atom<Platform>("landing");
 
 const atomsByPlatform: Record<
 	Platform,
-	Record<string, Atom<Player | undefined | boolean | string>>
+	Record<keyof PlaformAtoms, PlaformAtoms[keyof PlaformAtoms]>
 > = {
-	spotify: {
-		player: spotifyPlayerAtom,
-		paused: spotifyPausedAtom,
-		artist: spotifyArtistAtom,
-		trackName: spotifyTrackNameAtom,
-	},
-	youtube: {
-		player: youTubePlayerAtom,
-		paused: youTubePausedAtom,
-		artist: youTubeArtistAtom,
-		trackName: youTubeTrackNameAtom,
-	},
-	audioFile: {
-		player: audioFilePlayerAtom,
-		paused: audioFilePausedAtom,
-		artist: atom(""),
-		trackName: audioFileTrackNameAtom,
-	},
+	spotify,
+	youtube,
+	audioFile,
 	landing: {
 		player: atom(undefined),
 		paused: atom(true),
@@ -55,7 +25,7 @@ const atomsByPlatform: Record<
 };
 
 export const playerAtom = atom(
-	(get) => get(atomsByPlatform[get(platformAtom)].player) as Player,
+	(get) => get(atomsByPlatform[get(platformAtom)].player) as PlatformPlayer,
 );
 
 export const playerPausedAtom = atom(
@@ -70,4 +40,5 @@ export const trackNameAtom = atom(
 	(get) => get(atomsByPlatform[get(platformAtom)].trackName) as string,
 );
 
-export const useEstablishedPlayer = () => useAtom(playerAtom)[0] as Player;
+export const useEstablishedPlayer = () =>
+	useAtom(playerAtom)[0] as PlatformPlayer;

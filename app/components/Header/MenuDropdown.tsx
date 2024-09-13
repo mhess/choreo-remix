@@ -12,7 +12,7 @@ import { IconMoon, IconSun } from "@tabler/icons-react";
 import { useMobileBreakpoint } from "~/lib/utils";
 import { platformAtom, playerAtom, trackNameAtom } from "~/lib/atoms";
 import { useEntriesData } from "~/lib/entries";
-import { spotifyTokenAtom } from "~/lib/spotify";
+import { spotifyAuthAtom } from "~/lib/spotify";
 import { youTubeClearVideoId } from "~/lib/youtube";
 
 import PlatformItems from "./PlatformItems";
@@ -22,7 +22,7 @@ import classes from "./MenuDropdown.module.css";
 export default () => {
 	const { saveToCSV, loadFromCSV, clear } = useEntriesData();
 	const [trackName] = useAtom(trackNameAtom);
-	const [spotifyToken, setSpotifyToken] = useAtom(spotifyTokenAtom);
+	const [isSpotifyLoggedIn, logoutSpotify] = useAtom(spotifyAuthAtom);
 	const [platform] = useAtom(platformAtom);
 	const [player] = useAtom(playerAtom);
 	const { toggleColorScheme } = useMantineColorScheme();
@@ -67,8 +67,8 @@ export default () => {
 		</Menu.Item>
 	);
 
-	const spotifyLogoutGroup = spotifyToken && platform === "spotify" && (
-		<Menu.Item key="log-out" onClick={() => setSpotifyToken(null)}>
+	const spotifyLogoutGroup = isSpotifyLoggedIn && platform === "spotify" && (
+		<Menu.Item key="log-out" onClick={logoutSpotify}>
 			Log Out of Spotify
 		</Menu.Item>
 	);

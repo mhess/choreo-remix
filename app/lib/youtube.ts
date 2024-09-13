@@ -4,7 +4,7 @@ import { useEffect } from "react";
 
 import store from "~/lib/stateStore";
 
-import { Player } from "./player";
+import { getPlatformAtoms, PlatformPlayer } from "./player";
 
 declare global {
 	interface Window {
@@ -25,40 +25,32 @@ export enum YouTubePlayerStatus {
 	READY = "Ready",
 }
 
-export const youTubePausedAtom = atom(true);
+const videoIdAtom = atomWithStorage<string | null>("yt-video-id", null);
 
+export const youTubeClearVideoId = () => store.set(videoIdAtom, null);
+
+const playerAtom = atom<YouTubePlayer>();
 const statusAtom = atom(YouTubePlayerStatus.LOADING);
-
-const privatePlayerAtom = atom<YouTubePlayer>();
 export const _TESTING_ONLY_setYouTubePlayer = atom(
 	null,
 	(_, set, player: YouTubePlayer) => {
-		set(privatePlayerAtom, player);
+		set(playerAtom, player);
 		set(statusAtom, YouTubePlayerStatus.READY);
 	},
 );
 
-export const youTubePlayerAtom = atom<YouTubePlayer | undefined>((get) => {
-	const isReady = get(statusAtom) === YouTubePlayerStatus.READY;
-	const player = get(privatePlayerAtom);
-	return isReady && player ? player : undefined;
-});
-
 const videoDataAtom = atom((get) => {
-	const player = get(youTubePlayerAtom);
+	const player = get(playerAtom);
 	return player ? player.ytPlayer.getVideoData() : undefined;
 });
 
-export const youTubeArtistAtom = atom(
-	(get) => get(videoDataAtom)?.author || "",
-);
-export const youTubeTrackNameAtom = atom(
-	(get) => get(videoDataAtom)?.title || "",
-);
-
-const videoIdAtom = atomWithStorage<string | null>("yt-video-id", null);
-
-export const youTubeClearVideoId = () => store.set(videoIdAtom, null);
+export const atoms = getPlatformAtoms({
+	playerAtom,
+	statusAtom,
+	readyStatus: YouTubePlayerStatus.READY,
+	artist: (get) => get(videoDataAtom)?.author || "",
+	trackName: (get) => get(videoDataAtom)?.title || "",
+});
 
 export const YT_PLAYER_EL_ID = "ytplayer";
 const YT_SCRIPT_ID = "yt-api-script";
@@ -89,7 +81,7 @@ const getYouTubePlayer = async (): Promise<YouTubePlayer> => {
 	});
 };
 
-class YouTubePlayer extends Player {
+class YouTubePlayer extends PlatformPlayer {
 	ytPlayer: YTPlayerWithVideoData;
 
 	constructor(ytPlayer: YTPlayerWithVideoData) {
@@ -99,7 +91,7 @@ class YouTubePlayer extends Player {
 
 		ytPlayer.addEventListener("onStateChange", ({ data: state }) => {
 			const isPaused = state !== YT.PlayerState.PLAYING;
-			store.set(youTubePausedAtom, isPaused);
+			store.set(atoms.paused, isPaused);
 
 			if (state === YT.PlayerState.CUED) {
 				store.set(statusAtom, YouTubePlayerStatus.READY);
@@ -145,7 +137,7 @@ export const extractVideoIdFromUrl = (urlString: string) => {
 };
 
 export const useYouTubePlayer = () => {
-	const [player, setPlayer] = useAtom(privatePlayerAtom);
+	const [player, setPlayer] = useAtom(playerAtom);
 	const [status, setStatus] = useAtom(statusAtom);
 	const [videoId, setVideoId] = useAtom(videoIdAtom);
 

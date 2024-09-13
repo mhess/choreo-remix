@@ -1,7 +1,7 @@
 import type { LoaderFunctionArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 
-import { SPOTIFY_TOKEN_URL_PARAM } from "~/lib/spotify";
+import { SPOTIFY_TOKEN_PARAM } from "~/lib/spotify";
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	const url = new URL(request.url);
@@ -36,5 +36,5 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 	if (!token) throw json("Token not recieved", { status: 404 });
 
-	throw redirect(`/?${SPOTIFY_TOKEN_URL_PARAM}=${token}`);
+	throw redirect(`/?${SPOTIFY_TOKEN_PARAM}=${token}`);
 }

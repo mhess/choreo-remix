@@ -2,7 +2,7 @@ import { atom, useAtom } from "jotai";
 import { useEffect, useRef } from "react";
 
 import store from "./stateStore";
-import { Player } from "./player";
+import { getPlatformAtoms, PlatformPlayer } from "./player";
 
 export enum FilePlayerStatus {
 	NO_FILE = "No file provided",
@@ -10,29 +10,23 @@ export enum FilePlayerStatus {
 	READY = "Ready",
 }
 
-export const audioFilePausedAtom = atom(true);
-
+const playerAtom = atom<AudioFilePlayer>();
 const statusAtom = atom(FilePlayerStatus.NO_FILE);
+const audioFileAtom = atom<File>();
 
-const privatePlayerAtom = atom<AudioFilePlayer>();
+export const atoms = getPlatformAtoms({
+	playerAtom,
+	statusAtom,
+	readyStatus: FilePlayerStatus.READY,
+	trackName: (get) => get(audioFileAtom)?.name || "",
+});
+
 export const _TESTING_ONLY_setAudioFilePlayer = atom(
 	null,
 	(_, set, player: AudioFilePlayer) => {
-		set(privatePlayerAtom, player);
+		set(playerAtom, player);
 		set(statusAtom, FilePlayerStatus.READY);
 	},
-);
-
-export const audioFilePlayerAtom = atom<AudioFilePlayer | undefined>((get) => {
-	const isReady = get(statusAtom) === FilePlayerStatus.READY;
-	const player = get(privatePlayerAtom);
-	return isReady && player ? player : undefined;
-});
-
-const audioFileAtom = atom<File>();
-
-export const audioFileTrackNameAtom = atom(
-	(get) => get(audioFileAtom)?.name || "",
 );
 
 const setFile = (file: File) => {
@@ -42,7 +36,7 @@ const setFile = (file: File) => {
 
 export const audioFileClearFile = () => store.set(audioFileAtom, undefined);
 
-class AudioFilePlayer extends Player {
+class AudioFilePlayer extends PlatformPlayer {
 	$audioEl: HTMLAudioElement;
 
 	constructor($el: HTMLAudioElement, file: File) {
@@ -54,11 +48,11 @@ class AudioFilePlayer extends Player {
 		);
 		$el.addEventListener("play", () => {
 			this._onPlaybackChange(false);
-			store.set(audioFilePausedAtom, false);
+			store.set(atoms.paused, false);
 		});
 		$el.addEventListener("pause", () => {
 			this._onPlaybackChange(true);
-			store.set(audioFilePausedAtom, true);
+			store.set(atoms.paused, true);
 		});
 		$el.src = URL.createObjectURL(file);
 	}
@@ -99,7 +93,7 @@ export const useAudioFilePlayer = () => {
 		const $audioEl = audioElRef.current;
 		if (!file || !$audioEl) return;
 
-		store.set(privatePlayerAtom, new AudioFilePlayer($audioEl, file));
+		store.set(playerAtom, new AudioFilePlayer($audioEl, file));
 		() => file && setStatus(FilePlayerStatus.LOADING);
 	}, [file]);
 

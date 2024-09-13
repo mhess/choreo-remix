@@ -1,6 +1,9 @@
+import { atom } from "jotai";
+import type { Getter, PrimitiveAtom } from "jotai";
+
 export type OnTickCallback = (ms: number) => void;
 
-export abstract class Player {
+export abstract class PlatformPlayer {
 	_onTickCallbacks: OnTickCallback[] = [];
 	_tickIntervalId?: number = undefined;
 
@@ -39,3 +42,32 @@ export abstract class Player {
 		if (index > -1) this._onTickCallbacks.splice(index, 1);
 	}
 }
+
+export const getPlatformAtoms = <PlayerClass, StatusEnum>({
+	playerAtom,
+	statusAtom,
+	readyStatus,
+	trackName,
+	artist,
+	paused,
+}: {
+	playerAtom: PrimitiveAtom<PlayerClass>;
+	statusAtom: PrimitiveAtom<StatusEnum>;
+	readyStatus: StatusEnum;
+	trackName?: (get: Getter) => string;
+	artist?: (get: Getter) => string;
+	paused?: (get: Getter) => boolean;
+}) => {
+	return {
+		player: atom((get) => {
+			const isReady = get(statusAtom) === readyStatus;
+			const player = get(playerAtom);
+			return isReady && player ? player : undefined;
+		}),
+		trackName: atom(trackName ? trackName : ""),
+		artist: atom(artist ? artist : ""),
+		paused: atom(paused ? paused : true),
+	};
+};
+
+export type PlaformAtoms = ReturnType<typeof getPlatformAtoms>;

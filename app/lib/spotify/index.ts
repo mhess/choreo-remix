@@ -4,7 +4,7 @@ import { atomWithStorage } from "jotai/utils";
 
 import store from "~/lib/stateStore";
 import { getFakePlayer } from "./fakePlayer";
-import { Player } from "../player";
+import { PlatformPlayer, getPlatformAtoms } from "../player";
 
 export enum SpotifyPlayerStatus {
 	LOADING = "loading",
@@ -16,52 +16,53 @@ export enum SpotifyPlayerStatus {
 	READY = "ready",
 }
 
-export const SPOTIFY_TOKEN_URL_PARAM = "spotifyToken";
+export const SPOTIFY_TOKEN_PARAM = "spotifyToken";
 const SPOTIFY_SCRIPT_ID = "spotify-sdk-script";
 
-export const spotifyTokenAtom = atomWithStorage<string | null>(
-	SPOTIFY_TOKEN_URL_PARAM,
-	null,
-);
-export const resetSpotifyTokenAtom = atom(null, (_, set) =>
-	set(spotifyTokenAtom, null),
-);
-
 const statusAtom = atom(SpotifyPlayerStatus.LOADING);
+const playerAtom = atom<SpotifyPlayer>();
 const playerStateAtom = atom<Spotify.PlaybackState | null>(null);
-const privatePlayerAtom = atom<SpotifyPlayer>();
-export const _TESTING_ONLY_setSpotifyPlayer = atom(
-	null,
-	(_, set, player: SpotifyPlayer) => {
-		set(privatePlayerAtom, player);
-		set(statusAtom, SpotifyPlayerStatus.READY);
-	},
-);
-
-export const spotifyPlayerAtom = atom<SpotifyPlayer | undefined>((get) => {
-	const isReady = get(statusAtom) === SpotifyPlayerStatus.READY;
-	const player = get(privatePlayerAtom);
-	return isReady && player ? player : undefined;
-});
-
-export const spotifyPausedAtom = atom((get) => {
-	const state = get(playerStateAtom);
-	return state ? state.paused : true;
-});
-
 const currentTrackAtom = atom(
 	(get) => get(playerStateAtom)?.track_window.current_track,
 );
-export const spotifyArtistAtom = atom((get) => {
-	const track = get(currentTrackAtom);
-	if (!track) return "";
 
-	return track.artists.map(({ name }) => name).join(", ");
+export const atoms = getPlatformAtoms({
+	playerAtom,
+	statusAtom,
+	readyStatus: SpotifyPlayerStatus.READY,
+	artist: (get) => {
+		const track = get(currentTrackAtom);
+		if (!track) return "";
+
+		return track.artists.map(({ name }) => name).join(", ");
+	},
+	trackName: (get) => {
+		const track = get(currentTrackAtom);
+		return track ? track.name : "";
+	},
+	paused: (get) => {
+		const state = get(playerStateAtom);
+		return state ? state.paused : true;
+	},
 });
-export const spotifyTrackNameAtom = atom((get) => {
-	const track = get(currentTrackAtom);
-	return track ? track.name : "";
-});
+
+export const spotifyTokenAtom = atomWithStorage<string | null>(
+	SPOTIFY_TOKEN_PARAM,
+	null,
+);
+
+export const spotifyAuthAtom = atom(
+	(get) => !!get(spotifyTokenAtom),
+	(_, set) => set(spotifyTokenAtom, null),
+);
+
+export const _TESTING_ONLY_setSpotifyPlayer = atom(
+	null,
+	(_, set, player: SpotifyPlayer) => {
+		set(playerAtom, player);
+		set(statusAtom, SpotifyPlayerStatus.READY);
+	},
+);
 
 // This variable is needed because the root component gets mounted/unmounted
 // which can cause multiple player instances to get initialized if the data is
@@ -72,7 +73,7 @@ let tokenAndPromise: {
 };
 
 export const useSpotifyPlayer = (token: string | null) => {
-	const [player, setPlayer] = useAtom(privatePlayerAtom);
+	const [player, setPlayer] = useAtom(playerAtom);
 	const [status, setStatus] = useAtom(statusAtom);
 
 	useEffect(() => {
@@ -141,7 +142,7 @@ const getSpotifyPlayer = async (token: string): Promise<SpotifyPlayer> => {
 	});
 };
 
-class SpotifyPlayer extends Player {
+class SpotifyPlayer extends PlatformPlayer {
 	spPlayer: Spotify.Player;
 	authToken: string;
 

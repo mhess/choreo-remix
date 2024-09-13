@@ -7,7 +7,7 @@ import { AtomsProvider } from "testUtils";
 import type { EntriesData, Entry } from "./entries";
 import { type Platform, platformAtom } from "./atoms";
 import { _TESTING_ONLY_setSpotifyPlayer, type SpotifyPlayer } from "./spotify";
-import type { Player } from "./player";
+import type { PlatformPlayer } from "./player";
 import { useEntries, ENTRIES_STORAGE_KEY } from "./entries";
 import { createStore } from "jotai";
 import { _TESTING_ONLY_setYouTubePlayer, type YouTubePlayer } from "./youtube";
@@ -171,7 +171,7 @@ describe("useEntries", () => {
 				platform,
 				addOnTick: vi.fn(),
 				removeOnTick: vi.fn(),
-			}) as unknown as Player;
+			}) as unknown as PlatformPlayer;
 
 		const spotifyPlayer = getPlayer("spotify") as SpotifyPlayer;
 		const youTubePlayer = getPlayer("youtube") as YouTubePlayer;
