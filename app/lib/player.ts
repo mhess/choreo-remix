@@ -1,7 +1,6 @@
 export type OnTickCallback = (ms: number) => void;
-export type Tick = (ms?: number) => void;
 
-export class Player {
+export abstract class Player {
 	_onTickCallbacks: OnTickCallback[] = [];
 	_tickIntervalId?: number = undefined;
 
@@ -21,21 +20,13 @@ export class Player {
 		for (const cb of this._onTickCallbacks) cb(timeMs);
 	}
 
-	async play() {
-		throw "play() not implemented!";
-	}
+	abstract play(): Promise<void>;
 
-	async pause() {
-		throw "pause() not implemented!";
-	}
+	abstract pause(): Promise<void>;
 
-	seekTo(ms: number) {
-		throw "seekTo() not implemented!";
-	}
+	abstract seekTo(ms: number): void;
 
-	async getCurrentTime(): Promise<number> {
-		throw "getCurrentTime() not implemented!";
-	}
+	abstract getCurrentTime(): Promise<number>;
 
 	async addOnTick(cb: OnTickCallback) {
 		cb(await this.getCurrentTime());
