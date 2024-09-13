@@ -27,5 +27,5 @@
 
 .file {
   height: 22px;
-  color: var(--app-font-color);
+  color: var(--app-border-color-dark);
 }

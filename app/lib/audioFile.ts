@@ -97,5 +97,5 @@ export const useAudioFilePlayer = () => {
 		() => file && setStatus(FilePlayerStatus.LOADING);
 	}, [file]);
 
-	return { status, setFile, audioElRef };
+	return { status, setFile };
 };

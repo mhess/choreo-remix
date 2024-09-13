@@ -1,5 +1,11 @@
-import type { ChangeEvent } from "react";
-import { Center } from "@mantine/core";
+import { useRef, type MutableRefObject, type ChangeEvent } from "react";
+import {
+	Button,
+	Flex,
+	Stack,
+	useComputedColorScheme,
+	useMantineTheme,
+} from "@mantine/core";
 
 import { FilePlayerStatus, useAudioFilePlayer } from "~/lib/audioFile";
 
@@ -7,7 +13,14 @@ import Entries from "./Entries";
 import CenteredLoading from "./CenteredLoading";
 
 export default () => {
-	const { status, setFile, audioElRef } = useAudioFilePlayer();
+	const { status, setFile } = useAudioFilePlayer();
+	const scheme = useComputedColorScheme();
+	const theme = useMantineTheme();
+	const fileInputRef = useRef<HTMLInputElement>();
+
+	const isDark = scheme === "dark";
+	const logoDark = theme.colors.grape[5];
+	const logoLight = theme.colors.violet[9];
 
 	const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
 		const file = e.target?.files?.[0];
@@ -21,9 +34,24 @@ export default () => {
 			return <CenteredLoading message="Waiting for data" />;
 		case FilePlayerStatus.NO_FILE:
 			return (
-				<Center>
-					<input type="file" onChange={handleFileChange} />
-				</Center>
+				<Flex justify="center" mt="2rem">
+					<Stack>
+						<Button
+							color={isDark ? logoDark : logoLight}
+							size="md"
+							variant="filled"
+							onClick={() => fileInputRef.current?.click()}
+						>
+							Select an audio file
+						</Button>
+						<input
+							style={{ visibility: "hidden" }}
+							ref={fileInputRef as MutableRefObject<HTMLInputElement>}
+							type="file"
+							onChange={handleFileChange}
+						/>
+					</Stack>
+				</Flex>
 			);
 	}
 };

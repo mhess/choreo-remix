@@ -4,7 +4,7 @@ import { useAtom } from "jotai";
 import { platformAtom } from "~/lib/atoms";
 import thmClasses from "~/theme.module.css";
 
-import { Spotify, YouTube } from "./Logos";
+import { AudioFile, Spotify, YouTube } from "./Logos";
 
 import classes from "./Landing.module.css";
 
@@ -33,7 +33,7 @@ export default () => {
 					annotations to navigate around the song easily. The app allows you to
 					save these annotations to CSV files for later.
 				</Text>
-				<Group mt="1rem">
+				<Group justify="center" mt="1rem">
 					<Button
 						classNames={{ root: btnClasses }}
 						variant="outline"
@@ -54,6 +54,17 @@ export default () => {
 						<Group gap="xs">
 							<span>Use Spotify Premium</span>
 							<Spotify height="20" />
+						</Group>
+					</Button>
+					<Button
+						classNames={{ root: btnClasses }}
+						variant="outline"
+						size="sm"
+						onClick={() => selectPlatform("audioFile")}
+					>
+						<Group gap="xs">
+							<span>Use a local audio file</span>
+							<AudioFile />
 						</Group>
 					</Button>
 				</Group>

@@ -77,7 +77,6 @@ export const useSpotifyPlayer = (token: string | null) => {
 	const [status, setStatus] = useAtom(statusAtom);
 
 	useEffect(() => {
-		setStatus(SpotifyPlayerStatus.LOADING);
 		if (!token) return;
 
 		// Use the player from the Window if it has a correct token
