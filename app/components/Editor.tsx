@@ -4,11 +4,12 @@ import { useLocation } from "@remix-run/react";
 
 import { platformAtom, type Platform } from "~/lib/atoms";
 import { SPOTIFY_TOKEN_URL_PARAM, spotifyTokenAtom } from "~/lib/spotify";
+import { entriesAtom, useEntries } from "~/lib/entries";
 
 import Landing from "./Landing";
 import SpotifyEditor from "./SpotifyEditor";
 import YoutubeEditor from "./YoutubeEditor";
-import { entriesAtom, useEntries } from "~/lib/entries";
+import AudioFileEditor from "./AudioFileEditor";
 
 export default () => {
 	useSetUpEntries();
@@ -19,6 +20,8 @@ export default () => {
 			return <SpotifyEditor />;
 		case "youtube":
 			return <YoutubeEditor />;
+		case "audioFile":
+			return <AudioFileEditor />;
 		default:
 			return <Landing />;
 	}

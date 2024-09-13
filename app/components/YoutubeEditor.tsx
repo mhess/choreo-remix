@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import {
 	Button,
 	Center,
@@ -16,10 +16,10 @@ import {
 	YouTubePlayerStatus,
 } from "~/lib/youtube";
 
-import Loading from "./Loading";
 import Entries from "./Entries";
 
 import classes from "./YouTubeEditor.module.css";
+import CenteredLoading from "./CenteredLoading";
 
 export default () => {
 	const { status, setVideoId } = useYouTubePlayer();
@@ -80,9 +80,3 @@ const UrlForm = ({ setVideoId }: { setVideoId: (id: string) => void }) => {
 		</Flex>
 	);
 };
-
-const CenteredLoading = ({ message }: { message: string }) => (
-	<Center h="100%">
-		<Loading message={message} />
-	</Center>
-);

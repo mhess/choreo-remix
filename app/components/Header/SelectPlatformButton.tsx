@@ -1,9 +1,12 @@
 import { Button, Group, Menu } from "@mantine/core";
 import { useAtom } from "jotai";
 
-import { type Platform, platformAtom } from "~/lib/atoms";
+import { platformAtom } from "~/lib/atoms";
 
-import PlatformItems, { logoByPlatform } from "./PlatformItems";
+import PlatformItems, {
+	logoByPlatform,
+	labelByPlatform,
+} from "./PlatformItems";
 
 export default () => {
 	const [platform] = useAtom(platformAtom);
@@ -23,10 +26,4 @@ export default () => {
 			</Menu.Dropdown>
 		</Menu>
 	);
-};
-
-const labelByPlatform: Record<Platform, string> = {
-	spotify: "Spotify",
-	youtube: "YouTube",
-	landing: "Select Platform",
 };

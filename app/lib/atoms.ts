@@ -1,22 +1,28 @@
 import { atom, useAtom } from "jotai";
 import type { Atom } from "jotai";
+
 import {
 	spotifyPlayerAtom,
 	spotifyPausedAtom,
 	spotifyArtistAtom,
 	spotifyTrackNameAtom,
 } from "./spotify";
-import type { Player } from "./player";
 import {
 	youTubePlayerAtom,
 	youTubePausedAtom,
 	youTubeTrackNameAtom,
 	youTubeArtistAtom,
 } from "./youtube";
+import {
+	audioFilePausedAtom,
+	audioFilePlayerAtom,
+	audioFileTrackNameAtom,
+} from "./audioFile";
+import type { Player } from "./player";
 
-export type Platform = "youtube" | "spotify" | "landing";
+export type Platform = "youtube" | "spotify" | "audioFile" | "landing";
 
-export const platformAtom = atom<Platform>("landing");
+export const platformAtom = atom<Platform>("audioFile");
 
 const atomsByPlatform: Record<
 	Platform,
@@ -33,6 +39,12 @@ const atomsByPlatform: Record<
 		paused: youTubePausedAtom,
 		artist: youTubeArtistAtom,
 		trackName: youTubeTrackNameAtom,
+	},
+	audioFile: {
+		player: audioFilePlayerAtom,
+		paused: audioFilePausedAtom,
+		artist: atom(""),
+		trackName: audioFileTrackNameAtom,
 	},
 	landing: {
 		player: atom(undefined),

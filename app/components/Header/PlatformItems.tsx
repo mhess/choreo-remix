@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 
 import { type Platform, platformAtom } from "~/lib/atoms";
 
-import { Spotify, YouTube } from "../Logos";
+import { AudioFile, Spotify, YouTube } from "../Logos";
 
 export default () => {
 	const [platform, setPlatform] = useAtom(platformAtom);
@@ -17,7 +17,7 @@ export default () => {
 					leftSection={logoByPlatform.spotify}
 					onClick={() => setPlatform("spotify")}
 				>
-					Spotify
+					{labelByPlatform.spotify}
 				</Menu.Item>
 			)}
 			{platform !== "youtube" && (
@@ -25,7 +25,15 @@ export default () => {
 					leftSection={logoByPlatform.youtube}
 					onClick={() => setPlatform("youtube")}
 				>
-					YouTube
+					{labelByPlatform.youtube}
+				</Menu.Item>
+			)}
+			{platform !== "audioFile" && (
+				<Menu.Item
+					leftSection={logoByPlatform.audioFile}
+					onClick={() => setPlatform("audioFile")}
+				>
+					{labelByPlatform.audioFile}
 				</Menu.Item>
 			)}
 		</>
@@ -35,5 +43,13 @@ export default () => {
 export const logoByPlatform: Record<Platform, ReactNode> = {
 	spotify: <Spotify />,
 	youtube: <YouTube />,
+	audioFile: <AudioFile />,
 	landing: undefined,
+};
+
+export const labelByPlatform: Record<Platform, string> = {
+	spotify: "Spotify",
+	youtube: "YouTube",
+	audioFile: "Audio File",
+	landing: "Select Platform",
 };

@@ -3,12 +3,14 @@
   .spotify {
     fill: var(--mantine-color-green-3);
   }
-
   .tube {
     fill: #ae0909;
   }
   .play {
     fill: #d8caca;
+  }
+  .file {
+    color: var(--app-border-color);
   }
 }
 
@@ -21,4 +23,9 @@
 
 .spotify {
   fill: var(--mantine-color-green-7);
+}
+
+.file {
+  height: 22px;
+  color: var(--app-font-color);
 }

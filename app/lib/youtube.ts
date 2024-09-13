@@ -25,8 +25,7 @@ export enum YouTubePlayerStatus {
 	READY = "Ready",
 }
 
-const playerStateAtom = atom<YT.PlayerState>();
-export const youTubePausedAtom = atom((get) => get(playerStateAtom) !== 1);
+export const youTubePausedAtom = atom(true);
 
 const statusAtom = atom(YouTubePlayerStatus.LOADING);
 
@@ -99,13 +98,13 @@ class YouTubePlayer extends Player {
 		this.ytPlayer = ytPlayer;
 
 		ytPlayer.addEventListener("onStateChange", ({ data: state }) => {
-			store.set(playerStateAtom, state);
+			const isPaused = state !== YT.PlayerState.PLAYING;
+			store.set(youTubePausedAtom, isPaused);
 
 			if (state === YT.PlayerState.CUED) {
 				store.set(statusAtom, YouTubePlayerStatus.READY);
 			}
 
-			const isPaused = state !== YT.PlayerState.PLAYING;
 			this._onPlaybackChange(isPaused);
 		});
 	}

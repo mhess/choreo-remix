@@ -1,5 +1,6 @@
 import type { SVGProps } from "react";
 import classes from "./Logos.module.css";
+import { IconFileMusic } from "@tabler/icons-react";
 
 export const YouTube = (props: SVGProps<SVGSVGElement>) => (
 	<svg
@@ -35,3 +36,5 @@ export const Spotify = (props: SVGProps<SVGSVGElement>) => (
 		/>
 	</svg>
 );
+
+export const AudioFile = () => <IconFileMusic className={classes.file} />;
