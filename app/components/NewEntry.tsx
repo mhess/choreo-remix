@@ -3,13 +3,13 @@ import { CloseButton, Group, Text } from "@mantine/core";
 
 import { displayMs } from "~/lib/utils";
 import { useEstablishedPlayer } from "~/lib/atoms";
-import { entryAtomsForPlatform, type Entry } from "~/lib/atomicEntries";
+import { entryAtomsForPlatform, type AtomicEntry } from "~/lib/entries";
 
 import TextInputWithAtom from "./TextInputWithAtom";
 
 import classes from "./Entry.module.css";
 
-export default ({ entry, index }: { entry: Entry; index: number }) => {
+export default ({ entry, index }: { entry: AtomicEntry; index: number }) => {
 	const player = useEstablishedPlayer();
 	const [{ removeAtom }] = useAtom(entryAtomsForPlatform);
 	const [, removeEntry] = useAtom(removeAtom);

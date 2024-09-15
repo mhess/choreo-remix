@@ -4,7 +4,6 @@ import { useLocation } from "@remix-run/react";
 
 import { platformAtom, type Platform } from "~/lib/atoms";
 import { SPOTIFY_TOKEN_PARAM, spotifyTokenAtom } from "~/lib/spotify";
-import { useSetUpEntries } from "~/lib/entries";
 
 import Landing from "./Landing";
 import SpotifyEditor from "./SpotifyEditor";
@@ -12,7 +11,6 @@ import YoutubeEditor from "./YoutubeEditor";
 import AudioFileEditor from "./AudioFileEditor";
 
 export default () => {
-	useSetUpEntries();
 	const platform = useSpotifyTokenForPlatform();
 
 	switch (platform) {

@@ -14,7 +14,6 @@ import {
 import { useDisclosure } from "@mantine/hooks";
 import { IconChevronDown, IconMoon, IconSun } from "@tabler/icons-react";
 
-import { useEntriesData } from "~/lib/entries";
 import {
 	artistAtom,
 	platformAtom,
@@ -31,7 +30,6 @@ import classes from "./index.module.css";
 export default () => {
 	const [platform, setPlatform] = useAtom(platformAtom);
 	const [player] = useAtom(playerAtom);
-	const entries = useEntriesData();
 
 	const isSpotify = platform === "spotify";
 
@@ -77,7 +75,7 @@ export default () => {
 			<Group gap="xs">
 				<SelectPlatformButton />
 				<ToggleColorScheme />
-				{entries && <BurgerMenu />}
+				<BurgerMenu />
 			</Group>
 		</Group>
 	);

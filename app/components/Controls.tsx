@@ -14,7 +14,7 @@ import {
 import type { OnTickCallback } from "~/lib/player";
 import { displayMs, useMobileBreakpoint } from "~/lib/utils";
 import { playerPausedAtom, useEstablishedPlayer } from "~/lib/atoms";
-import { entryAtomsForPlatform } from "~/lib/atomicEntries";
+import { entryAtomsForPlatform } from "~/lib/entries";
 
 import TooltipWithClick from "./TooltipWithClick";
 

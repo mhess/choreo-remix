@@ -4,10 +4,7 @@ import { Box, Group, Text } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 
 import { useEstablishedPlayer } from "~/lib/atoms";
-import {
-	entryAtomsForPlatform,
-	setOnIndexChangeAtom,
-} from "~/lib/atomicEntries";
+import { entryAtomsForPlatform, setOnIndexChangeAtom } from "~/lib/entries";
 
 import Help from "./Help";
 import Controls from "./Controls";

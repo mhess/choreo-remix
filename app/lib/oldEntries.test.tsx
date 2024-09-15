@@ -4,11 +4,11 @@ import { act, renderHook, type RenderHookResult } from "@testing-library/react";
 
 import { AtomsProvider } from "testUtils";
 
-import type { EntriesData, Entry } from "./entries";
+import type { EntriesData, Entry } from "./oldEntries";
 import { type Platform, platformAtom } from "./atoms";
 import { _TESTING_ONLY_setSpotifyPlayer, type SpotifyPlayer } from "./spotify";
 import type { PlatformPlayer } from "./player";
-import { useEntries, ENTRIES_STORAGE_KEY } from "./entries";
+import { useEntries, ENTRIES_STORAGE_KEY } from "./oldEntries";
 import { createStore } from "jotai";
 import { _TESTING_ONLY_setYouTubePlayer, type YouTubePlayer } from "./youtube";
 

@@ -1,270 +1,227 @@
-import { atom, useAtom } from "jotai";
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import Papa from "papaparse";
+import { atom } from "jotai";
+import type { Getter, PrimitiveAtom, Setter, WritableAtom } from "jotai";
 
-import { debounced } from "./utils";
-import { playerAtom } from "./atoms";
+import { platformAtom, platforms, type Platform } from "~/lib/atoms";
 
-export type Entry = { count: number; timeMs: number; note: string };
-
-export type EntryWithHighlight = {
-	entry: Entry;
-	highlighter?: (flag: boolean) => void;
+export type Entry = {
+	count: number;
+	timeMs: number;
+	note: string;
 };
 
-export type EntriesData = ReturnType<typeof useEntries>;
+export type AtomicEntry = {
+	countAtom: PrimitiveAtom<number>;
+	timeMs: number;
+	noteAtom: PrimitiveAtom<string>;
+	isCurrentAtom: PrimitiveAtom<boolean>;
+};
 
-const entriesDataAtom = atom<EntriesData>();
-export const _TESTING_ONLY_setEntriesData = atom(
-	null,
-	(_, set, entriesData: EntriesData) => set(entriesDataAtom, entriesData),
+const makeAtomicEntry = (entry: Entry) => ({
+	countAtom: atom(entry.count),
+	timeMs: entry.timeMs,
+	noteAtom: atom(entry.note),
+	isCurrentAtom: atom(false),
+});
+
+type PlatformEntryAtoms = {
+	entriesAtom: PrimitiveAtom<AtomicEntry[]>;
+	addAtom: WritableAtom<null, [number], void>;
+	removeAtom: WritableAtom<null, [number], void>;
+	clearAtom: WritableAtom<null, [], void>;
+	currentIndexAtom: WritableAtom<null, [number], void>;
+	saveToCSVAtom: WritableAtom<null, [string], void>;
+	loadFromCSVAtom: WritableAtom<null, [File], Promise<void>>;
+};
+
+type ScrollCallback = (currentIndex: number) => void;
+
+const INITIAL_ENTRY_COUNT = 0;
+const INITIAL_ENTRY_TIME_MS = 0;
+const INITIAL_ENTRY_NOTE = "Start";
+
+// Function is wrapped in array here bc jotai doesn't support functions as values
+const onIndexChangeAtom = atom<[ScrollCallback]>();
+export const setOnIndexChangeAtom = atom(null, (_, set, cb: ScrollCallback) =>
+	set(onIndexChangeAtom, [cb]),
 );
 
-export const useSetUpEntries = () => {
-	const entries = useEntries();
-	const [, setEntries] = useAtom(entriesDataAtom);
+export const entryAtomsForPlatform = atom(
+	(get) => entryAtomsByPlatform[get(platformAtom)],
+);
 
-	useEffect(() => {
-		setEntries(entries);
-	}, [entries, setEntries]);
-};
+const entryAtomsByPlatform = platforms.reduce(
+	(entriesByPlatform, platform) => {
+		const getInitialEntries = (): AtomicEntry[] => [
+			{
+				countAtom: atom(INITIAL_ENTRY_COUNT),
+				timeMs: INITIAL_ENTRY_TIME_MS,
+				noteAtom: atom(INITIAL_ENTRY_NOTE),
+				isCurrentAtom: atom(true),
+			},
+		];
 
-export const useEntriesData = () => useAtom(entriesDataAtom)[0] as EntriesData;
+		const entryTimes = new Set([INITIAL_ENTRY_TIME_MS]);
 
-export const ENTRIES_STORAGE_KEY = "choreo-entries";
+		const entriesAtom = atom(getInitialEntries());
 
-export const useEntries = () => {
-	const [player] = useAtom(playerAtom);
-	const entriesSetRef = useRef(new Set<number>());
-	const entriesWithHighlightRef = useRef<EntryWithHighlight[]>([]);
-	const highlightIndexRef = useRef<number>();
-	const scrollerRef = useRef<HTMLElement>();
-	const containerRef = useRef<HTMLElement>();
+		const addAtom = atom(null, (get: Getter, set: Setter, timeMs: number) => {
+			if (entryTimes.has(timeMs)) return;
 
-	const [renderState, render] = useRender();
+			const entries = get(entriesAtom);
+			for (const entry of entries) set(entry.isCurrentAtom, false);
+			const index = findEntryIndex(entries, timeMs);
+			const count = guessCountForIndex(get, entries, index, timeMs);
+			const newEntry: AtomicEntry = {
+				countAtom: atom(count),
+				timeMs,
+				noteAtom: atom(""),
+				isCurrentAtom: atom(true),
+			};
 
-	const { current: entriesSet } = entriesSetRef;
+			const newEntries = [
+				...entries.slice(0, index),
+				newEntry,
+				...entries.slice(index),
+			];
 
-	const loadEntriesFromLocalStorage = useCallback(() => {
-		const data = localStorage.getItem(ENTRIES_STORAGE_KEY);
-		const stored = data ? JSON.parse(data) : null;
-		loadEntries(stored?.length ? stored : undefined);
-	}, []);
+			entryTimes.add(timeMs);
+			set(entriesAtom, newEntries);
+		});
 
-	useEffect(() => {
-		loadEntriesFromLocalStorage();
-		render();
-		return () => storeEntriesLocally();
-	}, [loadEntriesFromLocalStorage, render]);
+		const removeAtom = atom(null, (get: Getter, set: Setter, index: number) => {
+			const entries = get(entriesAtom);
+			const newEntries = [...entries];
+			const [removed] = newEntries.splice(index, 1);
+			entryTimes.delete(removed.timeMs);
 
-	useEffect(() => {
-		if (!player) return;
-		highlightIndexRef.current = undefined;
-		player.addOnTick(highlightCurrentEntry);
-		return () => player.removeOnTick(highlightCurrentEntry);
-	}, [player]);
+			set(entriesAtom, newEntries);
+		});
 
-	const loadEntries = (entries?: Entry[]) => {
-		const nonEmptyEntries = entries || [{ count: 0, timeMs: 0, note: "Start" }];
-		entriesSet.clear();
-		for (const entry of nonEmptyEntries) entriesSet.add(entry.timeMs);
-		entriesWithHighlightRef.current = nonEmptyEntries.map((entry: Entry) => ({
-			entry,
-		}));
-	};
+		const clearAtom = atom(null, (_: Getter, set: Setter) => {
+			set(entriesAtom, getInitialEntries());
+			entryTimes.clear();
+			entryTimes.add(INITIAL_ENTRY_TIME_MS);
+		});
 
-	const storeEntriesLocally = () => {
-		localStorage.setItem(ENTRIES_STORAGE_KEY, JSON.stringify(getEntries()));
-	};
+		const currentIndexAtom = atom(
+			null,
+			(get: Getter, set: Setter, timeMs: number) => {
+				const entries = get(entriesAtom);
 
-	const getEntries = () =>
-		entriesWithHighlightRef.current.map(({ entry }) => entry);
+				let foundNext = false;
+				for (let i = entries.length - 1; i > -1; i--) {
+					const entry = entries[i];
+					const entryTime = entry.timeMs;
 
-	const highlightCurrentEntry = (timeMs: number) => {
-		const entries = entriesWithHighlightRef.current;
-		if (!entries.length) return;
+					if (!foundNext && entryTime <= timeMs) {
+						set(entry.isCurrentAtom, true);
+						const cb = get(onIndexChangeAtom);
+						cb?.[0](i);
+						foundNext = true;
+					} else {
+						set(entry.isCurrentAtom, false);
+					}
+				}
+			},
+		);
 
-		const { current: highlightIndex } = highlightIndexRef;
-		const newIndex = getNewHighlightIndex(timeMs, highlightIndex);
+		const saveToCSVAtom = atom(null, (get, _, fileName: string) => {
+			const jsonableEntries = get(entriesAtom).map((atomic) => ({
+				count: get(atomic.countAtom),
+				timeMs: atomic.timeMs,
+				note: get(atomic.noteAtom),
+			}));
 
-		if (newIndex === highlightIndex) return;
+			saveToCSV(fileName, jsonableEntries);
+		});
 
-		if (highlightIndex !== undefined)
-			entries[highlightIndex]?.highlighter?.(false);
-		entries[newIndex]?.highlighter?.(true);
-		highlightIndexRef.current = newIndex;
-		setEntriesScrollPosition(scrollerRef, containerRef, newIndex);
-	};
+		const loadFromCSVAtom = atom(null, async (_, set, file: File) => {
+			const entries = await loadFromCSV(file);
+			set(entriesAtom, entries.map(makeAtomicEntry));
+		});
 
-	const getNewHighlightIndex = (
-		timeMs: number,
-		highlightIndex?: number,
-	): number => {
-		const entries = entriesWithHighlightRef.current;
-		if (entries.length === 1) return 0;
+		entriesByPlatform[platform] = {
+			entriesAtom,
+			addAtom,
+			removeAtom,
+			clearAtom,
+			currentIndexAtom,
+			saveToCSVAtom,
+			loadFromCSVAtom,
+		};
 
-		if (highlightIndex === undefined) return findHighlightIndex(timeMs);
+		return entriesByPlatform;
+	},
+	{} as Record<Platform, PlatformEntryAtoms>,
+);
 
-		const highlightEntry = entries[highlightIndex];
-		if (!highlightEntry) return findHighlightIndex(timeMs);
+const findEntryIndex = (
+	entries: AtomicEntry[],
+	timeMs: number,
+	start = 0,
+	end = -1,
+): number => {
+	let s = start;
+	let e = end > -1 ? end : entries.length;
 
-		if (timeMs < highlightEntry.entry.timeMs) {
-			return findHighlightIndex(timeMs, 0, highlightIndex);
-		}
-
-		const nextEntry = entries[highlightIndex + 1];
-		if (!nextEntry || timeMs < nextEntry.entry.timeMs) {
-			return highlightIndex;
-		}
-
-		const nextNextEntry = entries[highlightIndex + 2];
-		if (!nextNextEntry || timeMs < nextNextEntry.entry.timeMs) {
-			return highlightIndex + 1;
-		}
-
-		return findHighlightIndex(timeMs, highlightIndex + 2);
-	};
-
-	const findHighlightIndex = (...args: Parameters<typeof findEntryIndex>) =>
-		findEntryIndex(...args) - 1;
-
-	const findEntryIndex = (timeMs: number, start = 0, end = -1): number => {
-		const entries = entriesWithHighlightRef.current;
-		let s = start;
-		let e = end > -1 ? end : entries.length;
-
-		while (s !== e) {
-			const pivot = ((e - s) >> 1) + s;
-			if (entries[pivot].entry.timeMs > timeMs) e = pivot;
-			else s = pivot + 1;
-		}
-
-		return s;
-	};
-
-	const setHighlighter = (
-		index: number,
-		highlighter?: (isHighlighted: boolean) => void,
-	) => {
-		const entry = entriesWithHighlightRef.current[index];
-		entry.highlighter = highlighter;
-	};
-
-	const debouncedStoreEntriesLocally = debounced(storeEntriesLocally, 2000);
-
-	// FIXME: This can give negative numbers when adding entry between two
-	//        entries that already have counts.
-	const guessCountForIndex = (index: number, timeMs: number) => {
-		const priorTwo = entriesWithHighlightRef.current.slice(index - 2, index);
-		const priorCount = priorTwo.length;
-		const hasTwo = priorTwo.length === 2;
-		if (priorCount) {
-			const first = (hasTwo ? priorTwo[0] : null)?.entry;
-			const second = priorTwo[hasTwo ? 1 : 0].entry;
-			if (!hasTwo && !second.timeMs) return second.count;
-			const prevTimeDeltaMs = second.timeMs - (first?.timeMs || 0);
-			const prevCountDeltaMs = second.count - (first?.count || 0);
-			const countLengthMs = prevTimeDeltaMs / prevCountDeltaMs;
-			const timeDeltaMs = timeMs - second.timeMs;
-			const countDelta = Math.round(timeDeltaMs / countLengthMs);
-			return second.count + countDelta;
-		}
-		return 0;
-	};
-
-	const addEntry = (timeMs: number) => {
-		if (entriesSet.has(timeMs)) return;
-
-		const index = findEntryIndex(timeMs);
-
-		const count = guessCountForIndex(index, timeMs);
-		const newEntry = { entry: { count, timeMs, note: "" } };
-		entriesWithHighlightRef.current.splice(index, 0, newEntry);
-		entriesSet.add(timeMs);
-		debouncedStoreEntriesLocally();
-		render();
-	};
-
-	const removeEntry = (index: number) => {
-		const [removed] = entriesWithHighlightRef.current.splice(index, 1);
-		entriesSet.delete(removed.entry.timeMs);
-		debouncedStoreEntriesLocally();
-		render();
-	};
-
-	const saveToCSV = (trackName: string) => {
-		const entries = getEntries();
-		const csv = Papa.unparse(entries);
-		const file = new Blob([csv], { type: "text/csv" });
-		const $a = document.createElement("a");
-		const url = URL.createObjectURL(file);
-		$a.href = url;
-		$a.download = `${trackName}.csv`;
-		$a.style.height = "0";
-		document.body.appendChild($a);
-		$a.click();
-		setTimeout(() => {
-			document.body.removeChild($a);
-			window.URL.revokeObjectURL(url);
-		}, 0);
-	};
-
-	const loadFromCSV = async (file: File) => {
-		const csv = await file.text();
-		const result = Papa.parse(csv, { header: true, dynamicTyping: true });
-		if (result.errors.length) return alert(`CSV had errors ${result.errors}`);
-		loadEntries(result.data as Entry[]);
-		storeEntriesLocally();
-		render();
-	};
-
-	const clear = () => {
-		loadEntries();
-		storeEntriesLocally();
-		render();
-	};
-
-	// biome-ignore lint/correctness/useExhaustiveDependencies: functions always operate the same
-	return useMemo(
-		() => ({
-			setHighlighter,
-			entries: getEntries(),
-			scrollerRef,
-			containerRef,
-			entryModified: debouncedStoreEntriesLocally,
-			addEntry,
-			removeEntry,
-			saveToCSV,
-			loadFromCSV,
-			clear,
-		}),
-		[renderState],
-	);
-};
-
-const setEntriesScrollPosition = (
-	scrollRef: ElementRef,
-	containerRef: ElementRef,
-	newIndex: number,
-) => {
-	const $scroller = scrollRef.current;
-	if ($scroller) {
-		const $child = containerRef.current?.childNodes[newIndex] as HTMLElement;
-		if (!$child) return;
-		const oldTop = $scroller.scrollTop;
-		const childBottom = $child.offsetTop + $child.clientHeight;
-		if (childBottom > oldTop + $scroller.clientHeight) {
-			const halfClient = $scroller.clientHeight >> 1;
-			const newTop = $child.offsetTop - halfClient;
-			$scroller.scrollTo(0, newTop);
-		}
+	while (s !== e) {
+		const pivot = ((e - s) >> 1) + s;
+		if (entries[pivot].timeMs > timeMs) e = pivot;
+		else s = pivot + 1;
 	}
+
+	return s;
 };
 
-const useRender = (): [number, (input?: number) => void] => {
-	const [state, setState] = useState(0);
+const guessCountForIndex = (
+	get: Getter,
+	entries: AtomicEntry[],
+	index: number,
+	timeMs: number,
+): number => {
+	const sliceStartIndex = index - 2 < 0 ? 0 : index - 2;
+	const priorTwo = entries.slice(sliceStartIndex, index);
 
-	const render = useCallback(() => setState((p) => p + 1), []);
+	if (!priorTwo.length) return 0;
 
-	return [state, render];
+	if (priorTwo.length === 1) return get(priorTwo[0].countAtom);
+
+	const [first, second] = priorTwo;
+	const prevCountDeltaMs = get(second.countAtom) - get(first.countAtom);
+
+	if (prevCountDeltaMs <= 0) return get(second.countAtom);
+
+	const prevTimeDeltaMs = second.timeMs - first.timeMs;
+	const countLengthMs = prevTimeDeltaMs / prevCountDeltaMs;
+	const timeDeltaMs = timeMs - second.timeMs;
+	const countDelta = Math.round(timeDeltaMs / countLengthMs);
+
+	return countDelta + get(second.countAtom);
+};
+
+const saveToCSV = (fileName: string, entries: Entry[]) => {
+	const csv = Papa.unparse(entries, { quotes: true });
+	const file = new Blob([csv], { type: "text/csv" });
+	const $a = document.createElement("a");
+	const url = URL.createObjectURL(file);
+	$a.href = url;
+	$a.download = `${fileName}.csv`;
+	$a.style.height = "0";
+	document.body.appendChild($a);
+	$a.click();
+	setTimeout(() => {
+		document.body.removeChild($a);
+		window.URL.revokeObjectURL(url);
+	}, 0);
+};
+
+const loadFromCSV = async (file: File) => {
+	const csv = await file.text();
+	const result = Papa.parse<Entry>(csv, { header: true, dynamicTyping: true });
+	if (result.errors.length) {
+		alert(`CSV had errors ${result.errors}`);
+		return [];
+	}
+	return result.data;
 };

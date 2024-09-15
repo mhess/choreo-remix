@@ -11,7 +11,6 @@ import { IconMoon, IconSun } from "@tabler/icons-react";
 
 import { useMobileBreakpoint } from "~/lib/utils";
 import { platformAtom, playerAtom, trackNameAtom } from "~/lib/atoms";
-import { useEntriesData } from "~/lib/entries";
 import { spotifyAuthAtom } from "~/lib/spotify";
 import { youTubeClearVideoId } from "~/lib/youtube";
 
@@ -19,9 +18,16 @@ import PlatformItems from "./PlatformItems";
 
 import classes from "./MenuDropdown.module.css";
 import { audioFileClearFile } from "~/lib/audioFile";
+import { entryAtomsForPlatform } from "~/lib/entries";
 
 export default () => {
-	const { saveToCSV, loadFromCSV, clear } = useEntriesData();
+	const [{ clearAtom, saveToCSVAtom, loadFromCSVAtom }] = useAtom(
+		entryAtomsForPlatform,
+	);
+	const [, clear] = useAtom(clearAtom);
+	const [, saveToCSV] = useAtom(saveToCSVAtom);
+	const [, loadFromCSV] = useAtom(loadFromCSVAtom);
+
 	const [trackName] = useAtom(trackNameAtom);
 	const [isSpotifyLoggedIn, logoutSpotify] = useAtom(spotifyAuthAtom);
 	const [platform] = useAtom(platformAtom);

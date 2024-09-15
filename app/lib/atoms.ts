@@ -6,12 +6,14 @@ import { atoms as audioFile } from "./audioFile";
 
 import type { PlaformAtoms, PlatformPlayer } from "./player";
 
-export const playerPlatforms = ["youtube", "spotify", "audioFile"] as const;
+export const platforms = [
+	"youtube",
+	"spotify",
+	"audioFile",
+	"landing",
+] as const;
 
-const allPlatforms = [...playerPlatforms, "landing"] as const;
-
-export type PlayerPlatform = (typeof playerPlatforms)[number];
-export type Platform = (typeof allPlatforms)[number];
+export type Platform = (typeof platforms)[number];
 
 export const platformAtom = atom<Platform>("landing");
 
