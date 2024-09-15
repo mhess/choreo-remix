@@ -11,10 +11,13 @@ import classes from "./Entry.module.css";
 
 export default ({ entry, index }: { entry: AtomicEntry; index: number }) => {
 	const player = useEstablishedPlayer();
+
 	const [{ removeAtom }] = useAtom(entryAtomsForPlatform);
 	const [, removeEntry] = useAtom(removeAtom);
+
 	const { timeMs, countAtom, noteAtom, isCurrentAtom } = entry;
 	const [isCurrent] = useAtom(isCurrentAtom);
+
 	const displayTime = displayMs(timeMs);
 
 	return (

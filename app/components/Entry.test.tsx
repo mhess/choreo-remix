@@ -7,7 +7,10 @@ import type { UserEvent } from "@testing-library/user-event";
 import { createStore } from "jotai";
 
 import { platformAtom } from "~/lib/atoms";
-import { type EntriesData, _TESTING_ONLY_setEntriesData } from "~/lib/entries";
+import {
+	type EntriesData,
+	_TESTING_ONLY_setEntriesData,
+} from "~/lib/oldEntries";
 
 import Entry from "./Entry";
 import classes from "./Entry.module.css";

@@ -14,12 +14,15 @@ import classes from "./Entries.module.css";
 
 export default () => {
 	const player = useEstablishedPlayer();
+
 	const scrollerRef = useRef<HTMLDivElement>(null);
 	const containerRef = useRef<HTMLDivElement>(null);
+
 	const [{ entriesAtom, currentIndexAtom }] = useAtom(entryAtomsForPlatform);
 	const [, setCallback] = useAtom(setOnIndexChangeAtom);
 	const [, setCurrentIndexForTime] = useAtom(currentIndexAtom);
 	const [entries] = useAtom(entriesAtom);
+
 	const [isHelpOpen, { toggle }] = useDisclosure(false);
 
 	useEffect(() => {

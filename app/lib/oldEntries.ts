@@ -224,7 +224,6 @@ export const useEntries = () => {
 		render();
 	};
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: functions always operate the same
 	return useMemo(
 		() => ({
 			setHighlighter,
