@@ -11,10 +11,10 @@ import {
 	IconRewindForward5,
 } from "@tabler/icons-react";
 
-import { useEntriesData } from "~/lib/entries";
 import type { OnTickCallback } from "~/lib/player";
 import { displayMs, useMobileBreakpoint } from "~/lib/utils";
 import { playerPausedAtom, useEstablishedPlayer } from "~/lib/atoms";
+import { entryAtomsForPlatform } from "~/lib/atomicEntries";
 
 import TooltipWithClick from "./TooltipWithClick";
 
@@ -22,7 +22,8 @@ import classes from "./Controls.module.css";
 
 export default ({ help }: { help: Help }) => {
 	const isMobile = useMobileBreakpoint();
-	const { addEntry } = useEntriesData();
+	const [{ addAtom }] = useAtom(entryAtomsForPlatform);
+	const [, addEntry] = useAtom(addAtom);
 	const player = useEstablishedPlayer();
 
 	const handleAddEntry = async () => {

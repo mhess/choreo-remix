@@ -3,9 +3,15 @@ import { atom, useAtom } from "jotai";
 import { atoms as spotify } from "./spotify";
 import { atoms as youtube } from "./youtube";
 import { atoms as audioFile } from "./audioFile";
+
 import type { PlaformAtoms, PlatformPlayer } from "./player";
 
-export type Platform = "youtube" | "spotify" | "audioFile" | "landing";
+export const playerPlatforms = ["youtube", "spotify", "audioFile"] as const;
+
+const allPlatforms = [...playerPlatforms, "landing"] as const;
+
+export type PlayerPlatform = (typeof playerPlatforms)[number];
+export type Platform = (typeof allPlatforms)[number];
 
 export const platformAtom = atom<Platform>("landing");
 
