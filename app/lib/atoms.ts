@@ -32,8 +32,19 @@ const atomsByPlatform: Record<
 	},
 };
 
+const testPlayerAtom = atom<PlatformPlayer>();
+export const _TEST_ONLY_playerAtom = atom(
+	null,
+	(_, set, player: PlatformPlayer) => {
+		if (!window.__testing__) throw `Can only set "playerAtom" in tests!`;
+		set(testPlayerAtom, player);
+	},
+);
+
 export const playerAtom = atom(
-	(get) => get(atomsByPlatform[get(platformAtom)].player) as PlatformPlayer,
+	(get) =>
+		get(testPlayerAtom) ||
+		(get(atomsByPlatform[get(platformAtom)].player) as PlatformPlayer),
 );
 
 export const playerPausedAtom = atom(

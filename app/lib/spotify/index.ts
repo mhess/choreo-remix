@@ -56,14 +56,6 @@ export const spotifyAuthAtom = atom(
 	(_, set) => set(spotifyTokenAtom, null),
 );
 
-export const _TESTING_ONLY_setSpotifyPlayer = atom(
-	null,
-	(_, set, player: SpotifyPlayer) => {
-		set(playerAtom, player);
-		set(statusAtom, SpotifyPlayerStatus.READY);
-	},
-);
-
 // This variable is needed because the root component gets mounted/unmounted
 // which can cause multiple player instances to get initialized if the data is
 // only stored in React state.

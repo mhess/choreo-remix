@@ -31,13 +31,6 @@ export const youTubeClearVideoId = () => store.set(videoIdAtom, null);
 
 const playerAtom = atom<YouTubePlayer>();
 const statusAtom = atom(YouTubePlayerStatus.LOADING);
-export const _TESTING_ONLY_setYouTubePlayer = atom(
-	null,
-	(_, set, player: YouTubePlayer) => {
-		set(playerAtom, player);
-		set(statusAtom, YouTubePlayerStatus.READY);
-	},
-);
 
 const videoDataAtom = atom((get) => {
 	const player = get(playerAtom);

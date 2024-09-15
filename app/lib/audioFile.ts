@@ -21,14 +21,6 @@ export const atoms = getPlatformAtoms({
 	trackName: (get) => get(audioFileAtom)?.name || "",
 });
 
-export const _TESTING_ONLY_setAudioFilePlayer = atom(
-	null,
-	(_, set, player: AudioFilePlayer) => {
-		set(playerAtom, player);
-		set(statusAtom, FilePlayerStatus.READY);
-	},
-);
-
 const setFile = (file?: File) => {
 	store.set(audioFileAtom, file);
 	store.set(statusAtom, FilePlayerStatus[file ? "LOADING" : "NO_FILE"]);

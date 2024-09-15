@@ -46,6 +46,11 @@ export const setOnIndexChangeAtom = atom(null, (_, set, cb: ScrollCallback) =>
 	set(onIndexChangeAtom, [cb]),
 );
 
+export const _TEST_ONLY_getEntryAtomsByPlatform = () => {
+	if (!window.__testing__) throw "Only for testing!";
+	return entryAtomsByPlatform;
+};
+
 export const entryAtomsForPlatform = atom(
 	(get) => entryAtomsByPlatform[get(platformAtom)],
 );
