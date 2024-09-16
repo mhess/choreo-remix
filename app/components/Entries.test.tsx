@@ -20,7 +20,7 @@ import Entries from "./Entries";
 const platform = "spotify";
 const platformAtoms = _TEST_ONLY_atomsByPlatfom()[platform];
 
-vi.mock("./NewEntry", () => ({
+vi.mock("./Entry", () => ({
 	default: ({ entry, index }: { entry: AtomicEntry; index: number }) => {
 		const { timeMs, isCurrentAtom, countAtom } = entry;
 		const [[isCurrent], [count]] = [isCurrentAtom, countAtom].map((a) =>

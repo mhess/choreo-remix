@@ -8,7 +8,7 @@ import { entryAtomsForPlatform, setOnIndexChangeAtom } from "~/lib/entries";
 
 import Help from "./Help";
 import Controls from "./Controls";
-import NewEntry from "./NewEntry";
+import Entry from "./Entry";
 
 import classes from "./Entries.module.css";
 
@@ -51,7 +51,7 @@ export default () => {
 				{!isHelpOpen && <EntryHeader />}
 				<Box ref={containerRef}>
 					{entries.map((entry, index) => (
-						<NewEntry key={entry.timeMs} entry={entry} index={index} />
+						<Entry key={entry.timeMs} entry={entry} index={index} />
 					))}
 				</Box>
 				{isHelpOpen && (

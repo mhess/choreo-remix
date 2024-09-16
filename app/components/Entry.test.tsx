@@ -8,7 +8,7 @@ import { atom, createStore } from "jotai";
 import { _TEST_ONLY_atomsByPlatfom, platformAtom } from "~/lib/atoms";
 import { entryAtomsForPlatform, type AtomicEntry } from "~/lib/entries";
 
-import NewEntry from "./NewEntry";
+import Entry from "./Entry";
 import classes from "./Entry.module.css";
 
 import { AtomsProvider } from "testUtils";
@@ -17,7 +17,7 @@ import type { PlatformPlayer } from "~/lib/player";
 const platform = "spotify";
 const { player: playerAtom } = _TEST_ONLY_atomsByPlatfom()[platform];
 
-describe("NewEntry", () => {
+describe("Entry", () => {
 	let user: UserEvent;
 	let player: PlatformPlayer;
 	let store: ReturnType<typeof createStore>;
@@ -52,7 +52,7 @@ describe("NewEntry", () => {
 	);
 
 	it("It displays the correct count, timestamp, and note", () => {
-		render(<NewEntry entry={entry} index={0} />, { wrapper });
+		render(<Entry entry={entry} index={0} />, { wrapper });
 
 		expect(screen.getByLabelText("count")).toHaveValue("5");
 
@@ -64,7 +64,7 @@ describe("NewEntry", () => {
 	});
 
 	it("Is highlighted when current", async () => {
-		render(<NewEntry entry={entry} index={0} />, { wrapper });
+		render(<Entry entry={entry} index={0} />, { wrapper });
 
 		expect(screen.getByRole("row")).not.toHaveClass(classes.highlight);
 
@@ -74,7 +74,7 @@ describe("NewEntry", () => {
 	});
 
 	it("Shows the new count when the count is modified", async () => {
-		render(<NewEntry entry={entry} index={0} />, { wrapper });
+		render(<Entry entry={entry} index={0} />, { wrapper });
 
 		const countInput = screen.getByLabelText("count");
 
@@ -85,7 +85,7 @@ describe("NewEntry", () => {
 	});
 
 	it("Seeks player to correct time when timestamp is clicked", async () => {
-		render(<NewEntry entry={entry} index={0} />, { wrapper });
+		render(<Entry entry={entry} index={0} />, { wrapper });
 
 		await user.click(screen.getByRole("button", { name: "Seek to 2:03.45" }));
 
@@ -94,7 +94,7 @@ describe("NewEntry", () => {
 	});
 
 	it("Shows the new note when the note is modified", async () => {
-		render(<NewEntry entry={entry} index={0} />, { wrapper });
+		render(<Entry entry={entry} index={0} />, { wrapper });
 
 		const newValue = "New note";
 		const noteInput = screen.getByLabelText("note");
@@ -109,7 +109,7 @@ describe("NewEntry", () => {
 
 		store.set(entriesAtom, [entry]);
 
-		render(<NewEntry entry={entry} index={0} />, { wrapper });
+		render(<Entry entry={entry} index={0} />, { wrapper });
 
 		expect(store.get(entriesAtom)).toEqual([entry]);
 
