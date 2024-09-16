@@ -91,10 +91,19 @@ const entryAtomsByPlatform = platforms.reduce(
 
 		const removeAtom = atom(null, (get: Getter, set: Setter, index: number) => {
 			const entries = get(entriesAtom);
-			const newEntries = [...entries];
-			const [removed] = newEntries.splice(index, 1);
-			entryTimes.delete(removed.timeMs);
-			set(entriesAtom, newEntries);
+			let removed: AtomicEntry;
+
+			if (entries.length === 1) {
+				if (!entries[0].timeMs) return;
+				removed = entries[0];
+				set(entriesAtom, getInitialEntries());
+			} else {
+				const newEntries = [...entries];
+				removed = newEntries.splice(index, 1)[0];
+				set(entriesAtom, newEntries);
+			}
+
+			if (removed) entryTimes.delete(removed.timeMs);
 		});
 
 		const clearAtom = atom(null, (_: Getter, set: Setter) => {

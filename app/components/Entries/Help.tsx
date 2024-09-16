@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Container, Stack, Text, Box } from "@mantine/core";
 import {
 	IconCornerLeftDown,
@@ -29,14 +29,18 @@ export default ({
 	containerRef,
 }: { scrollerRef: ElementRef; containerRef: ElementRef }) => {
 	const isMobile = useMobileBreakpoint();
+	const [entryHeight, setEntryHeight] = useState(0);
 
+	console.log({ entryHeight });
 	useEffect(() => {
 		const $scroller = scrollerRef.current;
-		$scroller.scrollTo(0, containerRef.current.lastChild.offsetTop);
+		const { lastChild } = containerRef.current;
+		$scroller.scrollTo(0, lastChild.offsetTop);
+		setEntryHeight(lastChild?.clientHeight || 0);
 	}, []);
 
 	return (
-		<Stack className={classes.help}>
+		<Stack className={classes.help} h={`calc(100% - ${entryHeight}px)`}>
 			<Container size="sm" className={classes.helpSection}>
 				<Text>
 					<IconCornerLeftUp size="1.25rem" /> The row above is an <b>entry</b>,
