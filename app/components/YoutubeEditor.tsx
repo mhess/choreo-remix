@@ -59,8 +59,8 @@ const UrlForm = ({ setVideoId }: { setVideoId: (id: string) => void }) => {
 			<Stack className={classes.stack}>
 				<Text>Please enter or paste in a YouTube video URL</Text>
 				<TextInput
-					w="100%"
 					value={url}
+					styles={{ root: { width: "100%" }, input: { textAlign: "center" } }}
 					error={error && "Not a valid YouTube video URL"}
 					onChange={(e) => {
 						setError(false);
