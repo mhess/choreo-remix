@@ -16,7 +16,7 @@ import { displayMs, useMobileBreakpoint } from "~/lib/utils";
 import { playerPausedAtom, useEstablishedPlayer } from "~/lib/atoms";
 import { entryAtomsForPlatform } from "~/lib/entries";
 
-import TooltipWithClick from "./TooltipWithClick";
+import TooltipWithClick from "~/components/TooltipWithClick";
 
 import classes from "./Controls.module.css";
 

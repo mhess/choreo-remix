@@ -5,7 +5,7 @@ import { displayMs } from "~/lib/utils";
 import { useEstablishedPlayer } from "~/lib/atoms";
 import { entryAtomsForPlatform, type AtomicEntry } from "~/lib/entries";
 
-import TextInputWithAtom from "./TextInputWithAtom";
+import TextInputWithAtom from "~/components/TextInputWithAtom";
 
 import classes from "./Entry.module.css";
 

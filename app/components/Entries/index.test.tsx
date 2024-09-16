@@ -15,7 +15,7 @@ import {
 import type { PlatformPlayer } from "~/lib/player";
 import { AtomsProvider } from "testUtils";
 
-import Entries from "./Entries";
+import Entries from "./index";
 
 const platform = "spotify";
 const platformAtoms = _TEST_ONLY_atomsByPlatfom()[platform];
