@@ -1,4 +1,4 @@
-import { createElement, Fragment, type ReactElement } from "react";
+import { useRef, createElement, Fragment, type ReactElement } from "react";
 import {
 	Box,
 	Group,
@@ -35,6 +35,7 @@ export default () => {
 	const { toggleColorScheme } = useMantineColorScheme();
 	const isLight = useComputedColorScheme() === "light";
 	const isMobile = useMobileBreakpoint();
+	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	const handleSaveCSV = () => {
 		const formattedTrackName = (trackName as string)
@@ -42,6 +43,8 @@ export default () => {
 			.replaceAll(" ", "_");
 		saveToCSV(formattedTrackName);
 	};
+
+	const handleClickLoad = () => fileInputRef.current?.click();
 
 	const handleLoadCSV = ({ target }: React.ChangeEvent<HTMLInputElement>) => {
 		const file = target?.files?.[0];
@@ -52,15 +55,7 @@ export default () => {
 
 	const entriesGroup = player && (
 		<Fragment key="entries">
-			<Menu.Item>
-				<Box
-					className={classes.loadLabel}
-					component="label"
-					htmlFor="csv-upload"
-				>
-					Load entries from CSV
-				</Box>
-			</Menu.Item>
+			<Menu.Item onClick={handleClickLoad}>Load entries from CSV</Menu.Item>
 			<Menu.Item onClick={handleSaveCSV}>Save entries to CSV</Menu.Item>
 			<Menu.Item onClick={clear}>Clear entries</Menu.Item>
 		</Fragment>
@@ -121,7 +116,7 @@ export default () => {
 			  in order for the onChange callback to get invoked */}
 			<input
 				className={classes.fileInput}
-				id="csv-upload"
+				ref={fileInputRef}
 				type="file"
 				onChange={handleLoadCSV}
 			/>
