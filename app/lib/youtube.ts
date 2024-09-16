@@ -34,7 +34,8 @@ const statusAtom = atom(YouTubePlayerStatus.LOADING);
 
 const videoDataAtom = atom((get) => {
 	const player = get(playerAtom);
-	return player ? player.ytPlayer.getVideoData() : undefined;
+	const isReady = player && get(statusAtom) === YouTubePlayerStatus.READY;
+	return isReady ? player.ytPlayer.getVideoData() : undefined;
 });
 
 export const atoms = getPlatformAtoms({
