@@ -106,7 +106,7 @@ export const getPlatformAtoms = <PlayerClass, StatusEnum>({
 						set(testPausedAtom, paused);
 					},
 				)
-			: testPausedAtom) as PlatformAtom<boolean>,
+			: atom(true)) as PlatformAtom<boolean>,
 	};
 };
 
