@@ -42,6 +42,8 @@ export default () => {
 		<>
 			{isHelpOpen && <EntryHeader />}
 			<Box
+				role="region"
+				aria-label="Entries"
 				className={classes.entries}
 				pb={isHelpOpen ? 0 : "2rem"}
 				ref={scrollerRef}
@@ -62,10 +64,16 @@ export default () => {
 };
 
 const EntryHeader = () => (
-	<Group className={classes.entryHeader}>
-		<Text className={classes.count}>count</Text>
-		<Text className={classes.timestamp}>timestamp</Text>
-		<Text pl="sm">note</Text>
+	<Group className={classes.entryHeader} role="row">
+		<Text className={classes.count} role="columnheader">
+			count
+		</Text>
+		<Text className={classes.timestamp} role="columnheader">
+			timestamp
+		</Text>
+		<Text pl="sm" role="columnheader">
+			note
+		</Text>
 	</Group>
 );
 
@@ -78,6 +86,7 @@ const setEntriesScrollPosition = (
 	if ($scroller) {
 		const $child = containerRef.current?.childNodes[newIndex] as HTMLElement;
 		if (!$child) return;
+
 		const oldTop = $scroller.scrollTop;
 		const childBottom = $child.offsetTop + $child.clientHeight;
 		if (childBottom > oldTop + $scroller.clientHeight) {

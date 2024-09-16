@@ -4,7 +4,7 @@ import { atoms as spotify } from "./spotify";
 import { atoms as youtube } from "./youtube";
 import { atoms as audioFile } from "./audioFile";
 
-import type { PlaformAtoms, PlatformPlayer } from "./player";
+import type { PlatformAtoms, PlatformPlayer } from "./player";
 
 export const platforms = [
 	"youtube",
@@ -17,34 +17,25 @@ export type Platform = (typeof platforms)[number];
 
 export const platformAtom = atom<Platform>("landing");
 
-const atomsByPlatform: Record<
-	Platform,
-	Record<keyof PlaformAtoms, PlaformAtoms[keyof PlaformAtoms]>
-> = {
+export const _TEST_ONLY_atomsByPlatfom = () => {
+	if (!window.__testing__) throw "Only used for testing!";
+	return atomsByPlatform;
+};
+
+const atomsByPlatform: Record<Platform, PlatformAtoms> = {
 	spotify,
 	youtube,
 	audioFile,
 	landing: {
-		player: atom(undefined),
+		player: atom(),
 		paused: atom(true),
 		artist: atom(""),
 		trackName: atom(""),
 	},
 };
 
-const testPlayerAtom = atom<PlatformPlayer>();
-export const _TEST_ONLY_playerAtom = atom(
-	null,
-	(_, set, player: PlatformPlayer) => {
-		if (!window.__testing__) throw `Can only set "playerAtom" in tests!`;
-		set(testPlayerAtom, player);
-	},
-);
-
 export const playerAtom = atom(
-	(get) =>
-		get(testPlayerAtom) ||
-		(get(atomsByPlatform[get(platformAtom)].player) as PlatformPlayer),
+	(get) => get(atomsByPlatform[get(platformAtom)].player) as PlatformPlayer,
 );
 
 export const playerPausedAtom = atom(

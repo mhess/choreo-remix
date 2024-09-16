@@ -32,11 +32,11 @@ export default ({ help }: { help: Help }) => {
 	};
 
 	return (
-		<Group className={classes.controlBar}>
+		<Group className={classes.controlBar} role="toolbar" aria-label="Controls">
 			<Group>
 				<Group className={classes.desktopLeftSide}>
 					<TrackTime />
-					<PlaybackButtons visibleFrom="mobile" />
+					{!isMobile && <PlaybackButtons />}
 				</Group>
 				<Button
 					classNames={{ label: classes.btnLabel }}
@@ -49,7 +49,7 @@ export default ({ help }: { help: Help }) => {
 					<IconPlaylistAdd size="1.25rem" />
 				</Button>
 			</Group>
-			<PlaybackButtons hiddenFrom="mobile" />
+			{isMobile && <PlaybackButtons hiddenFrom="mobile" />}
 			<Group mt={isMobile ? "0.5rem" : undefined}>
 				<HelpButton help={help} />
 			</Group>

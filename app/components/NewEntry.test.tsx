@@ -5,15 +5,8 @@ import userEvent from "@testing-library/user-event";
 import type { UserEvent } from "@testing-library/user-event";
 import { atom, createStore } from "jotai";
 
-import {
-	type Platform,
-	_TEST_ONLY_playerAtom,
-	platformAtom,
-} from "~/lib/atoms";
-import {
-	_TEST_ONLY_getEntryAtomsByPlatform,
-	type AtomicEntry,
-} from "~/lib/entries";
+import { _TEST_ONLY_atomsByPlatfom, platformAtom } from "~/lib/atoms";
+import { entryAtomsForPlatform, type AtomicEntry } from "~/lib/entries";
 
 import NewEntry from "./NewEntry";
 import classes from "./Entry.module.css";
@@ -21,8 +14,10 @@ import classes from "./Entry.module.css";
 import { AtomsProvider } from "testUtils";
 import type { PlatformPlayer } from "~/lib/player";
 
+const platform = "spotify";
+const { player: playerAtom } = _TEST_ONLY_atomsByPlatfom()[platform];
+
 describe("NewEntry", () => {
-	const platform: Platform = "spotify";
 	let user: UserEvent;
 	let player: PlatformPlayer;
 	let store: ReturnType<typeof createStore>;
@@ -44,11 +39,12 @@ describe("NewEntry", () => {
 
 		player = { seekTo: vi.fn() } as unknown as PlatformPlayer;
 
-		store.set(_TEST_ONLY_playerAtom, player);
+		store.set(platformAtom, "spotify");
+		store.set(playerAtom, player);
 	});
 
 	const wrapper = ({ children }: React.PropsWithChildren) => (
-		<AtomsProvider store={store} initialValues={[[platformAtom, platform]]}>
+		<AtomsProvider store={store}>
 			<MantineProvider theme={createTheme({})}>
 				<div role="table">{children}</div>
 			</MantineProvider>
@@ -109,7 +105,7 @@ describe("NewEntry", () => {
 	});
 
 	it("When the delete button is clicked it writes to the correct atom", async () => {
-		const { entriesAtom } = _TEST_ONLY_getEntryAtomsByPlatform()[platform];
+		const { entriesAtom } = store.get(entryAtomsForPlatform);
 
 		store.set(entriesAtom, [entry]);
 

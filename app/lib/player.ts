@@ -1,5 +1,5 @@
 import { atom } from "jotai";
-import type { Getter, PrimitiveAtom } from "jotai";
+import type { Getter, PrimitiveAtom, WritableAtom } from "jotai";
 
 export type OnTickCallback = (ms: number) => void;
 
@@ -43,13 +43,15 @@ export abstract class PlatformPlayer {
 	}
 }
 
+type PlatformAtom<T, T1 = T> = WritableAtom<T | T1, [T], void>;
+
 export const getPlatformAtoms = <PlayerClass, StatusEnum>({
 	playerAtom,
 	statusAtom,
 	readyStatus,
-	trackName,
-	artist,
-	paused,
+	trackName: trackNameGetter,
+	artist: artistGetter,
+	paused: pausedGetter,
 }: {
 	playerAtom: PrimitiveAtom<PlayerClass>;
 	statusAtom: PrimitiveAtom<StatusEnum>;
@@ -58,16 +60,54 @@ export const getPlatformAtoms = <PlayerClass, StatusEnum>({
 	artist?: (get: Getter) => string;
 	paused?: (get: Getter) => boolean;
 }) => {
+	const testTrackNameAtom = atom("");
+	const testArtistAtom = atom("");
+	const testPausedAtom = atom<boolean>();
+
 	return {
-		player: atom((get) => {
-			const isReady = get(statusAtom) === readyStatus;
-			const player = get(playerAtom);
-			return isReady && player ? player : undefined;
-		}),
-		trackName: atom(trackName ? trackName : ""),
-		artist: atom(artist ? artist : ""),
-		paused: atom(paused ? paused : true),
+		player: atom(
+			(get) => {
+				const isReady = get(statusAtom) === readyStatus;
+				const player = get(playerAtom);
+				return isReady && player ? player : undefined;
+			},
+			(_, set, player: PlatformPlayer) => {
+				if (!window.__testing__) throw "For tests only!";
+				set(statusAtom, readyStatus);
+				set(playerAtom, player as PlayerClass);
+			},
+		) as PlatformAtom<PlatformPlayer, undefined>,
+		trackName: (trackNameGetter
+			? atom(
+					(get) => get(testTrackNameAtom) || trackNameGetter(get),
+					(_, set, trackName: string) => {
+						if (!window.__testing__) throw "For tests only!";
+						set(testTrackNameAtom, trackName);
+					},
+				)
+			: testTrackNameAtom) as PlatformAtom<string>,
+		artist: (artistGetter
+			? atom(
+					(get) => get(testArtistAtom) || artistGetter(get),
+					(_, set, artist: string) => {
+						if (!window.__testing__) throw "For tests only!";
+						set(testArtistAtom, artist);
+					},
+				)
+			: testArtistAtom) as PlatformAtom<string>,
+		paused: (pausedGetter
+			? atom(
+					(get) =>
+						get(testPausedAtom) !== undefined
+							? get(testPausedAtom)
+							: pausedGetter(get),
+					(_, set, paused: boolean) => {
+						if (!window.__testing__) throw "For tests only!";
+						set(testPausedAtom, paused);
+					},
+				)
+			: testPausedAtom) as PlatformAtom<boolean>,
 	};
 };
 
-export type PlaformAtoms = ReturnType<typeof getPlatformAtoms>;
+export type PlatformAtoms = ReturnType<typeof getPlatformAtoms>;
