@@ -43,9 +43,10 @@ export abstract class PlatformPlayer {
 	}
 }
 
-type PlatformAtom<T, T1 = T> = WritableAtom<T | T1, [T], void>;
-
-export const getPlatformAtoms = <PlayerClass, StatusEnum>({
+export const getPlatformAtoms = <
+	PlayerClass extends PlatformPlayer,
+	StatusEnum,
+>({
 	playerAtom,
 	statusAtom,
 	readyStatus,
@@ -53,8 +54,12 @@ export const getPlatformAtoms = <PlayerClass, StatusEnum>({
 	artist,
 	paused,
 }: {
-	playerAtom: PrimitiveAtom<PlayerClass>;
-	statusAtom: PrimitiveAtom<StatusEnum>;
+	playerAtom: WritableAtom<
+		PlayerClass | undefined,
+		[PlayerClass | undefined],
+		void
+	>;
+	statusAtom: WritableAtom<StatusEnum, [StatusEnum], void>;
 	readyStatus: StatusEnum;
 	trackName?: (get: Getter) => string;
 	artist?: (get: Getter) => string;
@@ -75,14 +80,11 @@ export const getPlatformAtoms = <PlayerClass, StatusEnum>({
 };
 
 const makeWritableAtomFromReader = <T>(
-	reader: ((get: Getter) => T) | undefined,
+	readerFn: ((get: Getter) => T) | undefined,
 	initial: T,
 ) => {
-	const sourceAtom = reader ? atom(reader) : atom(initial);
-
-	return reader
-		? makeDerivedAtomWritable(sourceAtom, initial)
-		: (sourceAtom as PrimitiveAtom<T>);
+	if (readerFn) return makeDerivedAtomWritable(atom(readerFn), initial);
+	return atom(initial);
 };
 
 // For testing purposes

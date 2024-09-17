@@ -3,7 +3,12 @@ import { useAtom } from "jotai";
 import { useLocation } from "@remix-run/react";
 
 import { platformAtom, type Platform } from "~/lib/atoms";
-import { SPOTIFY_TOKEN_PARAM, spotifyTokenAtom } from "~/lib/spotify";
+import {
+	SPOTIFY_TOKEN_PARAM,
+	SpotifyPlayerStatus,
+	spotifyTokenAtom,
+	writeStatusAtom as writeSpotifyStatusAtom,
+} from "~/lib/spotify";
 
 import Landing from "./Landing";
 import SpotifyEditor from "./SpotifyEditor";
@@ -28,7 +33,9 @@ export default () => {
 const useSpotifyTokenForPlatform = (): Platform => {
 	const location = useLocation();
 	const [platform, setPlatform] = useAtom(platformAtom);
+	const [, setSpotifyStatus] = useAtom(writeSpotifyStatusAtom);
 	const [, setToken] = useAtom(spotifyTokenAtom);
+
 	const tokenInParams = new URLSearchParams(location.search).get(
 		SPOTIFY_TOKEN_PARAM,
 	);
@@ -44,5 +51,9 @@ const useSpotifyTokenForPlatform = (): Platform => {
 		window.history.replaceState(null, "", newUrl);
 	}, [tokenInParams, setPlatform, setToken]);
 
-	return tokenInParams ? "spotify" : platform;
+	if (tokenInParams) {
+		setSpotifyStatus(SpotifyPlayerStatus.LOADING);
+		return "spotify";
+	}
+	return platform;
 };

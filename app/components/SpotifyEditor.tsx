@@ -1,24 +1,15 @@
-import { useAtom } from "jotai";
-import { useEffect } from "react";
-import { Center, Container, Stack, Text } from "@mantine/core";
+import { Center, Stack, Text } from "@mantine/core";
 import { Link } from "@remix-run/react";
 
-import {
-	SpotifyPlayerStatus,
-	spotifyPlayerAtom,
-	useSpotifyPlayer,
-	spotifyTokenAtom,
-} from "~/lib/spotify";
+import { SpotifyPlayerStatus, useSpotifyPlayer } from "~/lib/spotify";
 
 import Entries from "./Entries";
 import Loading from "./Loading";
-import { playerAtom } from "~/lib/atoms";
 
 export default () => {
-	const [token] = useAtom(spotifyTokenAtom);
-	const status = useSpotifyPlayer(token);
+	const status = useSpotifyPlayer();
 
-	if (!token)
+	if (status === SpotifyPlayerStatus.LOGGED_OUT)
 		return (
 			<Center h="100%">
 				<Text>
@@ -44,8 +35,10 @@ const TryAgain = ({ message }: { message: string }) => (
 	</Text>
 );
 
-const messageByStatus: Record<SpotifyPlayerStatus, React.ReactNode> = {
-	[SpotifyPlayerStatus.READY]: "shouldn't happen!",
+const messageByStatus: Record<
+	Exclude<SpotifyPlayerStatus, "loggedOut" | "ready">,
+	React.ReactNode
+> = {
 	[SpotifyPlayerStatus.LOADING]: <Loading message="Connecting to Spotify" />,
 	[SpotifyPlayerStatus.NOT_CONNECTED]: (
 		<Stack align="center">

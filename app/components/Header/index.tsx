@@ -20,6 +20,7 @@ import {
 	playerAtom,
 	trackNameAtom,
 } from "~/lib/atoms";
+import { spotifyAuthAtom } from "~/lib/spotify";
 
 import TooltipWithClick from "~/components/TooltipWithClick";
 import SelectPlatformButton from "./SelectPlatformButton";
@@ -29,9 +30,11 @@ import classes from "./index.module.css";
 
 export default () => {
 	const [platform, setPlatform] = useAtom(platformAtom);
+	const [isLoggedIn] = useAtom(spotifyAuthAtom);
 	const [player] = useAtom(playerAtom);
 
 	const isSpotify = platform === "spotify";
+	const shouldShowActions = player || (isLoggedIn && isSpotify);
 
 	return (
 		<Group component="header" className={classes.header}>
@@ -48,27 +51,25 @@ export default () => {
 			</Group>
 			<Group
 				className={classes.headerRightSide}
-				justify={isSpotify ? "space-between" : "right"}
+				justify={isSpotify && player ? "space-between" : "right"}
 			>
-				{player && (
+				{shouldShowActions && (
 					<>
 						{isSpotify && <SpotifyChangeButton />}
-						{player && (
-							<Box visibleFrom="mobile">
-								<Menu trigger="hover">
-									<Menu.Target>
-										<Button variant="outline" className={classes.actions}>
-											Actions
-											<IconChevronDown
-												size="1.25rem"
-												style={{ transform: "translateY(0.125rem)" }}
-											/>
-										</Button>
-									</Menu.Target>
-									<MenuDropdown />
-								</Menu>
-							</Box>
-						)}
+						<Box visibleFrom="mobile">
+							<Menu trigger="hover">
+								<Menu.Target>
+									<Button variant="outline" className={classes.actions}>
+										Actions
+										<IconChevronDown
+											size="1.25rem"
+											style={{ transform: "translateY(0.125rem)" }}
+										/>
+									</Button>
+								</Menu.Target>
+								<MenuDropdown />
+							</Menu>
+						</Box>
 					</>
 				)}
 			</Group>

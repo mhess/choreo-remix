@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { atom, useAtom } from "jotai";
+import { atom, useAtom, type PrimitiveAtom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 
 import store from "~/lib/stateStore";
@@ -7,6 +7,7 @@ import { getFakePlayer } from "./fakePlayer";
 import { PlatformPlayer, getPlatformAtoms } from "../player";
 
 export enum SpotifyPlayerStatus {
+	LOGGED_OUT = "loggedOut",
 	LOADING = "loading",
 	NOT_CONNECTED = "deviceNotConnected",
 	INIT_ERROR = "initializationError",
@@ -17,18 +18,40 @@ export enum SpotifyPlayerStatus {
 }
 
 export const SPOTIFY_TOKEN_PARAM = "spotifyToken";
-const SPOTIFY_SCRIPT_ID = "spotify-sdk-script";
+
+export const spotifyTokenAtom = atomWithStorage<string | null>(
+	SPOTIFY_TOKEN_PARAM,
+	null,
+);
+
+export const spotifyAuthAtom = atom(
+	(get) => !!get(spotifyTokenAtom),
+	(_, set) => set(spotifyTokenAtom, null),
+);
 
 const statusAtom = atom(SpotifyPlayerStatus.LOADING);
 const playerAtom = atom<SpotifyPlayer>();
 const playerStateAtom = atom<Spotify.PlaybackState | null>(null);
+const writePlayerStateAtom = atom(
+	null,
+	(_, set, newState: Spotify.PlaybackState | null) => {
+		set(playerStateAtom, newState);
+	},
+);
+
 const currentTrackAtom = atom(
 	(get) => get(playerStateAtom)?.track_window.current_track,
 );
+export const writeStatusAtom = atom(
+	null,
+	(_, set, newStatus: SpotifyPlayerStatus) => {
+		set(statusAtom, newStatus);
+	},
+);
 
 export const atoms = getPlatformAtoms({
-	playerAtom,
-	statusAtom,
+	playerAtom: playerAtom as PrimitiveAtom<PlatformPlayer | undefined>,
+	statusAtom: statusAtom,
 	readyStatus: SpotifyPlayerStatus.READY,
 	artist: (get) => {
 		const track = get(currentTrackAtom);
@@ -46,16 +69,6 @@ export const atoms = getPlatformAtoms({
 	},
 });
 
-export const spotifyTokenAtom = atomWithStorage<string | null>(
-	SPOTIFY_TOKEN_PARAM,
-	null,
-);
-
-export const spotifyAuthAtom = atom(
-	(get) => !!get(spotifyTokenAtom),
-	(_, set) => set(spotifyTokenAtom, null),
-);
-
 // This variable is needed because the root component gets mounted/unmounted
 // which can cause multiple player instances to get initialized if the data is
 // only stored in React state.
@@ -64,12 +77,17 @@ let tokenAndPromise: {
 	promise: Promise<SpotifyPlayer> | undefined;
 };
 
-export const useSpotifyPlayer = (token: string | null) => {
+export const useSpotifyPlayer = () => {
+	const [token] = useAtom(spotifyTokenAtom);
 	const [player, setPlayer] = useAtom(playerAtom);
-	const [status] = useAtom(statusAtom);
+	const [status, setStatus] = useAtom(statusAtom);
+	const [, setState] = useAtom(writePlayerStateAtom);
 
 	useEffect(() => {
-		if (!token) return;
+		if (!token) {
+			setStatus(SpotifyPlayerStatus.LOGGED_OUT);
+			return;
+		}
 
 		// Use the player from the Window if it has a correct token
 		if (player && player.authToken === token) {
@@ -84,8 +102,15 @@ export const useSpotifyPlayer = (token: string | null) => {
 			player?.spPlayer.disconnect();
 			const promise =
 				token === "fake"
-					? Promise.resolve(new SpotifyPlayer(getFakePlayer(), token))
-					: getSpotifyPlayer(token);
+					? Promise.resolve(
+							new SpotifyPlayer({
+								player: getFakePlayer(),
+								token,
+								setState,
+								setStatus,
+							}),
+						)
+					: getSpotifyPlayer(token, setState, setStatus);
 			tokenAndPromise = { token, promise };
 		}
 
@@ -95,7 +120,13 @@ export const useSpotifyPlayer = (token: string | null) => {
 	return status;
 };
 
-const getSpotifyPlayer = async (token: string): Promise<SpotifyPlayer> => {
+const SPOTIFY_SCRIPT_ID = "spotify-sdk-script";
+
+const getSpotifyPlayer = async (
+	token: string,
+	setState: (state: Spotify.PlaybackState | null) => void,
+	setStatus: (status: SpotifyPlayerStatus) => void,
+): Promise<SpotifyPlayer> => {
 	if (!document.getElementById(SPOTIFY_SCRIPT_ID)) {
 		const $script = document.createElement("script");
 		$script.id = SPOTIFY_SCRIPT_ID;
@@ -105,30 +136,30 @@ const getSpotifyPlayer = async (token: string): Promise<SpotifyPlayer> => {
 
 	return new Promise((resolve) => {
 		window.onSpotifyWebPlaybackSDKReady = async () => {
-			const spPlayer = new Spotify.Player({
+			const player = new Spotify.Player({
 				name: "Choreo Player",
 				getOAuthToken: (cb) => cb(token),
 				volume: 0.5,
 			});
 
-			spPlayer.addListener("playback_error", (obj) => {
+			player.addListener("playback_error", (obj) => {
 				console.log(`playback error ${JSON.stringify(obj)}`);
-				store.set(statusAtom, SpotifyPlayerStatus.PLAYBACK_ERROR);
+				setStatus(SpotifyPlayerStatus.PLAYBACK_ERROR);
 			});
-			spPlayer.addListener("initialization_error", () =>
-				store.set(statusAtom, SpotifyPlayerStatus.INIT_ERROR),
+			player.addListener("initialization_error", () =>
+				setStatus(SpotifyPlayerStatus.INIT_ERROR),
 			);
-			spPlayer.addListener("authentication_error", () =>
-				store.set(statusAtom, SpotifyPlayerStatus.AUTH_ERROR),
+			player.addListener("authentication_error", () =>
+				setStatus(SpotifyPlayerStatus.AUTH_ERROR),
 			);
-			spPlayer.addListener("account_error", () =>
-				store.set(statusAtom, SpotifyPlayerStatus.ACCT_ERROR),
+			player.addListener("account_error", () =>
+				setStatus(SpotifyPlayerStatus.ACCT_ERROR),
 			);
-			spPlayer.addListener("ready", () =>
-				store.set(statusAtom, SpotifyPlayerStatus.NOT_CONNECTED),
+			player.addListener("ready", () =>
+				setStatus(SpotifyPlayerStatus.NOT_CONNECTED),
 			);
 
-			resolve(new SpotifyPlayer(spPlayer, token));
+			resolve(new SpotifyPlayer({ player, token, setState, setStatus }));
 		};
 	});
 };
@@ -137,20 +168,30 @@ class SpotifyPlayer extends PlatformPlayer {
 	spPlayer: Spotify.Player;
 	authToken: string;
 
-	constructor(spPlayer: Spotify.Player, authToken: string) {
+	constructor({
+		player,
+		token,
+		setState,
+		setStatus,
+	}: {
+		player: Spotify.Player;
+		token: string;
+		setState: (state: Spotify.PlaybackState | null) => void;
+		setStatus: (status: SpotifyPlayerStatus) => void;
+	}) {
 		super();
 
-		this.spPlayer = spPlayer;
-		this.authToken = authToken;
+		this.spPlayer = player;
+		this.authToken = token;
 
-		spPlayer.connect().then((isConnected) => {
+		player.connect().then((isConnected) => {
 			if (!isConnected) {
-				store.set(statusAtom, SpotifyPlayerStatus.INIT_ERROR);
+				setStatus(SpotifyPlayerStatus.INIT_ERROR);
 				return;
 			}
 
 			const onStateChange = (state: Spotify.PlaybackState | null) => {
-				store.set(playerStateAtom, state);
+				setState(state);
 				store.set(
 					statusAtom,
 					state ? SpotifyPlayerStatus.READY : SpotifyPlayerStatus.NOT_CONNECTED,
@@ -158,9 +199,9 @@ class SpotifyPlayer extends PlatformPlayer {
 				this._onPlaybackChange(!!state?.paused);
 			};
 
-			spPlayer.getCurrentState().then(onStateChange);
+			player.getCurrentState().then(onStateChange);
 
-			spPlayer.addListener("player_state_changed", onStateChange);
+			player.addListener("player_state_changed", onStateChange);
 		});
 	}
 
