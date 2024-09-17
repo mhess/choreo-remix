@@ -32,7 +32,7 @@ describe("Entry", () => {
 
 		entry = {
 			countAtom: atom(5),
-			timeMs: 123456,
+			timeMs: 12340,
 			noteAtom: atom("Note"),
 			isCurrentAtom: atom(false),
 		};
@@ -57,7 +57,7 @@ describe("Entry", () => {
 		expect(screen.getByLabelText("count")).toHaveValue("5");
 
 		expect(
-			screen.getByRole("button", { name: "Seek to 2:03.45" }),
+			screen.getByRole("button", { name: "Seek to 0:12.34" }),
 		).toBeInTheDocument();
 
 		expect(screen.getByLabelText("note")).toHaveValue("Note");
@@ -87,10 +87,10 @@ describe("Entry", () => {
 	it("Seeks player to correct time when timestamp is clicked", async () => {
 		render(<Entry entry={entry} index={0} />, { wrapper });
 
-		await user.click(screen.getByRole("button", { name: "Seek to 2:03.45" }));
+		await user.click(screen.getByRole("button", { name: "Seek to 0:12.34" }));
 
 		expect(player.seekTo).toHaveBeenCalledOnce();
-		expect(player.seekTo).toHaveBeenCalledWith(123456);
+		expect(player.seekTo).toHaveBeenCalledWith(12340);
 	});
 
 	it("Shows the new note when the note is modified", async () => {
@@ -107,14 +107,22 @@ describe("Entry", () => {
 	it("When the delete button is clicked it writes to the correct atom", async () => {
 		const { entriesAtom } = store.get(entryAtomsForPlatform);
 
-		store.set(entriesAtom, [entry]);
+		const secondEntry: AtomicEntry = {
+			countAtom: atom(0),
+			timeMs: 23450,
+			noteAtom: atom(""),
+			isCurrentAtom: atom(false),
+		};
+
+		// Need two entries since no entries is not allowed
+		store.set(entriesAtom, [entry, secondEntry]);
 
 		render(<Entry entry={entry} index={0} />, { wrapper });
 
-		expect(store.get(entriesAtom)).toEqual([entry]);
+		expect(store.get(entriesAtom).map((e) => e.timeMs)).toEqual([12340, 23450]);
 
 		await user.click(screen.getByRole("button", { name: "Delete Entry" }));
 
-		expect(store.get(entriesAtom)).toEqual([]);
+		expect(store.get(entriesAtom).map((e) => e.timeMs)).toEqual([23450]);
 	});
 });
