@@ -11,18 +11,13 @@ export type Entry = {
 };
 
 export type AtomicEntry = {
-	countAtom: PrimitiveAtom<number>;
+	index: number;
+	countAtom: WritableAtom<number, [number], void>;
 	timeMs: number;
 	noteAtom: PrimitiveAtom<string>;
 	isCurrentAtom: PrimitiveAtom<boolean>;
+	countFillAtom: WritableAtom<boolean, [], void>;
 };
-
-const makeAtomicEntry = (entry: Entry) => ({
-	countAtom: atom(entry.count),
-	timeMs: entry.timeMs,
-	noteAtom: atom(entry.note),
-	isCurrentAtom: atom(false),
-});
 
 type PlatformEntryAtoms = {
 	entriesAtom: PrimitiveAtom<AtomicEntry[]>;
@@ -50,115 +45,175 @@ export const entryAtomsForPlatform = atom(
 	(get) => entryAtomsByPlatform[get(platformAtom)],
 );
 
-const entryAtomsByPlatform = platforms.reduce(
-	(entriesByPlatform, platform) => {
-		const getInitialEntries = (): AtomicEntry[] => [
-			{
-				countAtom: atom(INITIAL_ENTRY_COUNT),
-				timeMs: INITIAL_ENTRY_TIME_MS,
-				noteAtom: atom(INITIAL_ENTRY_NOTE),
-				isCurrentAtom: atom(true),
+const createEntryAtoms = () => {
+	const lastEditedCountIndexAtom = atom(0);
+	const makeAtomicEntry = (
+		entry: Entry & { isCurrent?: boolean },
+		index: number,
+	): AtomicEntry => {
+		const countSrcAtom = atom(entry.count);
+		const countAtom = atom(
+			(get) => get(countSrcAtom),
+			(_, set, count: number) => {
+				set(countSrcAtom, count);
+				set(lastEditedCountIndexAtom, index);
 			},
-		];
+		);
 
-		const entryTimes = new Set([INITIAL_ENTRY_TIME_MS]);
+		const countFillAtom = atom(
+			(get) => {
+				if (index !== get(lastEditedCountIndexAtom)) return false;
 
-		const entriesAtom = atom(getInitialEntries());
+				const { timeMs } = entry;
+				const entries = get(entriesAtom);
+				const prevEntry = entries[index - 1];
+				const nextEntry = entries[index + 1];
+				if (!prevEntry || !nextEntry) return false;
+				const countMs = getCountMs(get, prevEntry, { timeMs, countAtom });
+				if (!countMs) return false;
+				const nextTimeDelta = nextEntry.timeMs - timeMs;
+				const expectedCountDelta = Math.round(nextTimeDelta / countMs);
 
-		const addAtom = atom(null, (get: Getter, set: Setter, timeMs: number) => {
-			if (entryTimes.has(timeMs)) return;
-
-			const entries = get(entriesAtom);
-			for (const entry of entries) set(entry.isCurrentAtom, false);
-			const index = findEntryIndex(entries, timeMs);
-			const count = guessCountForIndex(get, entries, index, timeMs);
-			const newEntry: AtomicEntry = {
-				countAtom: atom(count),
-				timeMs,
-				noteAtom: atom(""),
-				isCurrentAtom: atom(true),
-			};
-
-			const newEntries = [
-				...entries.slice(0, index),
-				newEntry,
-				...entries.slice(index),
-			];
-
-			entryTimes.add(timeMs);
-			set(entriesAtom, newEntries);
-		});
-
-		const removeAtom = atom(null, (get: Getter, set: Setter, index: number) => {
-			const entries = get(entriesAtom);
-			let removed: AtomicEntry;
-
-			if (entries.length === 1) {
-				if (!entries[0].timeMs) return;
-				removed = entries[0];
-				set(entriesAtom, getInitialEntries());
-			} else {
-				const newEntries = [...entries];
-				removed = newEntries.splice(index, 1)[0];
-				set(entriesAtom, newEntries);
-			}
-
-			if (removed) entryTimes.delete(removed.timeMs);
-		});
-
-		const clearAtom = atom(null, (_: Getter, set: Setter) => {
-			set(entriesAtom, getInitialEntries());
-			entryTimes.clear();
-			entryTimes.add(INITIAL_ENTRY_TIME_MS);
-		});
-
-		const currentIndexAtom = atom(
-			null,
-			(get: Getter, set: Setter, timeMs: number) => {
+				return get(nextEntry.countAtom) - entry.count !== expectedCountDelta;
+			},
+			(get, set) => {
 				const entries = get(entriesAtom);
 
-				let foundNext = false;
-				for (let i = entries.length - 1; i > -1; i--) {
+				for (let i = index + 1; i < entries.length; i++) {
 					const entry = entries[i];
-					const entryTime = entry.timeMs;
-
-					if (!foundNext && entryTime <= timeMs) {
-						set(entry.isCurrentAtom, true);
-						const cb = get(onIndexChangeAtom);
-						cb?.[0](i);
-						foundNext = true;
-					} else {
-						set(entry.isCurrentAtom, false);
-					}
+					const count = guessCountForIndex(get, entries, i, entry.timeMs);
+					set(entry.countAtom, count);
 				}
 			},
 		);
 
-		const saveToCSVAtom = atom(null, (get, _, fileName: string) => {
-			const jsonableEntries = get(entriesAtom).map((atomic) => ({
-				count: get(atomic.countAtom),
-				timeMs: atomic.timeMs,
-				note: get(atomic.noteAtom),
-			}));
-
-			saveToCSV(fileName, jsonableEntries);
-		});
-
-		const loadFromCSVAtom = atom(null, async (_, set, file: File) => {
-			const entries = await loadFromCSV(file);
-			set(entriesAtom, entries.map(makeAtomicEntry));
-		});
-
-		entriesByPlatform[platform] = {
-			entriesAtom,
-			addAtom,
-			removeAtom,
-			clearAtom,
-			currentIndexAtom,
-			saveToCSVAtom,
-			loadFromCSVAtom,
+		return {
+			index,
+			countAtom,
+			timeMs: entry.timeMs,
+			noteAtom: atom(entry.note),
+			isCurrentAtom: atom(entry.isCurrent || false),
+			countFillAtom,
 		};
+	};
 
+	const getInitialEntries = (set?: Setter) => {
+		const initialEntries = [
+			makeAtomicEntry({ count: 0, timeMs: 0, note: "Start" }, 0),
+		];
+		entryByTime = Object.fromEntries(initialEntries.map((e) => [e.timeMs, e]));
+
+		if (set) set(lastEditedCountIndexAtom, 0);
+
+		return initialEntries;
+	};
+
+	let entryByTime: Record<string, AtomicEntry>;
+
+	const entriesAtom = atom(getInitialEntries());
+
+	const addAtom = atom(null, (get: Getter, set: Setter, timeMs: number) => {
+		if (timeMs in entryByTime) return;
+
+		const entries = get(entriesAtom);
+		for (const entry of entries) set(entry.isCurrentAtom, false);
+		const index = findEntryIndex(entries, timeMs);
+		const count = guessCountForIndex(get, entries, index, timeMs);
+		const newEntry: AtomicEntry = makeAtomicEntry(
+			{
+				count,
+				timeMs,
+				note: "",
+				isCurrent: true,
+			},
+			index,
+		);
+
+		const newEntries = [
+			...entries.slice(0, index),
+			newEntry,
+			...entries.slice(index),
+		];
+
+		entryByTime[timeMs] = newEntry;
+		set(entriesAtom, newEntries);
+	});
+
+	const removeAtom = atom(null, (get: Getter, set: Setter, index: number) => {
+		const entries = get(entriesAtom);
+		let removed: AtomicEntry;
+
+		if (entries.length === 1) {
+			if (!entries[0].timeMs) return;
+			removed = entries[0];
+			set(entriesAtom, getInitialEntries(set));
+		} else {
+			const newEntries = [...entries];
+			removed = newEntries.splice(index, 1)[0];
+			for (let i = index + 1; i < newEntries.length; i++) {
+				newEntries[i].index = i;
+			}
+			set(entriesAtom, newEntries);
+		}
+
+		if (removed) delete entryByTime[removed.timeMs];
+	});
+
+	const clearAtom = atom(null, (_: Getter, set: Setter) => {
+		set(entriesAtom, getInitialEntries(set));
+	});
+
+	const currentIndexAtom = atom(
+		null,
+		(get: Getter, set: Setter, timeMs: number) => {
+			const entries = get(entriesAtom);
+
+			let foundNext = false;
+			for (let i = entries.length - 1; i > -1; i--) {
+				const entry = entries[i];
+				const entryTime = entry.timeMs;
+
+				if (!foundNext && entryTime <= timeMs) {
+					set(entry.isCurrentAtom, true);
+					const cb = get(onIndexChangeAtom);
+					cb?.[0](i);
+					foundNext = true;
+				} else {
+					set(entry.isCurrentAtom, false);
+				}
+			}
+		},
+	);
+
+	const saveToCSVAtom = atom(null, (get, _, fileName: string) => {
+		const jsonableEntries = get(entriesAtom).map((atomic) => ({
+			count: get(atomic.countAtom),
+			timeMs: atomic.timeMs,
+			note: get(atomic.noteAtom),
+		}));
+
+		saveToCSV(fileName, jsonableEntries);
+	});
+
+	const loadFromCSVAtom = atom(null, async (_, set, file: File) => {
+		const entries = await loadFromCSV(file);
+		set(entriesAtom, entries.map(makeAtomicEntry));
+	});
+
+	return {
+		entriesAtom,
+		addAtom,
+		removeAtom,
+		clearAtom,
+		currentIndexAtom,
+		saveToCSVAtom,
+		loadFromCSVAtom,
+	};
+};
+
+const entryAtomsByPlatform = platforms.reduce(
+	(entriesByPlatform, platform) => {
+		entriesByPlatform[platform] = createEntryAtoms();
 		return entriesByPlatform;
 	},
 	{} as Record<Platform, PlatformEntryAtoms>,
@@ -196,16 +251,28 @@ const guessCountForIndex = (
 	if (priorTwo.length === 1) return get(priorTwo[0].countAtom);
 
 	const [first, second] = priorTwo;
-	const prevCountDeltaMs = get(second.countAtom) - get(first.countAtom);
 
-	if (prevCountDeltaMs <= 0) return get(second.countAtom);
+	const countLengthMs = getCountMs(get, first, second);
+	if (!countLengthMs) return get(second.countAtom);
 
-	const prevTimeDeltaMs = second.timeMs - first.timeMs;
-	const countLengthMs = prevTimeDeltaMs / prevCountDeltaMs;
 	const timeDeltaMs = timeMs - second.timeMs;
 	const countDelta = Math.round(timeDeltaMs / countLengthMs);
 
 	return countDelta + get(second.countAtom);
+};
+
+const getCountMs = <
+	F extends Pick<AtomicEntry, "countAtom" | "timeMs">,
+	S extends Pick<AtomicEntry, "countAtom" | "timeMs">,
+>(
+	get: Getter,
+	first: F,
+	second: S,
+) => {
+	const countDelta = get(second.countAtom) - get(first.countAtom);
+	if (countDelta <= 0) return 0;
+	const msDelta = second.timeMs - first.timeMs;
+	return Math.round(msDelta / countDelta);
 };
 
 const saveToCSV = (fileName: string, entries: Entry[]) => {

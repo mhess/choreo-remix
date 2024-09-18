@@ -18,10 +18,10 @@ export const useMobileBreakpoint = () => {
 
 // biome-ignore lint/suspicious/noExplicitAny: need to be able to use any
 export const debounced = (fn: (...rest: any[]) => void, timeMs: number) => {
-	let timeoutId = 0;
+	let timeoutId: number | undefined = undefined;
 	// biome-ignore lint/suspicious/noExplicitAny: need to be able to use any
 	return (...args: any[]) => {
-		clearTimeout(timeoutId);
+		if (timeoutId !== undefined) window.clearTimeout(timeoutId);
 		timeoutId = window.setTimeout(() => fn(...args), timeMs);
 	};
 };

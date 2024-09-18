@@ -23,7 +23,6 @@
 
   &:last-child {
     padding-top: 1rem;
-    flex-basis: fit-content;
     display: flex;
     align-items: flex-end;
     gap: 0.5rem;

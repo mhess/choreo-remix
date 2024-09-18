@@ -1,10 +1,6 @@
 import { useEffect, useState } from "react";
 import { Container, Stack, Text, Box } from "@mantine/core";
-import {
-	IconCornerLeftDown,
-	IconCornerLeftUp,
-	IconPlaylistAdd,
-} from "@tabler/icons-react";
+import { IconCornerLeftUp, IconPlaylistAdd } from "@tabler/icons-react";
 
 import { useMobileBreakpoint } from "~/lib/utils";
 
@@ -31,7 +27,6 @@ export default ({
 	const isMobile = useMobileBreakpoint();
 	const [entryHeight, setEntryHeight] = useState(0);
 
-	console.log({ entryHeight });
 	useEffect(() => {
 		const $scroller = scrollerRef.current;
 		const { lastChild } = containerRef.current;
@@ -43,7 +38,7 @@ export default ({
 		<Stack className={classes.help} h={`calc(100% - ${entryHeight}px)`}>
 			<Container size="sm" className={classes.helpSection}>
 				<Text>
-					<IconCornerLeftUp size="1.25rem" /> The row above is an <b>entry</b>,
+					<IconCornerLeftUp width="1.25rem" /> The row above is an <b>entry</b>,
 					which has a <b>count</b>, <b>timestamp</b>, and <b>note</b>.
 				</Text>
 				<dl className={classes.definitions}>
@@ -81,7 +76,6 @@ export default ({
 				</dl>
 			</Container>
 			<Container size="sm" className={classes.helpSection}>
-				<IconCornerLeftDown size="1.25rem" />
 				<Box>
 					<Text mb="xs">
 						{isMobile ? mobileControlsHelp : desktoControlsHelp}
@@ -89,7 +83,7 @@ export default ({
 					<Text>
 						The <b>Add Entry</b>{" "}
 						<IconPlaylistAdd
-							size="1.25rem"
+							width="1.25rem"
 							style={{ verticalAlign: "middle" }}
 						/>{" "}
 						button will add an entry at the current track time—even while the

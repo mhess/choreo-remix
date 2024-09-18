@@ -23,6 +23,17 @@
   background-color: var(--mantine-color-orange-4);
 }
 
+/* TODO: Add dark styles */
+.fillBtn {
+  color: var(--mantine-color-gray-6);
+  cursor: pointer;
+  width: 18px;
+
+  &:hover {
+    color: var(--mantine-color-blue-5)
+  }
+}
+
 .timestamp {
   cursor: pointer;
   text-align: right;
@@ -35,6 +46,6 @@
 }
 
 .countInput {
-  width: 3.25rem;
+  width: var(--count-width);
   text-align: right;
 }
