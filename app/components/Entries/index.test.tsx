@@ -4,12 +4,12 @@ import { createTheme, MantineProvider } from "@mantine/core";
 import userEvent from "@testing-library/user-event";
 import type { UserEvent } from "@testing-library/user-event";
 import type { Mock } from "vitest";
-import { type PrimitiveAtom, atom, createStore, useAtom } from "jotai";
+import { createStore, useAtom, type WritableAtom } from "jotai";
 
 import { platformAtom, _TEST_ONLY_atomsByPlatfom } from "~/lib/atoms";
 import {
-	entryAtomsForPlatform,
-	type Entry,
+	entryAtomsAtom,
+	type EntryInput,
 	type AtomicEntry,
 } from "~/lib/entries";
 import type { PlatformPlayer } from "~/lib/player";
@@ -21,34 +21,24 @@ const platform = "spotify";
 const platformAtoms = _TEST_ONLY_atomsByPlatfom()[platform];
 
 vi.mock("./Entry", () => ({
-	default: ({ entry, index }: { entry: AtomicEntry; index: number }) => {
+	default: ({ entry }: { entry: AtomicEntry }) => {
 		const { timeMs, isCurrentAtom, countAtom } = entry;
 		const [[isCurrent], [count]] = [isCurrentAtom, countAtom].map((a) =>
 			useAtom(a),
 		);
 		return (
 			<div data-testid="entry">
-				{JSON.stringify({ index, timeMs, isCurrent, count })}
+				{JSON.stringify({ timeMs, isCurrent, count })}
 			</div>
 		);
 	},
 }));
 
-const makeEntry = (
-	timeMs: number,
-	rest?: Partial<Omit<Entry, "timeMs"> & { current: boolean }>,
-): AtomicEntry => ({
-	timeMs,
-	countAtom: atom(rest?.count || 0),
-	noteAtom: atom(""),
-	isCurrentAtom: atom(rest?.current !== undefined ? rest.current : false),
-});
-
 describe("Entries", () => {
 	let user: UserEvent;
 	let player: PlatformPlayer;
 	let store: ReturnType<typeof createStore>;
-	let entriesAtom: PrimitiveAtom<AtomicEntry[]>;
+	let entriesAtom: WritableAtom<AtomicEntry[], [EntryInput[]], void>;
 
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -66,13 +56,7 @@ describe("Entries", () => {
 
 		store.set(platformAtom, platform);
 		store.set(platformAtoms.player, player);
-
-		entriesAtom = store.get(entryAtomsForPlatform).entriesAtom;
-		store.set(entriesAtom, [
-			makeEntry(0, { current: true }),
-			makeEntry(1000),
-			makeEntry(2000),
-		]);
+		entriesAtom = store.get(entryAtomsAtom).entriesAtom;
 	});
 
 	const wrapper = ({ children }: React.PropsWithChildren) => (
@@ -92,7 +76,7 @@ describe("Entries", () => {
 				await call[0](timeMs);
 		});
 
-	it("Renders entries properly with column headers", async () => {
+	it("Renders the initial entriy with column headers", () => {
 		render(<Entries />, { wrapper });
 
 		const headerRow = screen.getByRole("row");
@@ -107,20 +91,7 @@ describe("Entries", () => {
 			{
 				timeMs: 0,
 				count: 0,
-				index: 0,
 				isCurrent: true,
-			},
-			{
-				timeMs: 1000,
-				count: 0,
-				index: 1,
-				isCurrent: false,
-			},
-			{
-				timeMs: 2000,
-				count: 0,
-				index: 2,
-				isCurrent: false,
 			},
 		]);
 	});
@@ -169,7 +140,8 @@ describe("Entries", () => {
 		expect(player.seekTo).toHaveBeenLastCalledWith(-5000);
 	});
 
-	it("Highlight the current entry updates the time display as the player is ticking", async () => {
+	it("Highlights the current entry and updates the time display as the player is ticking", async () => {
+		store.set(entriesAtom, [{ timeMs: 0 }, { timeMs: 1000 }, { timeMs: 2000 }]);
 		render(<Entries />, { wrapper });
 
 		const getHighlights = () =>
@@ -181,6 +153,8 @@ describe("Entries", () => {
 			within(screen.getByRole("toolbar", { name: "Controls" })).getByText(
 				/\d:\d\d.\d\d/,
 			);
+
+		await tickToTime(0);
 
 		expect(getHighlights()).toEqual([true, false, false]);
 		expect(getTimeDisplay()).toHaveTextContent("0:00.00");
@@ -206,36 +180,20 @@ describe("Entries", () => {
 		expect(getEntryValues()).toEqual([
 			{
 				count: 0,
-				index: 0,
 				isCurrent: false,
 				timeMs: 0,
 			},
 			{
 				count: 0,
-				index: 1,
-				isCurrent: false,
-				timeMs: 1000,
-			},
-			{
-				count: 0,
-				index: 2,
 				isCurrent: true,
 				timeMs: 1234,
-			},
-			{
-				count: 0,
-				index: 3,
-				isCurrent: false,
-				timeMs: 2000,
 			},
 		]);
 	});
 
 	it("Fills in new count if previous two entries have counts", async () => {
-		store.set(entriesAtom, [
-			makeEntry(0, { count: 0, current: true }),
-			makeEntry(1000, { count: 4 }),
-		]);
+		store.set(entriesAtom, [{ timeMs: 0 }, { timeMs: 1000, count: 4 }]);
+
 		(player.getCurrentTime as Mock).mockReturnValue(Promise.resolve(1492));
 
 		render(<Entries />, { wrapper });
@@ -245,19 +203,16 @@ describe("Entries", () => {
 		expect(getEntryValues()).toEqual([
 			{
 				count: 0,
-				index: 0,
 				isCurrent: false,
 				timeMs: 0,
 			},
 			{
 				count: 4,
-				index: 1,
 				isCurrent: false,
 				timeMs: 1000,
 			},
 			{
 				count: 6,
-				index: 2,
 				isCurrent: true,
 				timeMs: 1492,
 			},

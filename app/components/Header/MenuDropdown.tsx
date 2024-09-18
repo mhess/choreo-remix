@@ -1,6 +1,5 @@
 import { useRef, createElement, Fragment, type ReactElement } from "react";
 import {
-	Box,
 	Group,
 	Menu,
 	useComputedColorScheme,
@@ -18,12 +17,11 @@ import PlatformItems from "./PlatformItems";
 
 import classes from "./MenuDropdown.module.css";
 import { audioFileClearFile } from "~/lib/audioFile";
-import { entryAtomsForPlatform } from "~/lib/entries";
+import { entryAtomsAtom } from "~/lib/entries";
 
 export default () => {
-	const [{ clearAtom, saveToCSVAtom, loadFromCSVAtom }] = useAtom(
-		entryAtomsForPlatform,
-	);
+	const [{ clearAtom, saveToCSVAtom, loadFromCSVAtom }] =
+		useAtom(entryAtomsAtom);
 	const [, clear] = useAtom(clearAtom);
 	const [, saveToCSV] = useAtom(saveToCSVAtom);
 	const [, loadFromCSV] = useAtom(loadFromCSVAtom);

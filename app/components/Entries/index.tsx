@@ -4,7 +4,7 @@ import { Box, Group, Text } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 
 import { useEstablishedPlayer } from "~/lib/atoms";
-import { entryAtomsForPlatform, setOnIndexChangeAtom } from "~/lib/entries";
+import { setOnIndexChangeAtom, useInitializedEntries } from "~/lib/entries";
 
 import Help from "./Help";
 import Controls from "./Controls";
@@ -18,7 +18,7 @@ export default () => {
 	const scrollerRef = useRef<HTMLDivElement>(null);
 	const containerRef = useRef<HTMLDivElement>(null);
 
-	const [{ entriesAtom, currentIndexAtom }] = useAtom(entryAtomsForPlatform);
+	const { entriesAtom, currentIndexAtom } = useInitializedEntries();
 	const [, setCallback] = useAtom(setOnIndexChangeAtom);
 	const [, setCurrentIndexForTime] = useAtom(currentIndexAtom);
 	const [entries] = useAtom(entriesAtom);
@@ -50,8 +50,8 @@ export default () => {
 			>
 				{!isHelpOpen && <EntryHeader />}
 				<Box ref={containerRef}>
-					{entries.map((entry, index) => (
-						<Entry key={entry.timeMs} entry={entry} index={index} />
+					{entries.map((entry) => (
+						<Entry key={entry.timeMs} entry={entry} />
 					))}
 				</Box>
 				{isHelpOpen && (

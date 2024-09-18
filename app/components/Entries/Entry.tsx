@@ -8,23 +8,23 @@ import {
 	Text,
 	Tooltip,
 } from "@mantine/core";
+import { IconArrowMoveDown } from "@tabler/icons-react";
+import { useDisclosure } from "@mantine/hooks";
 
 import { displayMs } from "~/lib/utils";
 import { useEstablishedPlayer } from "~/lib/atoms";
-import { entryAtomsForPlatform, type AtomicEntry } from "~/lib/entries";
+import { entryAtomsAtom, type AtomicEntry } from "~/lib/entries";
 
 import TextInputWithAtom from "~/components/TextInputWithAtom";
 
 import classes from "./Entry.module.css";
-import { IconArrowMoveDown } from "@tabler/icons-react";
-import { useDisclosure } from "@mantine/hooks";
 
-export default ({ entry, index }: { entry: AtomicEntry; index: number }) => {
+export default ({ entry }: { entry: AtomicEntry }) => {
 	const player = useEstablishedPlayer();
 	const [opened, { open: openFillModal, close: closeFillModal }] =
 		useDisclosure();
 
-	const [{ removeAtom }] = useAtom(entryAtomsForPlatform);
+	const [{ removeAtom }] = useAtom(entryAtomsAtom);
 	const [, removeEntry] = useAtom(removeAtom);
 
 	const { timeMs, countAtom, noteAtom, isCurrentAtom, countFillAtom } = entry;
@@ -108,7 +108,7 @@ export default ({ entry, index }: { entry: AtomicEntry; index: number }) => {
 			/>
 			<CloseButton
 				aria-label="Delete Entry"
-				onClick={() => removeEntry(index)}
+				onClick={() => removeEntry(timeMs)}
 			/>
 		</Group>
 	);

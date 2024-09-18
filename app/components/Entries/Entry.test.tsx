@@ -6,7 +6,7 @@ import type { UserEvent } from "@testing-library/user-event";
 import { atom, createStore } from "jotai";
 
 import { _TEST_ONLY_atomsByPlatfom, platformAtom } from "~/lib/atoms";
-import { entryAtomsForPlatform, type AtomicEntry } from "~/lib/entries";
+import { entryAtomsAtom, type AtomicEntry } from "~/lib/entries";
 
 import Entry from "./Entry";
 import classes from "./Entry.module.css";
@@ -26,21 +26,20 @@ describe("Entry", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 
-		store = createStore();
-
 		user = userEvent.setup();
-
-		entry = {
-			countAtom: atom(5),
-			timeMs: 12340,
-			noteAtom: atom("Note"),
-			isCurrentAtom: atom(false),
-		};
 
 		player = { seekTo: vi.fn() } as unknown as PlatformPlayer;
 
-		store.set(platformAtom, "spotify");
+		store = createStore();
+		store.set(platformAtom, platform);
 		store.set(playerAtom, player);
+
+		const { entriesAtom } = store.get(entryAtomsAtom);
+		store.set(entriesAtom, [
+			{ timeMs: 12340, count: 5, note: "Note", isCurrent: false },
+		]);
+
+		entry = store.get(entriesAtom)[0];
 	});
 
 	const wrapper = ({ children }: React.PropsWithChildren) => (
@@ -52,7 +51,7 @@ describe("Entry", () => {
 	);
 
 	it("It displays the correct count, timestamp, and note", () => {
-		render(<Entry entry={entry} index={0} />, { wrapper });
+		render(<Entry entry={entry} />, { wrapper });
 
 		expect(screen.getByLabelText("count")).toHaveValue("5");
 
@@ -64,7 +63,7 @@ describe("Entry", () => {
 	});
 
 	it("Is highlighted when current", async () => {
-		render(<Entry entry={entry} index={0} />, { wrapper });
+		render(<Entry entry={entry} />, { wrapper });
 
 		expect(screen.getByRole("row")).not.toHaveClass(classes.highlight);
 
@@ -74,7 +73,7 @@ describe("Entry", () => {
 	});
 
 	it("Shows the new count when the count is modified", async () => {
-		render(<Entry entry={entry} index={0} />, { wrapper });
+		render(<Entry entry={entry} />, { wrapper });
 
 		const countInput = screen.getByLabelText("count");
 
@@ -85,7 +84,7 @@ describe("Entry", () => {
 	});
 
 	it("Seeks player to correct time when timestamp is clicked", async () => {
-		render(<Entry entry={entry} index={0} />, { wrapper });
+		render(<Entry entry={entry} />, { wrapper });
 
 		await user.click(screen.getByRole("button", { name: "Seek to 0:12.34" }));
 
@@ -94,7 +93,7 @@ describe("Entry", () => {
 	});
 
 	it("Shows the new note when the note is modified", async () => {
-		render(<Entry entry={entry} index={0} />, { wrapper });
+		render(<Entry entry={entry} />, { wrapper });
 
 		const newValue = "New note";
 		const noteInput = screen.getByLabelText("note");
@@ -105,7 +104,7 @@ describe("Entry", () => {
 	});
 
 	it("When the delete button is clicked it writes to the correct atom", async () => {
-		const { entriesAtom } = store.get(entryAtomsForPlatform);
+		const { entriesAtom } = store.get(entryAtomsAtom);
 
 		const secondEntry: AtomicEntry = {
 			countAtom: atom(0),
@@ -117,7 +116,7 @@ describe("Entry", () => {
 		// Need two entries since no entries is not allowed
 		store.set(entriesAtom, [entry, secondEntry]);
 
-		render(<Entry entry={entry} index={0} />, { wrapper });
+		render(<Entry entry={entry} />, { wrapper });
 
 		expect(store.get(entriesAtom).map((e) => e.timeMs)).toEqual([12340, 23450]);
 

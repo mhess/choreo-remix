@@ -14,7 +14,7 @@ import {
 import type { OnTickCallback } from "~/lib/player";
 import { displayMs, useMobileBreakpoint } from "~/lib/utils";
 import { playerPausedAtom, useEstablishedPlayer } from "~/lib/atoms";
-import { entryAtomsForPlatform } from "~/lib/entries";
+import { entryAtomsAtom } from "~/lib/entries";
 
 import TooltipWithClick from "~/components/TooltipWithClick";
 
@@ -22,7 +22,7 @@ import classes from "./Controls.module.css";
 
 export default ({ help }: { help: Help }) => {
 	const isMobile = useMobileBreakpoint();
-	const [{ addAtom }] = useAtom(entryAtomsForPlatform);
+	const [{ addAtom }] = useAtom(entryAtomsAtom);
 	const [, addEntry] = useAtom(addAtom);
 	const player = useEstablishedPlayer();
 
