@@ -12,10 +12,15 @@ export default function <T extends string | number>(props: Props<T>) {
 
 	const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const newValue = event.target.value;
-		setValue((type === "number" ? Number(newValue) : newValue) as T);
+		setValue((type === "number" ? ensureNumber(newValue) : newValue) as T);
 	};
 
 	const newProps = { ...rest, value, onChange };
 
 	return <TextInput {...newProps} />;
 }
+
+const ensureNumber = (input: string): number => {
+	const attempt = Number(input);
+	return Number.isNaN(attempt) ? 0 : attempt;
+};
