@@ -31,10 +31,6 @@ type PlatformEntryAtoms = {
 
 type ScrollCallback = (currentIndex: number) => void;
 
-const INITIAL_ENTRY_COUNT = 0;
-const INITIAL_ENTRY_TIME_MS = 0;
-const INITIAL_ENTRY_NOTE = "Start";
-
 // Function is wrapped in array here bc jotai doesn't support functions as values
 const onIndexChangeAtom = atom<[ScrollCallback]>();
 export const setOnIndexChangeAtom = atom(null, (_, set, cb: ScrollCallback) =>
@@ -46,25 +42,26 @@ export const entryAtomsForPlatform = atom(
 );
 
 const createEntryAtoms = () => {
-	const lastEditedCountIndexAtom = atom(0);
+	const lastEditedTimeMsAtom = atom(0);
+
 	const makeAtomicEntry = (
 		entry: Entry & { isCurrent?: boolean },
 		index: number,
 	): AtomicEntry => {
-		const countSrcAtom = atom(entry.count);
+		const { timeMs, count } = entry;
+		const countSrcAtom = atom(count);
 		const countAtom = atom(
 			(get) => get(countSrcAtom),
 			(_, set, count: number) => {
 				set(countSrcAtom, count);
-				set(lastEditedCountIndexAtom, index);
+				set(lastEditedTimeMsAtom, timeMs);
 			},
 		);
 
 		const countFillAtom = atom(
 			(get) => {
-				if (index !== get(lastEditedCountIndexAtom)) return false;
+				if (timeMs !== get(lastEditedTimeMsAtom)) return false;
 
-				const { timeMs } = entry;
 				const entries = get(entriesAtom);
 				const prevEntry = entries[index - 1];
 				const nextEntry = entries[index + 1];
@@ -103,7 +100,7 @@ const createEntryAtoms = () => {
 		];
 		entryByTime = Object.fromEntries(initialEntries.map((e) => [e.timeMs, e]));
 
-		if (set) set(lastEditedCountIndexAtom, 0);
+		if (set) set(lastEditedTimeMsAtom, 0);
 
 		return initialEntries;
 	};
