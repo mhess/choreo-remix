@@ -39,7 +39,7 @@ const videoDataAtom = atom((get) => {
 });
 
 export const atoms = getPlatformAtoms({
-	playerAtom: playerAtom as PrimitiveAtom<PlatformPlayer | undefined>,
+	playerAtom: playerAtom as PrimitiveAtom<YouTubePlayer | undefined>,
 	statusAtom,
 	readyStatus: YouTubePlayerStatus.READY,
 	artist: (get) => get(videoDataAtom)?.author || "",

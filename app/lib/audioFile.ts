@@ -15,7 +15,7 @@ const statusAtom = atom(FilePlayerStatus.NO_FILE);
 const audioFileAtom = atom<File>();
 
 export const atoms = getPlatformAtoms({
-	playerAtom: playerAtom as PrimitiveAtom<PlatformPlayer | undefined>,
+	playerAtom: playerAtom as PrimitiveAtom<AudioFilePlayer | undefined>,
 	statusAtom,
 	readyStatus: FilePlayerStatus.READY,
 	trackName: (get) => get(audioFileAtom)?.name || "",

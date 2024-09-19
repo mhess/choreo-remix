@@ -50,7 +50,7 @@ export const writeStatusAtom = atom(
 );
 
 export const atoms = getPlatformAtoms({
-	playerAtom: playerAtom as PrimitiveAtom<PlatformPlayer | undefined>,
+	playerAtom: playerAtom as PrimitiveAtom<SpotifyPlayer | undefined>,
 	statusAtom: statusAtom,
 	readyStatus: SpotifyPlayerStatus.READY,
 	artist: (get) => {

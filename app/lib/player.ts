@@ -55,8 +55,8 @@ export const getPlatformAtoms = <
 	paused,
 }: {
 	playerAtom: WritableAtom<
-		PlatformPlayer | undefined,
-		[PlatformPlayer | undefined],
+		PlayerClass | undefined,
+		[PlayerClass | undefined],
 		void
 	>;
 	statusAtom: WritableAtom<StatusEnum, [StatusEnum], void>;
@@ -72,7 +72,14 @@ export const getPlatformAtoms = <
 	});
 
 	return {
-		playerAtom: makeDerivedAtomWritable(readyPlayerAtom, undefined),
+		playerAtom: makeDerivedAtomWritable(
+			readyPlayerAtom,
+			undefined,
+		) as WritableAtom<
+			PlatformPlayer | undefined,
+			[PlatformPlayer | undefined],
+			void
+		>,
 		trackNameAtom: makeWritableAtomFromReader(trackName, ""),
 		artistAtom: makeWritableAtomFromReader(artist, ""),
 		pausedAtom: makeWritableAtomFromReader(paused, true),
