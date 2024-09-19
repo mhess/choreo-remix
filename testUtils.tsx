@@ -1,6 +1,8 @@
 import { type createStore, type WritableAtom, Provider } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
 import type { PropsWithChildren } from "react";
+import { type Platform, atomsForPlatformAtom, platformAtom } from "~/lib/atoms";
+import { entryAtomsForPlatformAtom } from "~/lib/entries";
 
 // See https://github.com/pmndrs/jotai/discussions/2650 for more info on the typing here
 
@@ -10,7 +12,7 @@ type InitialAtomValues = Array<readonly [AnyWritableAtom, unknown]>;
 
 type Props = PropsWithChildren<{
 	initialValues?: InitialAtomValues;
-	store?: ReturnType<typeof createStore>;
+	store?: Store;
 }>;
 
 const HydrateAtoms = ({ initialValues = [], children }: Props) => {
@@ -19,8 +21,21 @@ const HydrateAtoms = ({ initialValues = [], children }: Props) => {
 	return children;
 };
 
+export type Store = ReturnType<typeof createStore>;
+
 export const AtomsProvider = ({ initialValues, children, store }: Props) => (
 	<Provider store={store}>
 		<HydrateAtoms initialValues={initialValues}>{children}</HydrateAtoms>
 	</Provider>
 );
+
+export const atomsFrom = (store: Store, platform: Platform) => {
+	store.set(platformAtom, platform);
+	const platformAtoms = store.get(atomsForPlatformAtom);
+	const entryAtoms = store.get(entryAtomsForPlatformAtom);
+	return { ...platformAtoms, ...entryAtoms };
+};
+
+export const setStoreValues = (store: Store, pairs: InitialAtomValues) => {
+	for (const [atom, value] of pairs) store.set(atom, value);
+};

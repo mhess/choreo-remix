@@ -17,11 +17,12 @@ import PlatformItems from "./PlatformItems";
 
 import classes from "./MenuDropdown.module.css";
 import { audioFileClearFile } from "~/lib/audioFile";
-import { entryAtomsAtom } from "~/lib/entries";
+import { entryAtomsForPlatformAtom } from "~/lib/entries";
 
 export default () => {
-	const [{ clearAtom, saveToCSVAtom, loadFromCSVAtom }] =
-		useAtom(entryAtomsAtom);
+	const [{ clearAtom, saveToCSVAtom, loadFromCSVAtom }] = useAtom(
+		entryAtomsForPlatformAtom,
+	);
 	const [, clear] = useAtom(clearAtom);
 	const [, saveToCSV] = useAtom(saveToCSVAtom);
 	const [, loadFromCSV] = useAtom(loadFromCSVAtom);

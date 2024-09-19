@@ -1,5 +1,5 @@
 import { atom } from "jotai";
-import type { Atom, Getter, PrimitiveAtom, Setter, WritableAtom } from "jotai";
+import type { Atom, Getter, Setter, WritableAtom } from "jotai";
 
 export type OnTickCallback = (ms: number) => void;
 
@@ -55,8 +55,8 @@ export const getPlatformAtoms = <
 	paused,
 }: {
 	playerAtom: WritableAtom<
-		PlayerClass | undefined,
-		[PlayerClass | undefined],
+		PlatformPlayer | undefined,
+		[PlatformPlayer | undefined],
 		void
 	>;
 	statusAtom: WritableAtom<StatusEnum, [StatusEnum], void>;
@@ -65,17 +65,17 @@ export const getPlatformAtoms = <
 	artist?: (get: Getter) => string;
 	paused?: (get: Getter) => boolean;
 }) => {
-	const readyPlayerAtom = atom<PlayerClass | undefined>((get) => {
+	const readyPlayerAtom = atom<PlatformPlayer | undefined>((get) => {
 		const isReady = get(statusAtom) === readyStatus;
 		const player = get(playerAtom);
 		return isReady && player ? player : undefined;
 	});
 
 	return {
-		player: makeDerivedAtomWritable(readyPlayerAtom, undefined),
-		trackName: makeWritableAtomFromReader(trackName, ""),
-		artist: makeWritableAtomFromReader(artist, ""),
-		paused: makeWritableAtomFromReader(paused, true),
+		playerAtom: makeDerivedAtomWritable(readyPlayerAtom, undefined),
+		trackNameAtom: makeWritableAtomFromReader(trackName, ""),
+		artistAtom: makeWritableAtomFromReader(artist, ""),
+		pausedAtom: makeWritableAtomFromReader(paused, true),
 	};
 };
 

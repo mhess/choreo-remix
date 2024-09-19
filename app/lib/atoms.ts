@@ -17,37 +17,36 @@ export type Platform = (typeof platforms)[number];
 
 export const platformAtom = atom<Platform>("landing");
 
-export const _TEST_ONLY_atomsByPlatfom = () => {
-	if (!window.__testing__) throw "Only used for testing!";
-	return atomsByPlatform;
-};
-
 const atomsByPlatform: Record<Platform, PlatformAtoms> = {
 	spotify,
 	youtube,
 	audioFile,
 	landing: {
-		player: atom(),
-		paused: atom(true),
-		artist: atom(""),
-		trackName: atom(""),
+		playerAtom: atom(),
+		pausedAtom: atom(true),
+		artistAtom: atom(""),
+		trackNameAtom: atom(""),
 	},
 };
 
+export const atomsForPlatformAtom = atom(
+	(get) => atomsByPlatform[get(platformAtom)],
+);
+
 export const playerAtom = atom(
-	(get) => get(atomsByPlatform[get(platformAtom)].player) as PlatformPlayer,
+	(get) => get(get(atomsForPlatformAtom).playerAtom) as PlatformPlayer,
 );
 
 export const playerPausedAtom = atom(
-	(get) => get(atomsByPlatform[get(platformAtom)].paused) as boolean,
+	(get) => get(get(atomsForPlatformAtom).pausedAtom) as boolean,
 );
 
 export const artistAtom = atom(
-	(get) => get(atomsByPlatform[get(platformAtom)].artist) as string,
+	(get) => get(get(atomsForPlatformAtom).artistAtom) as string,
 );
 
 export const trackNameAtom = atom(
-	(get) => get(atomsByPlatform[get(platformAtom)].trackName) as string,
+	(get) => get(get(atomsForPlatformAtom).trackNameAtom) as string,
 );
 
 export const useEstablishedPlayer = () =>

@@ -4,21 +4,13 @@ import { createTheme, MantineProvider } from "@mantine/core";
 import userEvent from "@testing-library/user-event";
 import type { UserEvent } from "@testing-library/user-event";
 import type { Mock } from "vitest";
-import { createStore, useAtom, type WritableAtom } from "jotai";
+import { createStore, useAtom } from "jotai";
 
-import { platformAtom, _TEST_ONLY_atomsByPlatfom } from "~/lib/atoms";
-import {
-	entryAtomsAtom,
-	type EntryInput,
-	type AtomicEntry,
-} from "~/lib/entries";
+import type { AtomicEntry } from "~/lib/entries";
 import type { PlatformPlayer } from "~/lib/player";
-import { AtomsProvider } from "testUtils";
+import { atomsFrom, AtomsProvider, type Store } from "testUtils";
 
 import Entries from "./index";
-
-const platform = "spotify";
-const platformAtoms = _TEST_ONLY_atomsByPlatfom()[platform];
 
 vi.mock("./Entry", () => ({
 	default: ({ entry }: { entry: AtomicEntry }) => {
@@ -37,8 +29,8 @@ vi.mock("./Entry", () => ({
 describe("Entries", () => {
 	let user: UserEvent;
 	let player: PlatformPlayer;
-	let store: ReturnType<typeof createStore>;
-	let entriesAtom: WritableAtom<AtomicEntry[], [EntryInput[]], void>;
+	let store: Store;
+	let atoms: ReturnType<typeof atomsFrom>;
 
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -54,9 +46,8 @@ describe("Entries", () => {
 			removeOnTick: vi.fn(),
 		} as unknown as PlatformPlayer;
 
-		store.set(platformAtom, platform);
-		store.set(platformAtoms.player, player);
-		entriesAtom = store.get(entryAtomsAtom).entriesAtom;
+		atoms = atomsFrom(store, "spotify");
+		store.set(atoms.playerAtom, player);
 	});
 
 	const wrapper = ({ children }: React.PropsWithChildren) => (
@@ -113,7 +104,7 @@ describe("Entries", () => {
 
 		expect(player.play).toHaveBeenCalledOnce();
 
-		await act(() => store.set(platformAtoms.paused, false));
+		await act(() => store.set(atoms.pausedAtom, false));
 
 		expect(
 			inControls.getByRole("button", { name: "Pause" }),
@@ -141,7 +132,11 @@ describe("Entries", () => {
 	});
 
 	it("Highlights the current entry and updates the time display as the player is ticking", async () => {
-		store.set(entriesAtom, [{ timeMs: 0 }, { timeMs: 1000 }, { timeMs: 2000 }]);
+		store.set(atoms.entriesAtom, [
+			{ timeMs: 0 },
+			{ timeMs: 1000 },
+			{ timeMs: 2000 },
+		]);
 		render(<Entries />, { wrapper });
 
 		const getHighlights = () =>
@@ -192,7 +187,7 @@ describe("Entries", () => {
 	});
 
 	it("Fills in new count if previous two entries have counts", async () => {
-		store.set(entriesAtom, [{ timeMs: 0 }, { timeMs: 1000, count: 4 }]);
+		store.set(atoms.entriesAtom, [{ timeMs: 0 }, { timeMs: 1000, count: 4 }]);
 
 		(player.getCurrentTime as Mock).mockReturnValue(Promise.resolve(1492));
 

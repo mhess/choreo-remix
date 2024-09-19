@@ -5,41 +5,48 @@ import userEvent from "@testing-library/user-event";
 import type { UserEvent } from "@testing-library/user-event";
 import { atom, createStore } from "jotai";
 
-import { _TEST_ONLY_atomsByPlatfom, platformAtom } from "~/lib/atoms";
-import { entryAtomsAtom, type AtomicEntry } from "~/lib/entries";
+import { entryAtomsForPlatformAtom, type AtomicEntry } from "~/lib/entries";
 
 import Entry from "./Entry";
 import classes from "./Entry.module.css";
 
-import { AtomsProvider } from "testUtils";
+import {
+	atomsFrom,
+	AtomsProvider,
+	setStoreValues,
+	type Store,
+} from "testUtils";
 import type { PlatformPlayer } from "~/lib/player";
-
-const platform = "spotify";
-const { player: playerAtom } = _TEST_ONLY_atomsByPlatfom()[platform];
 
 describe("Entry", () => {
 	let user: UserEvent;
 	let player: PlatformPlayer;
-	let store: ReturnType<typeof createStore>;
+	let store: Store;
+	let atoms: ReturnType<typeof atomsFrom>;
 	let entry: AtomicEntry;
+	const initialEntry = {
+		timeMs: 12340,
+		count: 5,
+		note: "Note",
+		isCurrent: false,
+	};
 
 	beforeEach(() => {
 		vi.clearAllMocks();
 
+		store = createStore();
 		user = userEvent.setup();
 
 		player = { seekTo: vi.fn() } as unknown as PlatformPlayer;
 
-		store = createStore();
-		store.set(platformAtom, platform);
-		store.set(playerAtom, player);
+		atoms = atomsFrom(store, "spotify");
 
-		const { entriesAtom } = store.get(entryAtomsAtom);
-		store.set(entriesAtom, [
-			{ timeMs: 12340, count: 5, note: "Note", isCurrent: false },
+		setStoreValues(store, [
+			[atoms.playerAtom, player],
+			[atoms.entriesAtom, [initialEntry]],
 		]);
 
-		entry = store.get(entriesAtom)[0];
+		entry = store.get(atoms.entriesAtom)[0];
 	});
 
 	const wrapper = ({ children }: React.PropsWithChildren) => (
@@ -104,24 +111,16 @@ describe("Entry", () => {
 	});
 
 	it("When the delete button is clicked it writes to the correct atom", async () => {
-		const { entriesAtom } = store.get(entryAtomsAtom);
-
-		const secondEntry: AtomicEntry = {
-			countAtom: atom(0),
-			timeMs: 23450,
-			noteAtom: atom(""),
-			isCurrentAtom: atom(false),
-		};
-
-		// Need two entries since no entries is not allowed
-		store.set(entriesAtom, [entry, secondEntry]);
+		store.set(atoms.entriesAtom, [initialEntry, { timeMs: 23450 }]);
 
 		render(<Entry entry={entry} />, { wrapper });
 
-		expect(store.get(entriesAtom).map((e) => e.timeMs)).toEqual([12340, 23450]);
+		expect(store.get(atoms.entriesAtom).map((e) => e.timeMs)).toEqual([
+			12340, 23450,
+		]);
 
 		await user.click(screen.getByRole("button", { name: "Delete Entry" }));
 
-		expect(store.get(entriesAtom).map((e) => e.timeMs)).toEqual([23450]);
+		expect(store.get(atoms.entriesAtom).map((e) => e.timeMs)).toEqual([23450]);
 	});
 });

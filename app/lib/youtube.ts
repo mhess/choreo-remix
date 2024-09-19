@@ -1,4 +1,4 @@
-import { atom, useAtom } from "jotai";
+import { atom, useAtom, type PrimitiveAtom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { useEffect } from "react";
 
@@ -39,7 +39,7 @@ const videoDataAtom = atom((get) => {
 });
 
 export const atoms = getPlatformAtoms({
-	playerAtom,
+	playerAtom: playerAtom as PrimitiveAtom<PlatformPlayer | undefined>,
 	statusAtom,
 	readyStatus: YouTubePlayerStatus.READY,
 	artist: (get) => get(videoDataAtom)?.author || "",
@@ -85,7 +85,7 @@ class YouTubePlayer extends PlatformPlayer {
 
 		ytPlayer.addEventListener("onStateChange", ({ data: state }) => {
 			const isPaused = state !== YT.PlayerState.PLAYING;
-			store.set(atoms.paused, isPaused);
+			store.set(atoms.pausedAtom, isPaused);
 
 			if (state === YT.PlayerState.CUED) {
 				store.set(statusAtom, YouTubePlayerStatus.READY);

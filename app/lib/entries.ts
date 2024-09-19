@@ -13,7 +13,7 @@ export type Entry = {
 
 export type AtomicEntry = {
 	index: number;
-	countAtom: WritableAtom<number, [number, boolean?], void>;
+	countAtom: WritableAtom<number, [number, (boolean | false)?], void>;
 	timeMs: number;
 	noteAtom: PrimitiveAtom<string>;
 	isCurrentAtom: PrimitiveAtom<boolean>;
@@ -30,6 +30,8 @@ type PlatformEntryAtoms = {
 	loadFromCSVAtom: WritableAtom<null, [File], Promise<void>>;
 };
 
+export type EntriesAtom = PlatformEntryAtoms["entriesAtom"];
+
 type WritableBoolAtom = WritableAtom<boolean, [boolean], void>;
 
 type ScrollCallback = (currentIndex: number) => void;
@@ -41,7 +43,7 @@ export const setOnIndexChangeAtom = atom(null, (_, set, cb: ScrollCallback) =>
 );
 
 export const useInitializedEntries = () => {
-	const [entryAtoms] = useAtom(entryAtomsAtom);
+	const [entryAtoms] = useAtom(entryAtomsForPlatformAtom);
 	const [, initializeEntries] = useAtom(entryAtoms.entriesAtom);
 
 	useLayoutEffect(() => {
@@ -51,7 +53,7 @@ export const useInitializedEntries = () => {
 	return entryAtoms;
 };
 
-export const entryAtomsAtom = atom(
+export const entryAtomsForPlatformAtom = atom(
 	(get) => entryAtomsByPlatform[get(platformAtom)],
 );
 
@@ -63,22 +65,28 @@ const createPlatformEntryAtoms = () => {
 		[EntryByTime],
 		void
 	>;
+
 	const currentCountFillAtom = atom(atom(false) as WritableBoolAtom);
+
 	const entriesSrcAtom = atom<AtomicEntry[]>([]);
+
 	const makeAtomicEntry = getAtomicEntryMaker(
 		entriesSrcAtom as PrimitiveAtom<AtomicEntry[]>,
 		currentCountFillAtom,
 	);
+
 	const entriesAtom = atom(
 		(get) => get(entriesSrcAtom),
-		(get, set, initial?: EntryInput[]) => {
+		(get, set, initial?: EntryInput[] | false) => {
 			let newInput: EntryInput[];
+
 			if (!initial) {
-				if (get(entriesSrcAtom).length) return;
+				if (initial === undefined && get(entriesSrcAtom).length) return;
 				newInput = [{ timeMs: 0, note: "Start", isCurrent: true }];
 			} else newInput = initial;
 
 			const newEntries = newInput.map(makeAtomicEntry);
+
 			set(entriesSrcAtom, newEntries);
 			set(currentCountFillAtom, newEntries[0].countFillAtom);
 			set(
@@ -86,7 +94,7 @@ const createPlatformEntryAtoms = () => {
 				Object.fromEntries(newEntries.map((e) => [e.timeMs, e])),
 			);
 		},
-	) as WritableAtom<AtomicEntry[], [initial?: EntryInput[]], void>;
+	) as WritableAtom<AtomicEntry[], [initial?: EntryInput[] | false], void>;
 
 	const addAtom = atom(null, (get: Getter, set: Setter, timeMs: number) => {
 		if (timeMs in get(entryByTimeAtom)) return;
@@ -122,7 +130,7 @@ const createPlatformEntryAtoms = () => {
 
 		if (entries.length === 1) {
 			if (!entries[0].timeMs) return;
-			set(entriesAtom);
+			set(entriesAtom, false);
 		} else {
 			const newEntries = [...entries];
 			newEntries.splice(index, 1);
@@ -136,7 +144,7 @@ const createPlatformEntryAtoms = () => {
 	});
 
 	const clearAtom = atom(null, (_: Getter, set: Setter) => {
-		set(entriesAtom);
+		set(entriesAtom, false);
 	});
 
 	const currentIndexAtom = atom(

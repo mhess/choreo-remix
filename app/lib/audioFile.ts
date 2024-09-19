@@ -1,4 +1,4 @@
-import { atom, useAtom } from "jotai";
+import { atom, useAtom, type PrimitiveAtom } from "jotai";
 import { useEffect, useRef } from "react";
 
 import store from "./stateStore";
@@ -15,7 +15,7 @@ const statusAtom = atom(FilePlayerStatus.NO_FILE);
 const audioFileAtom = atom<File>();
 
 export const atoms = getPlatformAtoms({
-	playerAtom,
+	playerAtom: playerAtom as PrimitiveAtom<PlatformPlayer | undefined>,
 	statusAtom,
 	readyStatus: FilePlayerStatus.READY,
 	trackName: (get) => get(audioFileAtom)?.name || "",
@@ -40,11 +40,11 @@ class AudioFilePlayer extends PlatformPlayer {
 		);
 		$el.addEventListener("play", () => {
 			this._onPlaybackChange(false);
-			store.set(atoms.paused, false);
+			store.set(atoms.pausedAtom, false);
 		});
 		$el.addEventListener("pause", () => {
 			this._onPlaybackChange(true);
-			store.set(atoms.paused, true);
+			store.set(atoms.pausedAtom, true);
 		});
 		$el.src = URL.createObjectURL(file);
 	}

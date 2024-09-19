@@ -13,7 +13,7 @@ import { useDisclosure } from "@mantine/hooks";
 
 import { displayMs } from "~/lib/utils";
 import { useEstablishedPlayer } from "~/lib/atoms";
-import { entryAtomsAtom, type AtomicEntry } from "~/lib/entries";
+import { entryAtomsForPlatformAtom, type AtomicEntry } from "~/lib/entries";
 
 import TextInputWithAtom from "~/components/TextInputWithAtom";
 
@@ -24,7 +24,7 @@ export default ({ entry }: { entry: AtomicEntry }) => {
 	const [opened, { open: openFillModal, close: closeFillModal }] =
 		useDisclosure();
 
-	const [{ removeAtom }] = useAtom(entryAtomsAtom);
+	const [{ removeAtom }] = useAtom(entryAtomsForPlatformAtom);
 	const [, removeEntry] = useAtom(removeAtom);
 
 	const { timeMs, countAtom, noteAtom, isCurrentAtom, countFillAtom } = entry;
