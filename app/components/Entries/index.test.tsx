@@ -1,5 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { act, render, screen, within } from "@testing-library/react";
+import {
+	act,
+	render,
+	screen,
+	waitFor,
+	waitForElementToBeRemoved,
+	within,
+} from "@testing-library/react";
 import { createTheme, MantineProvider } from "@mantine/core";
 import userEvent from "@testing-library/user-event";
 import type { UserEvent } from "@testing-library/user-event";
@@ -11,6 +18,7 @@ import type { PlatformPlayer } from "~/lib/player";
 import { atomsFrom, AtomsProvider, type Store } from "testUtils";
 
 import Entries from "./index";
+import Help from "./Help";
 
 vi.mock("./Entry", () => ({
 	default: ({ entry }: { entry: AtomicEntry }) => {
@@ -24,6 +32,10 @@ vi.mock("./Entry", () => ({
 			</div>
 		);
 	},
+}));
+
+vi.mock("./Help", () => ({
+	default: ({ entry }: { entry: AtomicEntry }) => <div data-testid="help" />,
 }));
 
 describe("Entries", () => {
@@ -67,7 +79,7 @@ describe("Entries", () => {
 				await call[0](timeMs);
 		});
 
-	it("Renders the initial entriy with column headers", () => {
+	it("Renders the initial entry with column headers", () => {
 		render(<Entries />, { wrapper });
 
 		const headerRow = screen.getByRole("row");
@@ -115,20 +127,21 @@ describe("Entries", () => {
 		).not.toBeInTheDocument();
 
 		expect(player.seekTo).not.toHaveBeenCalled();
+		(player.getCurrentTime as Mock).mockReturnValue(Promise.resolve(12345));
 
 		await user.click(
 			inControls.getByRole("button", { name: "Fast-forward 5 sec" }),
 		);
 
 		expect(player.seekTo).toHaveBeenCalledOnce();
-		expect(player.seekTo).toHaveBeenCalledWith(5000);
+		expect(player.seekTo).toHaveBeenCalledWith(17345);
 
 		expect(player.seekTo).toHaveBeenCalledOnce();
 
 		await user.click(inControls.getByRole("button", { name: "Rewind 5 sec" }));
 
 		expect(player.seekTo).toHaveBeenCalledTimes(2);
-		expect(player.seekTo).toHaveBeenLastCalledWith(-5000);
+		expect(player.seekTo).toHaveBeenLastCalledWith(7345);
 	});
 
 	it("Highlights the current entry and updates the time display as the player is ticking", async () => {
@@ -212,5 +225,47 @@ describe("Entries", () => {
 				timeMs: 1492,
 			},
 		]);
+	});
+
+	it(`Renders/hides help content when the "Help" button is clicked`, async () => {
+		localStorage.clear();
+
+		const { unmount } = render(<Entries />, { wrapper });
+
+		expect(screen.queryByTestId("help")).not.toBeInTheDocument();
+
+		// Using this less efficient query to validate same query used to assert
+		// element not rendered.
+		await waitFor(() => screen.getByRole("tooltip", { name: /^First time/ }), {
+			interval: 10,
+			timeout: 30,
+		});
+
+		await user.click(screen.getByRole("button", { name: "Show Help" }));
+
+		await waitForElementToBeRemoved(() =>
+			screen.queryByRole("tooltip", { name: /^First time/ }),
+		);
+
+		expect(screen.getByTestId("help")).toBeInTheDocument();
+
+		await user.click(screen.getByRole("button", { name: "Hide Help" }));
+
+		expect(screen.queryByTestId("help")).not.toBeInTheDocument();
+
+		unmount();
+
+		render(<Entries />, { wrapper });
+
+		// FIXME: Assert "first time" tooltip does not get rendered
+		// await expect(async () => {
+		// 	await waitFor(
+		// 		() => screen.getByRole("tooltip", { name: /^First time/ }),
+		// 		{
+		// 			interval: 10,
+		// 			timeout: 30,
+		// 		},
+		// 	);
+		// }).toThrow(expect.anything());
 	});
 });

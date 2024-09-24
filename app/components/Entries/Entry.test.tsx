@@ -3,9 +3,9 @@ import { act, render, screen } from "@testing-library/react";
 import { createTheme, MantineProvider } from "@mantine/core";
 import userEvent from "@testing-library/user-event";
 import type { UserEvent } from "@testing-library/user-event";
-import { atom, createStore } from "jotai";
+import { createStore } from "jotai";
 
-import { entryAtomsForPlatformAtom, type AtomicEntry } from "~/lib/entries";
+import type { AtomicEntry } from "~/lib/entries";
 
 import Entry from "./Entry";
 import classes from "./Entry.module.css";
@@ -24,6 +24,7 @@ describe("Entry", () => {
 	let store: Store;
 	let atoms: ReturnType<typeof atomsFrom>;
 	let entry: AtomicEntry;
+
 	const initialEntry = {
 		timeMs: 12340,
 		count: 5,

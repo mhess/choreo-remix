@@ -13,7 +13,7 @@ export type Entry = {
 
 export type AtomicEntry = {
 	index: number;
-	countAtom: WritableAtom<number, [number, (boolean | false)?], void>;
+	countAtom: WritableAtom<number, [number, boolean?], void>;
 	timeMs: number;
 	noteAtom: PrimitiveAtom<string>;
 	isCurrentAtom: PrimitiveAtom<boolean>;
@@ -29,8 +29,6 @@ type PlatformEntryAtoms = {
 	saveToCSVAtom: WritableAtom<null, [string], void>;
 	loadFromCSVAtom: WritableAtom<null, [File], Promise<void>>;
 };
-
-export type EntriesAtom = PlatformEntryAtoms["entriesAtom"];
 
 type WritableBoolAtom = WritableAtom<boolean, [boolean], void>;
 
@@ -53,6 +51,9 @@ export const useInitializedEntries = () => {
 	return entryAtoms;
 };
 
+// Can't easily export contained atoms because most are WritableAtom's
+// with function signatures that must be replicated in when creating a
+// new atom
 export const entryAtomsForPlatformAtom = atom(
 	(get) => entryAtomsByPlatform[get(platformAtom)],
 );
@@ -196,10 +197,11 @@ const createPlatformEntryAtoms = () => {
 	};
 };
 
-export type EntryInput = Partial<Omit<Entry, "timeMs">> & {
+type EntryInput = Partial<Omit<Entry, "timeMs">> & {
 	timeMs: number;
 	isCurrent?: boolean;
 };
+
 const getAtomicEntryMaker =
 	(
 		entriesAtom: Atom<AtomicEntry[]>,

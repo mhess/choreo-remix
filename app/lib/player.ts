@@ -94,7 +94,7 @@ const makeWritableAtomFromReader = <T>(
 	return atom(initial);
 };
 
-// For testing purposes
+// Creates writable atoms for testing purposes
 const makeDerivedAtomWritable = <T>(
 	derivedReadOnlyAtom: Atom<T>,
 	initial: T,
