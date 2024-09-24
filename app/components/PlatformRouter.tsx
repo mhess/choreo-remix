@@ -15,7 +15,7 @@ import SpotifyEditor from "./SpotifyEditor";
 import YoutubeEditor from "./YoutubeEditor";
 import AudioFileEditor from "./AudioFileEditor";
 
-export default () => {
+export default function PlatformRouter() {
 	const platform = useSpotifyTokenForPlatform();
 
 	switch (platform) {
@@ -28,7 +28,7 @@ export default () => {
 		default:
 			return <Landing />;
 	}
-};
+}
 
 const useSpotifyTokenForPlatform = (): Platform => {
 	const location = useLocation();

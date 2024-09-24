@@ -10,7 +10,7 @@ import classes from "./Landing.module.css";
 
 const btnClasses = `${classes.btn} ${thmClasses.outlineBtn}`;
 
-export default () => {
+export default function Landing() {
 	const [, selectPlatform] = useAtom(platformAtom);
 	return (
 		<Flex className={classes.flex}>
@@ -75,4 +75,4 @@ export default () => {
 			</Stack>
 		</Flex>
 	);
-};
+}

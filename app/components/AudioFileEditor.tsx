@@ -12,7 +12,7 @@ import { FilePlayerStatus, useAudioFilePlayer } from "~/lib/audioFile";
 import Entries from "./Entries";
 import CenteredLoading from "./CenteredLoading";
 
-export default () => {
+export default function AudioFileEditor() {
 	const { status, setFile } = useAudioFilePlayer();
 	const scheme = useComputedColorScheme();
 	const theme = useMantineTheme();
@@ -54,4 +54,4 @@ export default () => {
 				</Flex>
 			);
 	}
-};
+}

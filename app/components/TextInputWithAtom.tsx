@@ -6,7 +6,9 @@ type Props<T> = Omit<TextInputProps, "onChange"> & {
 	atom: PrimitiveAtom<T>;
 };
 
-export default function <T extends string | number>(props: Props<T>) {
+export default function TextInputWithAtom<T extends string | number>(
+	props: Props<T>,
+) {
 	const { atom, type, ...rest } = props;
 	const [value, setValue] = useAtom(atom);
 

@@ -20,10 +20,10 @@ const mobileControlsHelp = (
 	</>
 );
 
-export default ({
+export default function Help({
 	scrollerRef,
 	containerRef,
-}: { scrollerRef: ElementRef; containerRef: ElementRef }) => {
+}: { scrollerRef: ElementRef; containerRef: ElementRef }) {
 	const isMobile = useMobileBreakpoint();
 	const [entryHeight, setEntryHeight] = useState(0);
 
@@ -93,4 +93,4 @@ export default ({
 			</Container>
 		</Stack>
 	);
-};
+}

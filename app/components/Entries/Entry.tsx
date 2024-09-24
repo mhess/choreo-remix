@@ -19,7 +19,7 @@ import TextInputWithAtom from "~/components/TextInputWithAtom";
 
 import classes from "./Entry.module.css";
 
-export default ({ entry }: { entry: AtomicEntry }) => {
+export default function Entry({ entry }: { entry: AtomicEntry }) {
 	const player = useEstablishedPlayer();
 	const [opened, { open: openFillModal, close: closeFillModal }] =
 		useDisclosure();
@@ -112,4 +112,4 @@ export default ({ entry }: { entry: AtomicEntry }) => {
 			/>
 		</Group>
 	);
-};
+}

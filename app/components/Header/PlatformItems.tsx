@@ -6,7 +6,7 @@ import { type Platform, platformAtom } from "~/lib/atoms";
 
 import { AudioFile, Spotify, YouTube } from "../Logos";
 
-export default () => {
+export default function PlatformItems() {
 	const [platform, setPlatform] = useAtom(platformAtom);
 
 	return (
@@ -38,7 +38,7 @@ export default () => {
 			)}
 		</>
 	);
-};
+}
 
 export const logoByPlatform: Record<Platform, ReactNode> = {
 	spotify: <Spotify />,

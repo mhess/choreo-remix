@@ -8,7 +8,7 @@ import PlatformItems, {
 	labelByPlatform,
 } from "./PlatformItems";
 
-export default () => {
+export default function SelectPlatformButton() {
 	const [platform] = useAtom(platformAtom);
 
 	return (
@@ -26,4 +26,4 @@ export default () => {
 			</Menu.Dropdown>
 		</Menu>
 	);
-};
+}

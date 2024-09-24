@@ -20,7 +20,7 @@ import TooltipWithClick from "~/components/TooltipWithClick";
 
 import classes from "./Controls.module.css";
 
-export default ({ help }: { help: Help }) => {
+export default function Controls({ help }: { help: Help }) {
 	const isMobile = useMobileBreakpoint();
 	const [{ addAtom }] = useAtom(entryAtomsForPlatformAtom);
 	const [, addEntry] = useAtom(addAtom);
@@ -55,7 +55,7 @@ export default ({ help }: { help: Help }) => {
 			</Group>
 		</Group>
 	);
-};
+}
 
 const TrackTime = () => {
 	const [timeMs, setTimeMs] = useState(0);

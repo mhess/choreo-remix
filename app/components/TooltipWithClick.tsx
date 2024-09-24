@@ -2,7 +2,7 @@ import { Tooltip } from "@mantine/core";
 import type { TooltipProps } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 
-export default (props: TooltipProps) => {
+export default function TooltipWithClick(props: TooltipProps) {
 	const [isOpen, { open, close, toggle }] = useDisclosure(false);
 
 	const newProps = { ...props };
@@ -15,4 +15,4 @@ export default (props: TooltipProps) => {
 	}
 
 	return <Tooltip {...newProps} />;
-};
+}

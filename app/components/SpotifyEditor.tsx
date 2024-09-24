@@ -6,7 +6,7 @@ import { SpotifyPlayerStatus, useSpotifyPlayer } from "~/lib/spotify";
 import Entries from "./Entries";
 import Loading from "./Loading";
 
-export default () => {
+export default function SpotifyEditor() {
 	const status = useSpotifyPlayer();
 
 	if (status === SpotifyPlayerStatus.LOGGED_OUT)
@@ -26,7 +26,7 @@ export default () => {
 			{messageByStatus[status]}
 		</Center>
 	);
-};
+}
 
 const TryAgain = ({ message }: { message: string }) => (
 	<Text>
