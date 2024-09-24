@@ -17,7 +17,7 @@ import type { AtomicEntry } from "~/lib/entries";
 import type { PlatformPlayer } from "~/lib/player";
 import { atomsFrom, AtomsProvider, type Store } from "testUtils";
 
-import Entries from "./index";
+import Entries from "./Entries";
 import Help from "./Help";
 
 vi.mock("./Entry", () => ({

@@ -10,9 +10,9 @@ import Help from "./Help";
 import Controls from "./Controls";
 import Entry from "./Entry";
 
-import classes from "./index.module.css";
+import classes from "./Entries.module.css";
 
-export default () => {
+export default function Entries() {
 	const player = useEstablishedPlayer();
 
 	const scrollerRef = useRef<HTMLDivElement>(null);
@@ -61,7 +61,7 @@ export default () => {
 			<Controls help={{ isShowing: isHelpOpen, toggle }} />
 		</>
 	);
-};
+}
 
 const EntryHeader = () => (
 	<Group className={classes.entryHeader} role="row">
