@@ -236,10 +236,13 @@ describe("Entries", () => {
 
 		// Using this less efficient query to validate same query used to assert
 		// element not rendered.
-		await waitFor(() => screen.getByRole("tooltip", { name: /^First time/ }), {
-			interval: 10,
-			timeout: 30,
-		});
+		const findTooltip = () =>
+			waitFor(() => screen.getByRole("tooltip", { name: /^First time/ }), {
+				interval: 10,
+				timeout: 30,
+			});
+
+		await findTooltip();
 
 		await user.click(screen.getByRole("button", { name: "Show Help" }));
 
@@ -257,15 +260,8 @@ describe("Entries", () => {
 
 		render(<Entries />, { wrapper });
 
-		// FIXME: Assert "first time" tooltip does not get rendered
-		// await expect(async () => {
-		// 	await waitFor(
-		// 		() => screen.getByRole("tooltip", { name: /^First time/ }),
-		// 		{
-		// 			interval: 10,
-		// 			timeout: 30,
-		// 		},
-		// 	);
-		// }).toThrow(expect.anything());
+		await expect(findTooltip).rejects.toThrow(
+			'Unable to find role="tooltip" and name `/^First time/`',
+		);
 	});
 });
