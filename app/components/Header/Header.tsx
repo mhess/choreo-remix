@@ -1,5 +1,5 @@
 import { useAtom } from "jotai";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
 	Box,
 	Burger,
@@ -137,8 +137,15 @@ const BurgerMenu = () => {
 };
 
 const ToggleColorScheme = () => {
+	const [canRenderIcon, setCanRenderIcon] = useState(false);
 	const { toggleColorScheme } = useMantineColorScheme();
 	const isLight = useComputedColorScheme() === "light";
+
+	useEffect(() => {
+		// Icon can only be rendered on browser because server doesn't have access
+		// to scheme state in localStorage
+		setCanRenderIcon(true);
+	}, []);
 
 	return (
 		<Tooltip label="Toggle light/dark mode" w={173}>
@@ -147,7 +154,11 @@ const ToggleColorScheme = () => {
 				variant="outline"
 				onClick={toggleColorScheme}
 			>
-				{React.createElement(isLight ? IconSun : IconMoon, { size: "1.25rem" })}
+				{canRenderIcon ? (
+					React.createElement(isLight ? IconSun : IconMoon, { size: "1.25rem" })
+				) : (
+					<Box w="1.25rem" />
+				)}
 			</Button>
 		</Tooltip>
 	);

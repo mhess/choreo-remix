@@ -46,22 +46,6 @@ const theme = createTheme({
 	},
 });
 
-const getColorSchemeManager = () => {
-	let scheme: MantineColorScheme = "light";
-
-	return {
-		get: () => scheme,
-		set: (val: MantineColorScheme) => {
-			scheme = val;
-		},
-		subscribe: () => {},
-		unsubscribe: () => {},
-		clear: () => {},
-	};
-};
-
-const colorSchemeManager: MantineColorSchemeManager = getColorSchemeManager();
-
 export const meta: MetaFunction = () => [
 	{ charSet: "utf-8" },
 	{
@@ -88,9 +72,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => (
 			<ColorSchemeScript />
 		</head>
 		<body>
-			<MantineProvider theme={theme} colorSchemeManager={colorSchemeManager}>
-				{children}
-			</MantineProvider>
+			<MantineProvider theme={theme}>{children}</MantineProvider>
 			<ScrollRestoration />
 			<Scripts />
 			<div id={YT_PLAYER_EL_ID} />
