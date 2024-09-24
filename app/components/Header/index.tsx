@@ -21,6 +21,7 @@ import {
 	trackNameAtom,
 } from "~/lib/atoms";
 import { spotifyAuthAtom } from "~/lib/spotify";
+import { videoIdAtom } from "~/lib/youtube";
 
 import TooltipWithClick from "~/components/TooltipWithClick";
 import SelectPlatformButton from "./SelectPlatformButton";
@@ -30,11 +31,15 @@ import classes from "./index.module.css";
 
 export default () => {
 	const [platform, setPlatform] = useAtom(platformAtom);
+	const [ytVideoId] = useAtom(videoIdAtom);
 	const [isLoggedIn] = useAtom(spotifyAuthAtom);
 	const [player] = useAtom(playerAtom);
 
 	const isSpotify = platform === "spotify";
-	const shouldShowActions = player || (isLoggedIn && isSpotify);
+	const shouldShowActions =
+		player ||
+		(isLoggedIn && isSpotify) ||
+		(platform === "youtube" && !!ytVideoId);
 
 	return (
 		<Group component="header" className={classes.header}>

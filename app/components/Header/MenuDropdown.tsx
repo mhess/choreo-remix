@@ -11,7 +11,7 @@ import { IconMoon, IconSun } from "@tabler/icons-react";
 import { useMobileBreakpoint } from "~/lib/utils";
 import { platformAtom, playerAtom, trackNameAtom } from "~/lib/atoms";
 import { spotifyAuthAtom } from "~/lib/spotify";
-import { youTubeClearVideoId } from "~/lib/youtube";
+import { videoIdAtom } from "~/lib/youtube";
 
 import PlatformItems from "./PlatformItems";
 
@@ -26,6 +26,7 @@ export default () => {
 	const [, clear] = useAtom(clearAtom);
 	const [, saveToCSV] = useAtom(saveToCSVAtom);
 	const [, loadFromCSV] = useAtom(loadFromCSVAtom);
+	const [ytVideoId, setYtVideoId] = useAtom(videoIdAtom);
 
 	const [trackName] = useAtom(trackNameAtom);
 	const [isSpotifyLoggedIn, logoutSpotify] = useAtom(spotifyAuthAtom);
@@ -62,8 +63,8 @@ export default () => {
 
 	const platformGroup = isMobile && <PlatformItems key="platform" />;
 
-	const youTubeGroup = player && platform === "youtube" && (
-		<Menu.Item key="change-yt" onClick={youTubeClearVideoId}>
+	const youTubeGroup = ytVideoId && platform === "youtube" && (
+		<Menu.Item key="change-yt" onClick={() => setYtVideoId(null)}>
 			Change YouTube Video
 		</Menu.Item>
 	);

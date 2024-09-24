@@ -1,3 +1,4 @@
+
 .flex {
   justify-content: center;
   width: 100%;
@@ -9,4 +10,14 @@
   align-items: center;
   flex: 1;
   max-width: 25rem;
+}
+
+.different {
+  cursor: pointer;
+  color: var(--mantine-color-violet-9);
+  text-decoration: underline;
+
+  :root[data-mantine-color-scheme="dark"] & {
+    color: var(--mantine-color-grape-5);
+  }
 }

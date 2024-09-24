@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { atom, useAtom, type PrimitiveAtom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 
-import store from "~/lib/stateStore";
 import { getFakePlayer } from "./fakePlayer";
 import { PlatformPlayer, getPlatformAtoms } from "../player";
 
@@ -192,8 +191,7 @@ class SpotifyPlayer extends PlatformPlayer {
 
 			const onStateChange = (state: Spotify.PlaybackState | null) => {
 				setState(state);
-				store.set(
-					statusAtom,
+				setStatus(
 					state ? SpotifyPlayerStatus.READY : SpotifyPlayerStatus.NOT_CONNECTED,
 				);
 				this._onPlaybackChange(!!state?.paused);

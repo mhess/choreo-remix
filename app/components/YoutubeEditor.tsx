@@ -1,8 +1,10 @@
 import { useState } from "react";
 import {
+	Box,
 	Button,
 	Center,
 	Flex,
+	Group,
 	Stack,
 	Text,
 	TextInput,
@@ -22,11 +24,25 @@ import classes from "./YouTubeEditor.module.css";
 import CenteredLoading from "./CenteredLoading";
 
 export default () => {
-	const { status, setVideoId } = useYouTubePlayer();
+	const { status, setStatus, setVideoId } = useYouTubePlayer();
+
+	const handleRetry = () => {
+		setVideoId(null);
+		setStatus(YouTubePlayerStatus.LOADED);
+	};
 
 	switch (status) {
 		case YouTubePlayerStatus.LOADING:
 			return <CenteredLoading message="Loading YouTube player" />;
+		case YouTubePlayerStatus.BAD_ID:
+			return (
+				<Box ta="center" mt="2rem">
+					<Text>Cannot use that video ID.</Text>
+					<Text className={classes.different} onClick={handleRetry}>
+						Try a different one?
+					</Text>
+				</Box>
+			);
 		case YouTubePlayerStatus.LOADED:
 			return <UrlForm setVideoId={setVideoId} />;
 		case YouTubePlayerStatus.BUFFERING:
@@ -34,20 +50,24 @@ export default () => {
 		case YouTubePlayerStatus.READY:
 			return <Entries />;
 		default:
-			return <Center>Oops! Something went wrong!</Center>;
+			return <Center mt="2rem">Oops! Something went wrong!</Center>;
 	}
 };
 
 const UrlForm = ({ setVideoId }: { setVideoId: (id: string) => void }) => {
-	const [url, setUrl] = useState("");
+	const [input, setInput] = useState("");
 	const scheme = useComputedColorScheme();
 	const theme = useMantineTheme();
 	const [error, setError] = useState(false);
 
-	const handleLoad = () => {
-		const videoId = extractVideoIdFromUrl(url);
+	const handleLoadUrl = () => {
+		const videoId = extractVideoIdFromUrl(input);
 		if (!videoId) setError(true);
 		else setVideoId(videoId);
+	};
+
+	const handleLoadId = () => {
+		setVideoId(input);
 	};
 
 	const isDark = scheme === "dark";
@@ -57,25 +77,36 @@ const UrlForm = ({ setVideoId }: { setVideoId: (id: string) => void }) => {
 	return (
 		<Flex className={classes.flex}>
 			<Stack className={classes.stack}>
-				<Text>Please enter or paste in a YouTube video URL</Text>
+				<Text>Please enter or paste in a YouTube video URL or ID</Text>
 				<TextInput
-					value={url}
+					value={input}
 					styles={{ root: { width: "100%" }, input: { textAlign: "center" } }}
-					error={error && "Not a valid YouTube video URL"}
+					error={error && "Not a valid YouTube URL"}
 					onChange={(e) => {
 						setError(false);
-						setUrl(e.target.value);
+						setInput(e.target.value);
 					}}
 				/>
-				<Button
-					disabled={!url.length}
-					variant="filled"
-					size="sm"
-					color={isDark ? logoDark : logoLight}
-					onClick={handleLoad}
-				>
-					Load
-				</Button>
+				<Group>
+					<Button
+						disabled={!input.length}
+						variant="filled"
+						size="sm"
+						color={isDark ? logoDark : logoLight}
+						onClick={handleLoadUrl}
+					>
+						Load Url
+					</Button>
+					<Button
+						disabled={!input.length}
+						variant="filled"
+						size="sm"
+						color={isDark ? logoDark : logoLight}
+						onClick={handleLoadId}
+					>
+						Load video ID
+					</Button>
+				</Group>
 			</Stack>
 		</Flex>
 	);
