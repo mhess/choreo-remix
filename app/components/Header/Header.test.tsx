@@ -14,7 +14,7 @@ import { SPOTIFY_TOKEN_PARAM, spotifyTokenAtom } from "~/lib/spotify";
 
 import userEvent, { type UserEvent } from "@testing-library/user-event";
 
-import Header from ".";
+import Header from "./Header";
 
 describe("Header", () => {
 	let store: Store;

@@ -23,7 +23,7 @@ import Entries from "./Entries";
 import classes from "./YouTubeEditor.module.css";
 import CenteredLoading from "./CenteredLoading";
 
-export default () => {
+export default function YouTubeEditor() {
 	const { status, setStatus, setVideoId } = useYouTubePlayer();
 
 	const handleRetry = () => {
@@ -52,7 +52,7 @@ export default () => {
 		default:
 			return <Center mt="2rem">Oops! Something went wrong!</Center>;
 	}
-};
+}
 
 const UrlForm = ({ setVideoId }: { setVideoId: (id: string) => void }) => {
 	const [input, setInput] = useState("");

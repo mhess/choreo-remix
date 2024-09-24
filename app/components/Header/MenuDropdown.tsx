@@ -19,7 +19,7 @@ import classes from "./MenuDropdown.module.css";
 import { audioFileClearFile } from "~/lib/audioFile";
 import { entryAtomsForPlatformAtom } from "~/lib/entries";
 
-export default () => {
+export default function MenuDropdown() {
 	const [{ clearAtom, saveToCSVAtom, loadFromCSVAtom }] = useAtom(
 		entryAtomsForPlatformAtom,
 	);
@@ -123,4 +123,4 @@ export default () => {
 			<Menu.Dropdown>{groupsWithDividers}</Menu.Dropdown>
 		</>
 	);
-};
+}

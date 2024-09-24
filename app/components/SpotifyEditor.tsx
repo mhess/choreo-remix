@@ -43,11 +43,11 @@ const messageByStatus: Record<
 	[SpotifyPlayerStatus.NOT_CONNECTED]: (
 		<Stack align="center">
 			<Text>
-				Please connect to the "Choreo Player" device in the Spotify player on
-				your other device.
+				Please connect to the "Choreo Player" device in the Spotify player.
 			</Text>
 			<Text>
-				Ensure that your other device is on the same network as this one.
+				Ensure the device with the Spotify player is on the same network as this
+				one.
 			</Text>
 			<Text>
 				See this{" "}

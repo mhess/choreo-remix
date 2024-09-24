@@ -27,9 +27,9 @@ import TooltipWithClick from "~/components/TooltipWithClick";
 import SelectPlatformButton from "./SelectPlatformButton";
 import MenuDropdown from "./MenuDropdown";
 
-import classes from "./index.module.css";
+import classes from "./Header.module.css";
 
-export default () => {
+export default function Header() {
 	const [platform, setPlatform] = useAtom(platformAtom);
 	const [ytVideoId] = useAtom(videoIdAtom);
 	const [isLoggedIn] = useAtom(spotifyAuthAtom);
@@ -85,7 +85,7 @@ export default () => {
 			</Group>
 		</Group>
 	);
-};
+}
 
 const TrackInfo = () => {
 	const [artist] = useAtom(artistAtom);
