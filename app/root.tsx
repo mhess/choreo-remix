@@ -3,8 +3,6 @@ import type { LinksFunction, MetaFunction } from "@remix-run/node";
 import {
 	Button,
 	ColorSchemeScript,
-	type MantineColorScheme,
-	type MantineColorSchemeManager,
 	MantineProvider,
 	createTheme,
 } from "@mantine/core";

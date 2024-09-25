@@ -49,7 +49,8 @@ export default function MenuDropdown() {
 	const handleLoadCSV = ({ target }: React.ChangeEvent<HTMLInputElement>) => {
 		const file = target?.files?.[0];
 		if (!file) return alert("No file was selected :(");
-		if (file.type !== "text/csv") alert(`File must be of type "text/csv"`);
+		if (file.type !== "text/csv")
+			return alert(`File must be of type "text/csv"`);
 		loadFromCSV(file);
 	};
 
@@ -114,12 +115,15 @@ export default function MenuDropdown() {
 		<>
 			{/* This input must still be rendered even after the menu dropdown closes
 			  in order for the onChange callback to get invoked */}
-			<input
-				className={classes.fileInput}
-				ref={fileInputRef}
-				type="file"
-				onChange={handleLoadCSV}
-			/>
+			<label htmlFor="csv-upload" className={classes.fileInputLabel}>
+				Upload CSV
+				<input
+					id="csv-upload"
+					ref={fileInputRef}
+					type="file"
+					onChange={handleLoadCSV}
+				/>
+			</label>
 			<Menu.Dropdown>{groupsWithDividers}</Menu.Dropdown>
 		</>
 	);

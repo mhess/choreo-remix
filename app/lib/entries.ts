@@ -346,16 +346,16 @@ const saveToCSV = (fileName: string, entries: Entry[]) => {
 	document.body.appendChild($a);
 	$a.click();
 	setTimeout(() => {
-		document.body.removeChild($a);
+		$a.remove();
 		window.URL.revokeObjectURL(url);
-	}, 0);
+	}, 1);
 };
 
 const loadFromCSV = async (file: File) => {
 	const csv = await file.text();
 	const result = Papa.parse<Entry>(csv, { header: true, dynamicTyping: true });
 	if (result.errors.length) {
-		alert(`CSV had errors ${result.errors}`);
+		alert(`CSV had errors ${result.errors.map((e) => e.message).join("\r\n")}`);
 		return [];
 	}
 	return result.data;

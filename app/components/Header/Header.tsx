@@ -22,6 +22,7 @@ import {
 } from "~/lib/atoms";
 import { spotifyAuthAtom } from "~/lib/spotify";
 import { videoIdAtom } from "~/lib/youtube";
+import { useMobileBreakpoint } from "~/lib/utils";
 
 import TooltipWithClick from "~/components/TooltipWithClick";
 import SelectPlatformButton from "./SelectPlatformButton";
@@ -34,6 +35,7 @@ export default function Header() {
 	const [ytVideoId] = useAtom(videoIdAtom);
 	const [isLoggedIn] = useAtom(spotifyAuthAtom);
 	const [player] = useAtom(playerAtom);
+	const isMobile = useMobileBreakpoint();
 
 	const isSpotify = platform === "spotify";
 	const shouldShowActions =
@@ -61,27 +63,29 @@ export default function Header() {
 				{shouldShowActions && (
 					<>
 						{isSpotify && <SpotifyChangeButton />}
-						<Box visibleFrom="mobile">
-							<Menu trigger="hover">
-								<Menu.Target>
-									<Button variant="outline" className={classes.actions}>
-										Actions
-										<IconChevronDown
-											size="1.25rem"
-											style={{ transform: "translateY(0.125rem)" }}
-										/>
-									</Button>
-								</Menu.Target>
-								<MenuDropdown />
-							</Menu>
-						</Box>
+						{!isMobile && (
+							<Box>
+								<Menu trigger="hover">
+									<Menu.Target>
+										<Button variant="outline" className={classes.actions}>
+											Actions
+											<IconChevronDown
+												size="1.25rem"
+												style={{ transform: "translateY(0.125rem)" }}
+											/>
+										</Button>
+									</Menu.Target>
+									<MenuDropdown />
+								</Menu>
+							</Box>
+						)}
 					</>
 				)}
 			</Group>
 			<Group gap="xs">
 				<SelectPlatformButton />
 				<ToggleColorScheme />
-				<BurgerMenu />
+				{isMobile && <BurgerMenu />}
 			</Group>
 		</Group>
 	);
@@ -129,7 +133,7 @@ const BurgerMenu = () => {
 	return (
 		<Menu onClose={close}>
 			<Menu.Target>
-				<Burger opened={opened} onClick={toggle} hiddenFrom="mobile" />
+				<Burger opened={opened} onClick={toggle} />
 			</Menu.Target>
 			<MenuDropdown />
 		</Menu>
