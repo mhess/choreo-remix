@@ -2,13 +2,8 @@ import { useEffect } from "react";
 import { useAtom } from "jotai";
 import { useLocation } from "@remix-run/react";
 
-import { platformAtom, type Platform } from "~/lib/atoms";
-import {
-	SPOTIFY_TOKEN_PARAM,
-	SpotifyPlayerStatus,
-	spotifyTokenAtom,
-	writeStatusAtom as writeSpotifyStatusAtom,
-} from "~/lib/spotify";
+import { platformAtom } from "~/lib/atoms";
+import { SPOTIFY_TOKEN_PARAM } from "~/lib/spotify";
 
 import Landing from "./Landing";
 import SpotifyEditor from "./SpotifyEditor";
@@ -16,11 +11,11 @@ import YoutubeEditor from "./YoutubeEditor";
 import AudioFileEditor from "./AudioFileEditor";
 
 export default function PlatformRouter() {
-	const platform = useSpotifyTokenForPlatform();
+	const { platform, token } = useSpotifyTokenForPlatform();
 
 	switch (platform) {
 		case "spotify":
-			return <SpotifyEditor />;
+			return <SpotifyEditor token={token} />;
 		case "youtube":
 			return <YoutubeEditor />;
 		case "audioFile":
@@ -30,30 +25,21 @@ export default function PlatformRouter() {
 	}
 }
 
-const useSpotifyTokenForPlatform = (): Platform => {
+const useSpotifyTokenForPlatform = () => {
 	const location = useLocation();
 	const [platform, setPlatform] = useAtom(platformAtom);
-	const [, setSpotifyStatus] = useAtom(writeSpotifyStatusAtom);
-	const [, setToken] = useAtom(spotifyTokenAtom);
 
-	const tokenInParams = new URLSearchParams(location.search).get(
-		SPOTIFY_TOKEN_PARAM,
-	);
+	const token = new URLSearchParams(location.search).get(SPOTIFY_TOKEN_PARAM);
 
 	useEffect(() => {
-		if (!tokenInParams) return;
+		if (!token) return;
 
-		setToken(tokenInParams);
 		setPlatform("spotify");
 
 		const newUrl = new URL(window.location.href);
 		newUrl.searchParams.delete(SPOTIFY_TOKEN_PARAM);
 		window.history.replaceState(null, "", newUrl);
-	}, [tokenInParams, setPlatform, setToken]);
+	}, [token, setPlatform]);
 
-	if (tokenInParams) {
-		setSpotifyStatus(SpotifyPlayerStatus.LOADING);
-		return "spotify";
-	}
-	return platform;
+	return { platform: token ? "spotify" : platform, token };
 };

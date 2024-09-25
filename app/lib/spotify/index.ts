@@ -76,15 +76,17 @@ let tokenAndPromise: {
 	promise: Promise<SpotifyPlayer> | undefined;
 };
 
-export const useSpotifyPlayer = () => {
-	const [token] = useAtom(spotifyTokenAtom);
+export const useSpotifyPlayer = (tokenFromParams: string | null) => {
+	const [token, setToken] = useAtom(spotifyTokenAtom);
 	const [player, setPlayer] = useAtom(playerAtom);
 	const [status, setStatus] = useAtom(statusAtom);
 	const [, setState] = useAtom(writePlayerStateAtom);
 
 	useEffect(() => {
+		if (tokenFromParams) setToken(tokenFromParams);
+
 		if (!token) {
-			setStatus(SpotifyPlayerStatus.LOGGED_OUT);
+			if (!tokenFromParams) setStatus(SpotifyPlayerStatus.LOGGED_OUT);
 			return;
 		}
 

@@ -6,8 +6,8 @@ import { SpotifyPlayerStatus, useSpotifyPlayer } from "~/lib/spotify";
 import Entries from "./Entries";
 import Loading from "./Loading";
 
-export default function SpotifyEditor() {
-	const status = useSpotifyPlayer();
+export default function SpotifyEditor({ token }: { token: string | null }) {
+	const status = useSpotifyPlayer(token);
 
 	if (status === SpotifyPlayerStatus.LOGGED_OUT)
 		return (

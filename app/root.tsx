@@ -15,10 +15,10 @@ import classes from "~/theme.module.css";
 
 import { YT_PLAYER_EL_ID } from "~/lib/youtube";
 import breakpoints from "~/breakpoints";
+import store from "~/lib/stateStore";
 
 import PlatformRouter from "~/components/PlatformRouter";
 import Header from "~/components/Header";
-import store from "~/lib/stateStore";
 
 const theme = createTheme({
 	breakpoints,
