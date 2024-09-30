@@ -7,16 +7,9 @@ import {
 	vi,
 	type Mock,
 } from "vitest";
-import { createStore } from "jotai";
-import { act, render, screen } from "@testing-library/react";
-import { createTheme, MantineProvider } from "@mantine/core";
+import { render, screen } from "@testing-library/react";
 
-import {
-	atomsFrom,
-	AtomsProvider,
-	setStoreValues,
-	type Store,
-} from "testUtils";
+import { withStore, type Store } from "testUtils";
 import type { PlatformPlayer } from "~/lib/player";
 import { SPOTIFY_TOKEN_PARAM, spotifyTokenAtom } from "~/lib/spotify";
 import type { AtomicEntry } from "~/lib/entries";
@@ -36,36 +29,25 @@ const serializeEntryFrom = (store: Store) => (entry: AtomicEntry) => {
 };
 
 describe("Header", () => {
-	let store: Store;
 	let user: UserEvent;
 
 	beforeEach(() => {
 		vi.clearAllMocks();
-
 		user = userEvent.setup();
-		store = createStore();
 	});
 
 	afterEach(() => {
 		vi.restoreAllMocks();
 	});
 
-	const wrapper = ({ children }: React.PropsWithChildren) => (
-		<AtomsProvider store={store}>
-			<MantineProvider theme={createTheme({})}>{children}</MantineProvider>
-		</AtomsProvider>
-	);
+	const { wrapper, setPlatform, getAtoms, setAtoms, getStore } = withStore();
 
 	describe("On the spotify platform", () => {
 		const player = {} as unknown as PlatformPlayer;
-		let atoms: ReturnType<typeof atomsFrom>;
-
-		beforeEach(() => {
-			atoms = atomsFrom(store, "spotify");
-		});
 
 		it('Renders "Log Out" button when logged in regardless of player', async () => {
-			setStoreValues(store, [[spotifyTokenAtom, "auth-token-value"]]);
+			setPlatform("spotify");
+			setAtoms([[spotifyTokenAtom, "auth-token-value"]]);
 
 			render(<Header />, { wrapper });
 
@@ -83,7 +65,9 @@ describe("Header", () => {
 		});
 
 		it('Renders a "load entries" button when player is present', async () => {
-			setStoreValues(store, [[atoms.playerAtom, player]]);
+			const { playerAtom, entriesAtom } = getAtoms("spotify");
+			setAtoms([[playerAtom, player]]);
+			const store = getStore();
 
 			render(<Header />, { wrapper });
 
@@ -127,9 +111,7 @@ describe("Header", () => {
 				new File([fileBits], "test.csv", { type: "text/csv" }),
 			);
 
-			expect(
-				store.get(atoms.entriesAtom).map(serializeEntryFrom(store)),
-			).toEqual([
+			expect(store.get(entriesAtom).map(serializeEntryFrom(store))).toEqual([
 				{
 					count: 1,
 					note: "first",
@@ -149,17 +131,19 @@ describe("Header", () => {
 		});
 
 		it('Renders a "save entries" button when player is present', async () => {
-			setStoreValues(store, [
-				[atoms.playerAtom, player],
+			const { playerAtom, entriesAtom, artistAtom, trackNameAtom } =
+				getAtoms("spotify");
+			setAtoms([
+				[playerAtom, player],
 				[
-					atoms.entriesAtom,
+					entriesAtom,
 					[
 						{ count: 0, timeMs: 0, note: "first" },
 						{ count: 1, timeMs: 100, note: "second" },
 					],
 				],
-				[atoms.artistAtom, "artist"],
-				[atoms.trackNameAtom, "Track Name"],
+				[artistAtom, "artist"],
+				[trackNameAtom, "Track Name"],
 			]);
 
 			(URL.createObjectURL as Mock).mockImplementation((blob: Blob) =>
@@ -229,16 +213,16 @@ describe("Header", () => {
 		});
 
 		it(`Renders a "clear entries" button when player is present`, async () => {
-			setStoreValues(store, [
-				[atoms.entriesAtom, [{ timeMs: 1000 }, { timeMs: 2000 }]],
-				[atoms.playerAtom, player],
+			const store = getStore();
+			const { playerAtom, entriesAtom } = getAtoms("spotify");
+			setAtoms([
+				[entriesAtom, [{ timeMs: 1000 }, { timeMs: 2000 }]],
+				[playerAtom, player],
 			]);
 
 			render(<Header />, { wrapper });
 
-			expect(store.get(atoms.entriesAtom).map((e) => e.timeMs)).toEqual([
-				1000, 2000,
-			]);
+			expect(store.get(entriesAtom).map((e) => e.timeMs)).toEqual([1000, 2000]);
 
 			await user.click(screen.getByRole("button", { name: "Actions" }));
 
@@ -246,9 +230,9 @@ describe("Header", () => {
 				await screen.findByRole("menuitem", { name: "Clear entries" }),
 			);
 
-			expect(
-				store.get(atoms.entriesAtom).map(serializeEntryFrom(store)),
-			).toEqual([{ count: 0, note: "Start", timeMs: 0 }]);
+			expect(store.get(entriesAtom).map(serializeEntryFrom(store))).toEqual([
+				{ count: 0, note: "Start", timeMs: 0 },
+			]);
 		});
 	});
 });

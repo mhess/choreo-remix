@@ -1,6 +1,7 @@
-import { type createStore, type WritableAtom, Provider } from "jotai";
-import { useHydrateAtoms } from "jotai/utils";
+import { createTheme, MantineProvider } from "@mantine/core";
+import { type WritableAtom, createStore, Provider } from "jotai";
 import type { PropsWithChildren } from "react";
+import { beforeEach } from "vitest";
 import { type Platform, atomsForPlatformAtom, platformAtom } from "~/lib/atoms";
 import { entryAtomsForPlatformAtom } from "~/lib/entries";
 
@@ -8,34 +9,42 @@ import { entryAtomsForPlatformAtom } from "~/lib/entries";
 
 // biome-ignore lint/suspicious/noExplicitAny: Need to allow any
 type AnyWritableAtom = WritableAtom<unknown, any[], unknown>;
-type InitialAtomValues = Array<readonly [AnyWritableAtom, unknown]>;
+type AtomsAndValues = Array<readonly [AnyWritableAtom, unknown]>;
 
 type Props = PropsWithChildren<{
-	initialValues?: InitialAtomValues;
+	initialValues?: AtomsAndValues;
 	store?: Store;
 }>;
 
-const HydrateAtoms = ({ initialValues = [], children }: Props) => {
-	useHydrateAtoms(initialValues);
-
-	return children;
-};
-
 export type Store = ReturnType<typeof createStore>;
 
-export const AtomsProvider = ({ initialValues, children, store }: Props) => (
-	<Provider store={store}>
-		<HydrateAtoms initialValues={initialValues}>{children}</HydrateAtoms>
-	</Provider>
-);
+export const withStore = () => {
+	let store: Store;
 
-export const atomsFrom = (store: Store, platform: Platform) => {
-	store.set(platformAtom, platform);
-	const platformAtoms = store.get(atomsForPlatformAtom);
-	const entryAtoms = store.get(entryAtomsForPlatformAtom);
-	return { ...platformAtoms, ...entryAtoms };
-};
+	beforeEach(() => {
+		store = createStore();
+	});
 
-export const setStoreValues = (store: Store, pairs: InitialAtomValues) => {
-	for (const [atom, value] of pairs) store.set(atom, value);
+	const wrapper = ({ children }: PropsWithChildren) => (
+		<Provider store={store}>
+			<MantineProvider theme={createTheme({})}>{children}</MantineProvider>
+		</Provider>
+	);
+
+	const setPlatform = (platform: Platform) => store.set(platformAtom, platform);
+
+	const getAtoms = (platform?: Platform) => {
+		platform && setPlatform(platform);
+		const platformAtoms = store.get(atomsForPlatformAtom);
+		const entryAtoms = store.get(entryAtomsForPlatformAtom);
+		return { ...platformAtoms, ...entryAtoms };
+	};
+
+	const setAtoms = (pairs: AtomsAndValues) => {
+		for (const [atom, value] of pairs) store.set(atom, value);
+	};
+
+	const getStore = () => store;
+
+	return { setPlatform, getAtoms, setAtoms, getStore, wrapper };
 };

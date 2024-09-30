@@ -1,29 +1,24 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { act, render, screen } from "@testing-library/react";
-import { createTheme, MantineProvider } from "@mantine/core";
 import userEvent from "@testing-library/user-event";
 import type { UserEvent } from "@testing-library/user-event";
-import { createStore } from "jotai";
 
 import type { AtomicEntry } from "~/lib/entries";
 
 import Entry from "./Entry";
 import classes from "./Entry.module.css";
 
-import {
-	atomsFrom,
-	AtomsProvider,
-	setStoreValues,
-	type Store,
-} from "testUtils";
+import { withStore } from "testUtils";
 import type { PlatformPlayer } from "~/lib/player";
 
 describe("Entry", () => {
 	let user: UserEvent;
 	let player: PlatformPlayer;
-	let store: Store;
-	let atoms: ReturnType<typeof atomsFrom>;
 	let entry: AtomicEntry;
+
+	const { wrapper: Wrapper, getAtoms, setAtoms, getStore } = withStore();
+
+	let atoms: ReturnType<typeof getAtoms>;
 
 	const initialEntry = {
 		timeMs: 12340,
@@ -35,27 +30,24 @@ describe("Entry", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 
-		store = createStore();
 		user = userEvent.setup();
 
 		player = { seekTo: vi.fn() } as unknown as PlatformPlayer;
 
-		atoms = atomsFrom(store, "spotify");
+		atoms = getAtoms("spotify");
 
-		setStoreValues(store, [
+		setAtoms([
 			[atoms.playerAtom, player],
 			[atoms.entriesAtom, [initialEntry]],
 		]);
 
-		entry = store.get(atoms.entriesAtom)[0];
+		entry = getStore().get(atoms.entriesAtom)[0];
 	});
 
 	const wrapper = ({ children }: React.PropsWithChildren) => (
-		<AtomsProvider store={store}>
-			<MantineProvider theme={createTheme({})}>
-				<div role="table">{children}</div>
-			</MantineProvider>
-		</AtomsProvider>
+		<Wrapper>
+			<div role="table">{children}</div>
+		</Wrapper>
 	);
 
 	it("It displays the correct count, timestamp, and note", () => {
@@ -75,7 +67,7 @@ describe("Entry", () => {
 
 		expect(screen.getByRole("row")).not.toHaveClass(classes.highlight);
 
-		await act(() => store.set(entry.isCurrentAtom, true));
+		await act(() => setAtoms([[entry.isCurrentAtom, true]]));
 
 		expect(screen.getByRole("row")).toHaveClass(classes.highlight);
 	});
@@ -112,7 +104,8 @@ describe("Entry", () => {
 	});
 
 	it("When the delete button is clicked it writes to the correct atom", async () => {
-		store.set(atoms.entriesAtom, [initialEntry, { timeMs: 23450 }]);
+		setAtoms([[atoms.entriesAtom, [initialEntry, { timeMs: 23450 }]]]);
+		const store = getStore();
 
 		render(<Entry entry={entry} />, { wrapper });
 
