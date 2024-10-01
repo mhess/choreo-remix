@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import { useAtom } from "jotai";
-import { useLocation } from "@remix-run/react";
 
 import { platformAtom } from "~/lib/atoms";
 import { SPOTIFY_TOKEN_PARAM } from "~/lib/spotify";
@@ -26,10 +25,11 @@ export default function PlatformRouter() {
 }
 
 const useSpotifyTokenForPlatform = () => {
-	const location = useLocation();
 	const [platform, setPlatform] = useAtom(platformAtom);
 
-	const token = new URLSearchParams(location.search).get(SPOTIFY_TOKEN_PARAM);
+	const token = new URLSearchParams(window.location.search).get(
+		SPOTIFY_TOKEN_PARAM,
+	);
 
 	useEffect(() => {
 		if (!token) return;

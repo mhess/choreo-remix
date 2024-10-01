@@ -1,4 +1,4 @@
-import breakpoints from './app/breakpoints.js';
+import breakpoints from './breakpoints.js';
 
 export default {
   plugins: {

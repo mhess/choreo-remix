@@ -1,5 +1,4 @@
 import { Center, Stack, Text } from "@mantine/core";
-import { Link } from "@remix-run/react";
 
 import { SpotifyPlayerStatus, useSpotifyPlayer } from "~/lib/spotify";
 
@@ -13,8 +12,8 @@ export default function SpotifyEditor({ token }: { token: string | null }) {
 		return (
 			<Center h="100%">
 				<Text>
-					Please <Link to="auth/login">log&nbsp;in</Link> to your spotify
-					premium account.
+					Please <a href="/auth/login">log&nbsp;in</a> to your spotify premium
+					account.
 				</Text>
 			</Center>
 		);
@@ -30,8 +29,8 @@ export default function SpotifyEditor({ token }: { token: string | null }) {
 
 const TryAgain = ({ message }: { message: string }) => (
 	<Text>
-		{message} Would you like to try to <Link to="auth/login">log&nbsp;in</Link>{" "}
-		to Spotify again?
+		{message} Would you like to try to <a href="/auth/login">log&nbsp;in</a> to
+		Spotify again?
 	</Text>
 );
 

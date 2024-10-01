@@ -8,7 +8,7 @@ import type { AtomicEntry } from "~/lib/entries";
 import Entry from "./Entry";
 import classes from "./Entry.module.css";
 
-import { withStore } from "testUtils";
+import { withStore } from "~/test/utils";
 import type { PlatformPlayer } from "~/lib/player";
 
 describe("Entry", () => {

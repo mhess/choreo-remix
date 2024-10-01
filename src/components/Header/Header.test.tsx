@@ -9,7 +9,7 @@ import {
 } from "vitest";
 import { render, screen } from "@testing-library/react";
 
-import { withStore, type Store } from "testUtils";
+import { withStore, type Store } from "~/test/utils";
 import type { PlatformPlayer } from "~/lib/player";
 import { SPOTIFY_TOKEN_PARAM, spotifyTokenAtom } from "~/lib/spotify";
 import type { AtomicEntry } from "~/lib/entries";

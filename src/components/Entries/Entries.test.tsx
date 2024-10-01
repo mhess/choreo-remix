@@ -14,7 +14,7 @@ import { useAtom } from "jotai";
 
 import type { AtomicEntry } from "~/lib/entries";
 import type { PlatformPlayer } from "~/lib/player";
-import { withStore } from "testUtils";
+import { withStore } from "~/test/utils";
 
 import Entries from "./Entries";
 import Help from "./Help";

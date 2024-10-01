@@ -2,13 +2,13 @@ import { Flex, Text, Title, Stack, Group, Button } from "@mantine/core";
 import { useAtom } from "jotai";
 
 import { platformAtom } from "~/lib/atoms";
-import thmClasses from "~/theme.module.css";
+import appClasses from "~/App.module.css";
 
 import { AudioFile, Spotify, YouTube } from "./Logos";
 
 import classes from "./Landing.module.css";
 
-const btnClasses = `${classes.btn} ${thmClasses.outlineBtn}`;
+const btnClasses = `${classes.btn} ${appClasses.outlineBtn}`;
 
 export default function Landing() {
 	const [, selectPlatform] = useAtom(platformAtom);

@@ -60,6 +60,10 @@ const getYouTubePlayer = async (
 	setStatus: (status: YouTubePlayerStatus) => void,
 ): Promise<YouTubePlayer> => {
 	if (!document.getElementById(YT_SCRIPT_ID)) {
+		const $player = document.createElement("div");
+		$player.id = YT_PLAYER_EL_ID;
+		document.body.appendChild($player);
+
 		const $script = document.createElement("script");
 		$script.id = YT_SCRIPT_ID;
 		$script.src = "https://www.youtube.com/iframe_api";
