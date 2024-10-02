@@ -2,7 +2,7 @@ import { atom, useAtom, type PrimitiveAtom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { useEffect } from "react";
 
-import { getPlatformAtoms, PlatformPlayer } from "./player";
+import { getPlatformAtoms, PlatformPlayer } from "~/lib/player";
 
 declare global {
 	interface Window {

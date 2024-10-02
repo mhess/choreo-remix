@@ -3,7 +3,7 @@ import { atom, useAtom } from "jotai";
 import type { Atom, Getter, PrimitiveAtom, Setter, WritableAtom } from "jotai";
 import { useLayoutEffect } from "react";
 
-import { platformAtom, platforms, type Platform } from "~/lib/atoms";
+import { platformAtom, platforms, type Platform } from "~/lib/platformAtoms";
 
 export type Entry = {
 	count: number;

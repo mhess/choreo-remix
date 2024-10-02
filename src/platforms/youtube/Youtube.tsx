@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { type PropsWithChildren, useState } from "react";
 import {
 	Box,
 	Button,
@@ -16,14 +16,13 @@ import {
 	extractVideoIdFromUrl,
 	useYouTubePlayer,
 	YouTubePlayerStatus,
-} from "~/lib/youtube";
+} from "./internals";
 
-import Entries from "./Entries";
+import CenteredLoading from "~/components/CenteredLoading";
 
-import classes from "./YouTubeEditor.module.css";
-import CenteredLoading from "./CenteredLoading";
+import classes from "./YouTube.module.css";
 
-export default function YouTubeEditor() {
+export default function YouTubeEditor({ children }: PropsWithChildren) {
 	const { status, setStatus, setVideoId } = useYouTubePlayer();
 
 	const handleRetry = () => {
@@ -48,7 +47,7 @@ export default function YouTubeEditor() {
 		case YouTubePlayerStatus.BUFFERING:
 			return <CenteredLoading message="Waiting for video to load" />;
 		case YouTubePlayerStatus.READY:
-			return <Entries />;
+			return children;
 		default:
 			return <Center mt="2rem">Oops! Something went wrong!</Center>;
 	}

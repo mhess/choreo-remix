@@ -1,7 +1,7 @@
 import { Button, Group, Menu } from "@mantine/core";
 import { useAtom } from "jotai";
 
-import { platformAtom } from "~/lib/atoms";
+import { platformAtom } from "~/lib/platformAtoms";
 
 import PlatformItems, {
 	logoByPlatform,

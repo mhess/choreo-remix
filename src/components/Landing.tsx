@@ -1,7 +1,7 @@
 import { Flex, Text, Title, Stack, Group, Button } from "@mantine/core";
 import { useAtom } from "jotai";
 
-import { platformAtom } from "~/lib/atoms";
+import { platformAtom } from "~/lib/platformAtoms";
 import appClasses from "~/App.module.css";
 
 import { AudioFile, Spotify, YouTube } from "./Logos";

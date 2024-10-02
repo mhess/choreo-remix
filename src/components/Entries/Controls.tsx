@@ -13,12 +13,14 @@ import {
 
 import type { OnTickCallback } from "~/lib/player";
 import { displayMs, useMobileBreakpoint } from "~/lib/utils";
-import { playerPausedAtom, useEstablishedPlayer } from "~/lib/atoms";
+import { playerPausedAtom, useEstablishedPlayer } from "~/lib/platformAtoms";
 import { entryAtomsForPlatformAtom } from "~/lib/entries";
 
 import TooltipWithClick from "~/components/TooltipWithClick";
 
 import classes from "./Controls.module.css";
+
+type Help = { isShowing: boolean; toggle: () => void };
 
 export default function Controls({ help }: { help: Help }) {
 	const isMobile = useMobileBreakpoint();

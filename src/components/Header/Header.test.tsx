@@ -12,7 +12,7 @@ import { render, screen } from "@testing-library/react";
 import { spotifyTokenParam } from "~/../shared";
 import { withStore, type Store } from "~/test/utils";
 import type { PlatformPlayer } from "~/lib/player";
-import { spotifyTokenAtom } from "~/lib/spotify";
+import { spotifyTokenAtom } from "~/platforms/spotify";
 import type { AtomicEntry } from "~/lib/entries";
 
 import userEvent, { type UserEvent } from "@testing-library/user-event";

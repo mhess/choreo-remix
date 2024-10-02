@@ -9,14 +9,14 @@ import { useAtom } from "jotai";
 import { IconMoon, IconSun } from "@tabler/icons-react";
 
 import { useMobileBreakpoint } from "~/lib/utils";
-import { platformAtom, playerAtom, trackNameAtom } from "~/lib/atoms";
-import { spotifyAuthAtom } from "~/lib/spotify";
-import { videoIdAtom } from "~/lib/youtube";
+import { platformAtom, playerAtom, trackNameAtom } from "~/lib/platformAtoms";
+import { spotifyAuthAtom } from "~/platforms/spotify";
+import { videoIdAtom } from "~/platforms/youtube";
 
 import PlatformItems from "./PlatformItems";
 
 import classes from "./MenuDropdown.module.css";
-import { audioFileClearFile } from "~/lib/audioFile";
+import { audioFileAtom } from "~/platforms/audioFile";
 import { entryAtomsForPlatformAtom } from "~/lib/entries";
 
 export default function MenuDropdown() {
@@ -26,10 +26,12 @@ export default function MenuDropdown() {
 	const [, clear] = useAtom(clearAtom);
 	const [, saveToCSV] = useAtom(saveToCSVAtom);
 	const [, loadFromCSV] = useAtom(loadFromCSVAtom);
+
 	const [ytVideoId, setYtVideoId] = useAtom(videoIdAtom);
+	const [isSpotifyLoggedIn, logoutSpotify] = useAtom(spotifyAuthAtom);
+	const [, setAudioFile] = useAtom(audioFileAtom);
 
 	const [trackName] = useAtom(trackNameAtom);
-	const [isSpotifyLoggedIn, logoutSpotify] = useAtom(spotifyAuthAtom);
 	const [platform] = useAtom(platformAtom);
 	const [player] = useAtom(playerAtom);
 	const { toggleColorScheme } = useMantineColorScheme();
@@ -77,7 +79,7 @@ export default function MenuDropdown() {
 	);
 
 	const audioFileGroup = player && platform === "audioFile" && (
-		<Menu.Item key="change-file" onClick={audioFileClearFile}>
+		<Menu.Item key="change-file" onClick={() => setAudioFile()}>
 			Change Audio File
 		</Menu.Item>
 	);

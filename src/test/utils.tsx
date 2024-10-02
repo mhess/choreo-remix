@@ -2,7 +2,11 @@ import { createTheme, MantineProvider } from "@mantine/core";
 import { type WritableAtom, createStore, Provider } from "jotai";
 import type { PropsWithChildren } from "react";
 import { beforeEach } from "vitest";
-import { type Platform, atomsForPlatformAtom, platformAtom } from "~/lib/atoms";
+import {
+	type Platform,
+	atomsForPlatformAtom,
+	platformAtom,
+} from "~/lib/platformAtoms";
 import { entryAtomsForPlatformAtom } from "~/lib/entries";
 
 // See https://github.com/pmndrs/jotai/discussions/2650 for more info on the typing here

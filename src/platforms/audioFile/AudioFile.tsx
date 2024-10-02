@@ -1,4 +1,9 @@
-import { useRef, type MutableRefObject, type ChangeEvent } from "react";
+import {
+	useRef,
+	type MutableRefObject,
+	type ChangeEvent,
+	type PropsWithChildren,
+} from "react";
 import {
 	Button,
 	Flex,
@@ -7,12 +12,11 @@ import {
 	useMantineTheme,
 } from "@mantine/core";
 
-import { FilePlayerStatus, useAudioFilePlayer } from "~/lib/audioFile";
+import { FilePlayerStatus, useAudioFilePlayer } from "./internals";
 
-import Entries from "./Entries";
-import CenteredLoading from "./CenteredLoading";
+import CenteredLoading from "~/components/CenteredLoading";
 
-export default function AudioFileEditor() {
+export default function AudioFileEditor({ children }: PropsWithChildren) {
 	const { status, setFile } = useAudioFilePlayer();
 	const scheme = useComputedColorScheme();
 	const theme = useMantineTheme();
@@ -29,7 +33,7 @@ export default function AudioFileEditor() {
 
 	switch (status) {
 		case FilePlayerStatus.READY:
-			return <Entries />;
+			return children;
 		case FilePlayerStatus.LOADING:
 			return <CenteredLoading message="Waiting for data" />;
 		case FilePlayerStatus.NO_FILE:

@@ -2,7 +2,7 @@ import { Menu } from "@mantine/core";
 import { useAtom } from "jotai";
 import type { ReactNode } from "react";
 
-import { type Platform, platformAtom } from "~/lib/atoms";
+import { type Platform, platformAtom } from "~/lib/platformAtoms";
 
 import { AudioFile, Spotify, YouTube } from "../Logos";
 

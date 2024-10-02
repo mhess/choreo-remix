@@ -3,7 +3,7 @@ import { useAtom } from "jotai";
 import { Box, Group, Text } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 
-import { useEstablishedPlayer } from "~/lib/atoms";
+import { useEstablishedPlayer } from "~/lib/platformAtoms";
 import { setOnIndexChangeAtom, useInitializedEntries } from "~/lib/entries";
 
 import Help from "./Help";

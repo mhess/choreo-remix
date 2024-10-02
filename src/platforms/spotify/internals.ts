@@ -5,7 +5,7 @@ import { atomWithStorage } from "jotai/utils";
 import { spotifyTokenParam } from "~/../shared";
 
 import { getFakePlayer } from "./fakePlayer";
-import { PlatformPlayer, getPlatformAtoms } from "../player";
+import { PlatformPlayer, getPlatformAtoms } from "~/lib/player";
 
 export enum SpotifyPlayerStatus {
 	LOGGED_OUT = "loggedOut",

@@ -1,11 +1,13 @@
 import { Center, Stack, Text } from "@mantine/core";
 
-import { SpotifyPlayerStatus, useSpotifyPlayer } from "~/lib/spotify";
+import { SpotifyPlayerStatus, useSpotifyPlayer } from "./internals";
 
-import Entries from "./Entries";
-import Loading from "./Loading";
+import Loading from "~/components/Loading";
 
-export default function SpotifyEditor({ token }: { token: string | null }) {
+export default function SpotifyEditor({
+	token,
+	children,
+}: React.PropsWithChildren<{ token: string | null }>) {
 	const status = useSpotifyPlayer(token);
 
 	if (status === SpotifyPlayerStatus.LOGGED_OUT)
@@ -19,7 +21,7 @@ export default function SpotifyEditor({ token }: { token: string | null }) {
 		);
 
 	return status === SpotifyPlayerStatus.READY ? (
-		<Entries />
+		children
 	) : (
 		<Center mx="1rem" h="100%">
 			{messageByStatus[status]}

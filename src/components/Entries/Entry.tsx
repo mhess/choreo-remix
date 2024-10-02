@@ -12,7 +12,7 @@ import { IconArrowMoveDown } from "@tabler/icons-react";
 import { useDisclosure } from "@mantine/hooks";
 
 import { displayMs } from "~/lib/utils";
-import { useEstablishedPlayer } from "~/lib/atoms";
+import { useEstablishedPlayer } from "~/lib/platformAtoms";
 import { entryAtomsForPlatformAtom, type AtomicEntry } from "~/lib/entries";
 
 import TextInputWithAtom from "~/components/TextInputWithAtom";

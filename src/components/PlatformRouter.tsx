@@ -1,24 +1,37 @@
 import { useEffect } from "react";
 import { useAtom } from "jotai";
 
-import { platformAtom } from "~/lib/atoms";
+import { platformAtom } from "~/lib/platformAtoms";
 import { spotifyTokenParam } from "~/../shared";
 
+import { Spotify } from "~/platforms/spotify";
+import { Youtube } from "~/platforms/youtube";
+import { AudioFile } from "~/platforms/audioFile";
+import Entries from "~/components/Entries";
 import Landing from "./Landing";
-import SpotifyEditor from "./SpotifyEditor";
-import YoutubeEditor from "./YoutubeEditor";
-import AudioFileEditor from "./AudioFileEditor";
 
 export default function PlatformRouter() {
 	const { platform, token } = useSpotifyTokenForPlatform();
 
 	switch (platform) {
 		case "spotify":
-			return <SpotifyEditor token={token} />;
+			return (
+				<Spotify token={token}>
+					<Entries />
+				</Spotify>
+			);
 		case "youtube":
-			return <YoutubeEditor />;
+			return (
+				<Youtube>
+					<Entries />
+				</Youtube>
+			);
 		case "audioFile":
-			return <AudioFileEditor />;
+			return (
+				<AudioFile>
+					<Entries />
+				</AudioFile>
+			);
 		default:
 			return <Landing />;
 	}

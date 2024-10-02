@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-import { extractVideoIdFromUrl } from "./youtube";
+import { extractVideoIdFromUrl } from "./internals";
 
 describe("extractVideoIdFromUrl", () => {
 	it("Returns null with incorrect host", () => {

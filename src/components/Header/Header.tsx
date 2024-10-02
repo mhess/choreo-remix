@@ -19,9 +19,9 @@ import {
 	platformAtom,
 	playerAtom,
 	trackNameAtom,
-} from "~/lib/atoms";
-import { spotifyAuthAtom } from "~/lib/spotify";
-import { videoIdAtom } from "~/lib/youtube";
+} from "~/lib/platformAtoms";
+import { spotifyAuthAtom } from "~/platforms/spotify";
+import { videoIdAtom } from "~/platforms/youtube";
 import { useMobileBreakpoint } from "~/lib/utils";
 
 import TooltipWithClick from "~/components/TooltipWithClick";
