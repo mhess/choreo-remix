@@ -1,13 +1,13 @@
-import breakpoints from './breakpoints.js';
+import { breakpoints } from "./shared.js";
 
 export default {
-  plugins: {
-    autoprefixer: {},
-    'postcss-preset-mantine': {},
-    'postcss-simple-vars': {
-      variables: {
-        'mobile-breakpoint': breakpoints.mobile,
-      },
-    },
-  },
-}
+	plugins: {
+		autoprefixer: {},
+		"postcss-preset-mantine": {},
+		"postcss-simple-vars": {
+			variables: {
+				"mobile-breakpoint": breakpoints.mobile,
+			},
+		},
+	},
+};

@@ -62,6 +62,7 @@ const getYouTubePlayer = async (
 	if (!document.getElementById(YT_SCRIPT_ID)) {
 		const $player = document.createElement("div");
 		$player.id = YT_PLAYER_EL_ID;
+		$player.style.display = "none";
 		document.body.appendChild($player);
 
 		const $script = document.createElement("script");

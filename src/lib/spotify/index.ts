@@ -2,6 +2,8 @@ import { useEffect } from "react";
 import { atom, useAtom, type PrimitiveAtom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 
+import { spotifyTokenParam } from "~/../shared";
+
 import { getFakePlayer } from "./fakePlayer";
 import { PlatformPlayer, getPlatformAtoms } from "../player";
 
@@ -16,10 +18,8 @@ export enum SpotifyPlayerStatus {
 	READY = "ready",
 }
 
-export const SPOTIFY_TOKEN_PARAM = "spotifyToken";
-
 export const spotifyTokenAtom = atomWithStorage<string | null>(
-	SPOTIFY_TOKEN_PARAM,
+	spotifyTokenParam,
 	null,
 );
 

@@ -1,4 +1,4 @@
-import { SPOTIFY_TOKEN_PARAM } from "../src/lib/spotify";
+import { spotifyTokenParam } from "../shared";
 import { Buffer } from "node:buffer";
 
 export const config = { runtime: "edge" };
@@ -20,15 +20,13 @@ export default async (request: Request) => {
 	const url = new URL(request.url);
 	const protocolAndHost = `${url.protocol}//${url.host}`;
 
-	console.log(url.pathname);
-
 	switch (url.pathname) {
 		case "/api/login":
 			return login(protocolAndHost);
 		case "/api/callback":
 			return await callback(protocolAndHost, url);
 		default:
-			return new Response(null, { status: 404 });
+			return new Response(`Unknown path ${url.pathname}`, { status: 404 });
 	}
 };
 
@@ -76,7 +74,9 @@ const callback = async (protocolAndHost: string, url: URL) => {
 	});
 
 	if (!resp.ok)
-		return new Response(`Resp status ${resp.status}`, { status: 404 });
+		return new Response(`Account token resp status ${resp.status}`, {
+			status: 404,
+		});
 
 	const { access_token: token } = (await resp.json()) as {
 		access_token: string;
@@ -86,6 +86,6 @@ const callback = async (protocolAndHost: string, url: URL) => {
 
 	return new Response(null, {
 		status: 302,
-		headers: { Location: `/?${SPOTIFY_TOKEN_PARAM}=${token}` },
+		headers: { Location: `/?${spotifyTokenParam}=${token}` },
 	});
 };

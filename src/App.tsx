@@ -5,7 +5,7 @@ import "@mantine/core/styles.css";
 
 import classes from "./App.module.css";
 
-import breakpoints from "../breakpoints";
+import { breakpoints } from "../shared";
 import store from "~/lib/stateStore";
 
 import PlatformRouter from "~/components/PlatformRouter";

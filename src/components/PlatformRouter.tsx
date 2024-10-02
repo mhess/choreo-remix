@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useAtom } from "jotai";
 
 import { platformAtom } from "~/lib/atoms";
-import { SPOTIFY_TOKEN_PARAM } from "~/lib/spotify";
+import { spotifyTokenParam } from "~/../shared";
 
 import Landing from "./Landing";
 import SpotifyEditor from "./SpotifyEditor";
@@ -28,7 +28,7 @@ const useSpotifyTokenForPlatform = () => {
 	const [platform, setPlatform] = useAtom(platformAtom);
 
 	const token = new URLSearchParams(window.location.search).get(
-		SPOTIFY_TOKEN_PARAM,
+		spotifyTokenParam,
 	);
 
 	useEffect(() => {
@@ -37,7 +37,7 @@ const useSpotifyTokenForPlatform = () => {
 		setPlatform("spotify");
 
 		const newUrl = new URL(window.location.href);
-		newUrl.searchParams.delete(SPOTIFY_TOKEN_PARAM);
+		newUrl.searchParams.delete(spotifyTokenParam);
 		window.history.replaceState(null, "", newUrl);
 	}, [token, setPlatform]);
 

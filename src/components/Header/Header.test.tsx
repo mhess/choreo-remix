@@ -9,9 +9,10 @@ import {
 } from "vitest";
 import { render, screen } from "@testing-library/react";
 
+import { spotifyTokenParam } from "~/../shared";
 import { withStore, type Store } from "~/test/utils";
 import type { PlatformPlayer } from "~/lib/player";
-import { SPOTIFY_TOKEN_PARAM, spotifyTokenAtom } from "~/lib/spotify";
+import { spotifyTokenAtom } from "~/lib/spotify";
 import type { AtomicEntry } from "~/lib/entries";
 
 import userEvent, { type UserEvent } from "@testing-library/user-event";
@@ -61,7 +62,7 @@ describe("Header", () => {
 				screen.queryByRole("button", { name: "Actions" }),
 			).not.toBeInTheDocument();
 
-			expect(localStorage.getItem(SPOTIFY_TOKEN_PARAM)).toBe("null");
+			expect(localStorage.getItem(spotifyTokenParam)).toBe("null");
 		});
 
 		it('Renders a "load entries" button when player is present', async () => {
