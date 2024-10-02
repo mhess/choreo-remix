@@ -9,7 +9,7 @@
   --timestamp-width: 5.5rem;
 }
 
-:root, body {
+:root, body, #root {
   font-family: Arial, Helvetica, sans-serif;
   height: 100%;
 }
@@ -17,5 +17,4 @@
 #root {
   display: flex;
   flex-direction: column;
-  height: 100%;
 }
