@@ -12,7 +12,7 @@ export default function SpotifyEditor({ token }: { token: string | null }) {
 		return (
 			<Center h="100%">
 				<Text>
-					Please <a href="/auth/login">log&nbsp;in</a> to your spotify premium
+					Please <a href="/api/login">log&nbsp;in</a> to your spotify premium
 					account.
 				</Text>
 			</Center>
@@ -29,7 +29,7 @@ export default function SpotifyEditor({ token }: { token: string | null }) {
 
 const TryAgain = ({ message }: { message: string }) => (
 	<Text>
-		{message} Would you like to try to <a href="/auth/login">log&nbsp;in</a> to
+		{message} Would you like to try to <a href="/api/login">log&nbsp;in</a> to
 		Spotify again?
 	</Text>
 );
