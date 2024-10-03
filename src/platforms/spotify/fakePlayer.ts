@@ -1,80 +1,110 @@
-type ListenerMap = {
-	ready?: Spotify.PlaybackInstanceListener[];
-	not_ready?: Spotify.PlaybackInstanceListener[];
-	autoplay_failed?: Spotify.EmptyListener[];
-	player_state_changed?: Spotify.PlaybackStateListener[];
-} & { [key in Spotify.ErrorTypes]?: Spotify.ErrorListener[] };
+// biome-ignore lint/suspicious/noExplicitAny: necessary
+type ListenerFunction = (...args: any[]) => void;
 
-// Used for rapid development
-export const getFakePlayer = () => {
-	const listeners = {} as ListenerMap;
+class EventEmitter {
+	_listeners: Record<string, ListenerFunction[]>;
 
-	let playStarted = 0;
-	let currentState: Spotify.PlaybackState = {
-		paused: true,
-		position: 0,
-		track_window: {
-			current_track: {
-				name: "Track Name! That is Really Really Long",
-				artists: [{ name: "First Artist" }],
+	constructor() {
+		this._listeners = {};
+	}
+
+	on(event: string, listener: ListenerFunction) {
+		if (!this._listeners[event]) {
+			this._listeners[event] = [];
+		}
+		this._listeners[event].push(listener);
+		return () => this.off(event, listener); // Return a function to unsubscribe
+	}
+
+	addListener(...args: Parameters<EventEmitter["on"]>) {
+		return this.on(...args);
+	}
+
+	off(event: string, listener?: ListenerFunction) {
+		if (this._listeners[event]) {
+			if (listener)
+				this._listeners[event] = this._listeners[event].filter(
+					(l) => l !== listener,
+				);
+			else delete this._listeners[event];
+		}
+	}
+
+	removeListener(...args: Parameters<EventEmitter["off"]>) {
+		this.off(...args);
+	}
+
+	emit(event: string, ...args: Parameters<ListenerFunction>) {
+		if (this._listeners[event]) {
+			for (const cb of this._listeners[event]) cb(...args);
+		}
+	}
+}
+
+export class FakeSpotifyPlayer extends EventEmitter {
+	_currentState: Spotify.PlaybackState | null;
+	_playStarted = 0;
+	init: Spotify.PlayerInit;
+
+	constructor(init: Spotify.PlayerInit) {
+		super();
+		this.init = init;
+		this._currentState = null;
+	}
+
+	_setPlayerReady() {
+		this._currentState = {
+			paused: true,
+			position: 0,
+			track_window: {
+				current_track: {
+					name: "Track Name! That is Really Really Long",
+					artists: [{ name: "First Artist" }],
+				},
 			},
-		},
-	} as Spotify.PlaybackState;
+		} as Spotify.PlaybackState;
+		this.emit("player_state_changed", this._currentState);
+	}
 
-	const invokeStateListeners = () => {
-		const callbacks = listeners.player_state_changed;
-		if (callbacks) for (const cb of callbacks) cb(currentState);
-	};
+	async pause() {
+		if (!this._currentState) throw "Player is not ready";
+		if (this._currentState.paused) return;
+		this._currentState = {
+			...this._currentState,
+			paused: true,
+			position: Date.now() - this._playStarted,
+		};
+		this.emit("player_state_changed", this._currentState);
+	}
 
-	return {
-		async pause() {
-			if (currentState.paused) return;
-			currentState.paused = true;
-			currentState.position = Date.now() - playStarted;
-			invokeStateListeners();
-		},
-		async resume() {
-			const { paused, position } = currentState;
-			if (!paused) return;
-			playStarted = Date.now() - position;
-			currentState.paused = false;
-			invokeStateListeners();
-		},
-		async connect() {
-			return true;
-		},
-		async getCurrentState() {
-			const { paused, position } = currentState;
-			const stateWithPosition = {
-				...currentState,
-				position: paused ? position : Date.now() - playStarted,
-			};
-			return stateWithPosition;
-		},
-		async seek(ms: number) {
-			const bounded = ms < 0 ? 0 : ms;
-			playStarted = Date.now() - bounded;
-			currentState = { ...currentState, position: bounded };
-		},
-		async togglePlay() {
-			const { paused } = currentState;
-			return this[paused ? "resume" : "pause"]();
-		},
-		addListener(eventName, callback) {
-			const callbacks = listeners[eventName];
-			if (callbacks) {
-				// @ts-ignore
-				callbacks.push(callback);
-				// @ts-ignore
-			} else listeners[eventName] = [callback];
-		},
-		removeListener(eventName, callback?) {
-			const callbacks = listeners[eventName];
-			if (!callbacks) return;
-			if (callback) {
-				const index = callbacks.findIndex((cb) => cb === callback);
-				if (index > -1) callbacks.splice(index, 1);
-			} else delete listeners[eventName];
-		},
-	} as Spotify.Player;
-};
+	async resume() {
+		if (!this._currentState) throw "Player is not ready";
+		const { paused, position } = this._currentState;
+		if (!paused) return;
+		this._playStarted = Date.now() - position;
+		this._currentState = { ...this._currentState, paused: false };
+		this.emit("player_state_changed", this._currentState);
+	}
+
+	async connect() {
+		this._setPlayerReady();
+		return true;
+	}
+
+	async getCurrentState() {
+		if (!this._currentState) return this._currentState;
+		const { paused, position } = this._currentState;
+		const stateWithPosition = {
+			...this._currentState,
+			position: paused ? position : Date.now() - this._playStarted,
+		};
+		return stateWithPosition;
+	}
+
+	async seek(ms: number) {
+		if (!this._currentState) throw "Player is not ready";
+		const bounded = ms < 0 ? 0 : ms;
+		this._playStarted = Date.now() - bounded;
+		this._currentState = { ...this._currentState, position: bounded };
+	}
+}

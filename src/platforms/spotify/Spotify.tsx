@@ -4,7 +4,7 @@ import { SpotifyPlayerStatus, useSpotifyPlayer } from "./internals";
 
 import Loading from "~/components/Loading";
 
-export default function SpotifyEditor({
+export default function Spotify({
 	token,
 	children,
 }: React.PropsWithChildren<{ token: string | null }>) {
@@ -67,7 +67,7 @@ const messageByStatus: Record<
 		<TryAgain message="There was an error with playback." />
 	),
 	[SpotifyPlayerStatus.INIT_ERROR]: (
-		<TryAgain message="Initialization Failed." />
+		<TryAgain message="Initialization failed." />
 	),
 	[SpotifyPlayerStatus.ACCT_ERROR]: (
 		<TryAgain message="There was a problem with your account. Spotify requires a premium account for application access." />

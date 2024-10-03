@@ -15,11 +15,6 @@ import { entryAtomsForPlatformAtom } from "~/lib/entries";
 type AnyWritableAtom = WritableAtom<unknown, any[], unknown>;
 type AtomsAndValues = Array<readonly [AnyWritableAtom, unknown]>;
 
-type Props = PropsWithChildren<{
-	initialValues?: AtomsAndValues;
-	store?: Store;
-}>;
-
 export type Store = ReturnType<typeof createStore>;
 
 export const withStore = () => {

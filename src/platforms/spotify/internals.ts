@@ -4,7 +4,7 @@ import { atomWithStorage } from "jotai/utils";
 
 import { spotifyTokenParam } from "~/../shared";
 
-import { getFakePlayer } from "./fakePlayer";
+import { FakeSpotifyPlayer } from "./fakePlayer";
 import { PlatformPlayer, getPlatformAtoms } from "~/lib/player";
 
 export enum SpotifyPlayerStatus {
@@ -68,55 +68,19 @@ export const atoms = getPlatformAtoms({
 	},
 });
 
-// This variable is needed because the root component gets mounted/unmounted
-// which can cause multiple player instances to get initialized if the data is
-// only stored in React state.
-let tokenAndPromise: {
-	token: string;
-	promise: Promise<SpotifyPlayer> | undefined;
-};
-
 export const useSpotifyPlayer = (tokenFromParams: string | null) => {
 	const [token, setToken] = useAtom(spotifyTokenAtom);
-	const [player, setPlayer] = useAtom(playerAtom);
+	const [, setPlayer] = useAtom(playerAtom);
 	const [status, setStatus] = useAtom(statusAtom);
 	const [, setState] = useAtom(writePlayerStateAtom);
 
 	useEffect(() => {
-		if (tokenFromParams) setToken(tokenFromParams);
-
-		if (!token) {
-			if (!tokenFromParams) setStatus(SpotifyPlayerStatus.LOGGED_OUT);
-			return;
-		}
-
-		// Use the player from the Window if it has a correct token
-		if (player && player.authToken === token) {
-			const promise = Promise.resolve(player);
-			tokenAndPromise = { token, promise };
-		} else if (
-			!tokenAndPromise ||
-			token !== tokenAndPromise.token ||
-			!tokenAndPromise.promise
-		) {
-			// In this case the window.spotifyPlayer would have a differnet token.
-			player?.spPlayer.disconnect();
-			const promise =
-				token === "fake"
-					? Promise.resolve(
-							new SpotifyPlayer({
-								player: getFakePlayer(),
-								token,
-								setState,
-								setStatus,
-							}),
-						)
-					: getSpotifyPlayer(token, setState, setStatus);
-			tokenAndPromise = { token, promise };
-		}
-
-		tokenAndPromise.promise?.then(setPlayer);
-	}, [token]);
+		if (token) return;
+		if (tokenFromParams) {
+			setToken(tokenFromParams);
+			getSpotifyPlayer(tokenFromParams, setState, setStatus).then(setPlayer);
+		} else setStatus(SpotifyPlayerStatus.LOGGED_OUT);
+	}, [token, tokenFromParams, setStatus, setToken, setPlayer, setState]);
 
 	return status;
 };
@@ -137,14 +101,18 @@ const getSpotifyPlayer = async (
 
 	return new Promise((resolve) => {
 		window.onSpotifyWebPlaybackSDKReady = async () => {
-			const player = new Spotify.Player({
+			const PlayerClass = (
+				token === "fake" ? FakeSpotifyPlayer : Spotify.Player
+			) as typeof Spotify.Player;
+
+			const player = new PlayerClass({
 				name: "Choreo Player",
 				getOAuthToken: (cb) => cb(token),
 				volume: 0.5,
 			});
 
 			player.addListener("playback_error", (obj) => {
-				console.log(`playback error ${JSON.stringify(obj)}`);
+				console.error(`playback error ${JSON.stringify(obj)}`);
 				setStatus(SpotifyPlayerStatus.PLAYBACK_ERROR);
 			});
 			player.addListener("initialization_error", () =>
@@ -160,7 +128,7 @@ const getSpotifyPlayer = async (
 				setStatus(SpotifyPlayerStatus.NOT_CONNECTED),
 			);
 
-			resolve(new SpotifyPlayer({ player, token, setState, setStatus }));
+			resolve(new SpotifyPlayer(player, token, setState, setStatus));
 		};
 	});
 };
@@ -169,17 +137,12 @@ class SpotifyPlayer extends PlatformPlayer {
 	spPlayer: Spotify.Player;
 	authToken: string;
 
-	constructor({
-		player,
-		token,
-		setState,
-		setStatus,
-	}: {
-		player: Spotify.Player;
-		token: string;
-		setState: (state: Spotify.PlaybackState | null) => void;
-		setStatus: (status: SpotifyPlayerStatus) => void;
-	}) {
+	constructor(
+		player: Spotify.Player,
+		token: string,
+		setState: (state: Spotify.PlaybackState | null) => void,
+		setStatus: (status: SpotifyPlayerStatus) => void,
+	) {
 		super();
 
 		this.spPlayer = player;
@@ -196,7 +159,7 @@ class SpotifyPlayer extends PlatformPlayer {
 				setStatus(
 					state ? SpotifyPlayerStatus.READY : SpotifyPlayerStatus.NOT_CONNECTED,
 				);
-				this._onPlaybackChange(!!state?.paused);
+				this._onPlaybackChange(state ? state.paused : true);
 			};
 
 			player.getCurrentState().then(onStateChange);
