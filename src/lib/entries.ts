@@ -46,7 +46,7 @@ export const useInitializedEntries = () => {
 
 	useLayoutEffect(() => {
 		initializeEntries();
-	}, []);
+	}, [initializeEntries]);
 
 	return entryAtoms;
 };

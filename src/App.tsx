@@ -6,7 +6,6 @@ import "@mantine/core/styles.css";
 import classes from "./App.module.css";
 
 import { breakpoints } from "../shared";
-import store from "~/lib/stateStore";
 
 import PlatformRouter from "~/components/PlatformRouter";
 import Header from "~/components/Header";
@@ -38,7 +37,7 @@ const theme = createTheme({
 export default function App() {
 	return (
 		<MantineProvider theme={theme}>
-			<JotaiProvider store={store}>
+			<JotaiProvider>
 				<Header />
 				<PlatformRouter />
 			</JotaiProvider>
