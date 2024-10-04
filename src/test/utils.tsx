@@ -32,8 +32,8 @@ export const withStore = () => {
 
 	const setPlatform = (platform: Platform) => store.set(platformAtom, platform);
 
-	const getAtoms = (platform?: Platform) => {
-		platform && setPlatform(platform);
+	const getAtoms = (platform: Platform) => {
+		setPlatform(platform);
 		const platformAtoms = store.get(atomsForPlatformAtom);
 		const entryAtoms = store.get(entryAtomsForPlatformAtom);
 		return { ...platformAtoms, ...entryAtoms };

@@ -12,11 +12,12 @@ import { act, render, screen, within } from "@testing-library/react";
 
 import { withStore } from "~/test/utils";
 import { FakeSpotifyPlayer } from "./fakePlayer";
+import { PlatformPlayer } from "~/lib/player";
+import { spotifyTokenAtom } from "./internals";
 
 import SpotifyComponent from "./Spotify";
-import { PlatformPlayer } from "~/lib/player";
 
-const noDomChange = (container: HTMLElement, timeout = 500) =>
+const noDomChange = (container: HTMLElement, timeout = 100) =>
 	new Promise<boolean>((resolve) => {
 		const observer = new MutationObserver(() => {
 			resolve(false);
@@ -47,7 +48,7 @@ const expectOnly = (
 	});
 
 describe("Spotify", () => {
-	const { wrapper, getAtoms, getStore } = withStore();
+	const { wrapper, getAtoms, setAtoms, getStore } = withStore();
 	let spotifyPlayer: FakeSpotifyPlayer;
 
 	beforeEach(() => {
@@ -70,6 +71,7 @@ describe("Spotify", () => {
 	afterEach(() => {
 		vi.useRealTimers();
 		vi.restoreAllMocks();
+		localStorage.clear();
 	});
 
 	it("Renders log in screen when not logged in", async () => {
@@ -127,7 +129,7 @@ describe("Spotify", () => {
 		assertElHasFullMsgAndLink(msgEl, msg);
 	});
 
-	const testTryAgainAfterError = async (
+	const testMessageAfterError = async (
 		_: string,
 		msg: string,
 		afterPlayerCreation: () => void,
@@ -188,24 +190,9 @@ describe("Spotify", () => {
 			"Could not authorize access.",
 			() => spotifyPlayer.emit("authentication_error"),
 		],
-	])("%s", testTryAgainAfterError);
+	])("%s", testMessageAfterError);
 
-	it("Renders loading screen, correctly creates player, and renders entries when player is ready", async () => {
-		const { rerender, container } = render(
-			<SpotifyComponent token="testToken">
-				<div data-testid="entries" />
-			</SpotifyComponent>,
-			{ wrapper },
-		);
-
-		expect(screen.getByText("Connecting to Spotify")).toBeInTheDocument();
-
-		rerender(
-			<SpotifyComponent token={null}>
-				<div data-testid="entries" />
-			</SpotifyComponent>,
-		);
-
+	const testEntriesRenderedAndPlayer = async (container: HTMLElement) => {
 		expect(screen.getByText("Connecting to Spotify")).toBeInTheDocument();
 
 		expect(screen.queryByTestId("entries")).not.toBeInTheDocument();
@@ -295,5 +282,68 @@ describe("Spotify", () => {
 
 		expect(tickMock).toHaveBeenCalledTimes(3);
 		expect(tickMock).toHaveBeenLastCalledWith(1000);
+	};
+
+	it("Renders loading screens, entries, and creates player with token from params", async () => {
+		localStorage.clear();
+		const { rerender, container } = render(
+			<SpotifyComponent token="testToken">
+				<div data-testid="entries" />
+			</SpotifyComponent>,
+			{ wrapper },
+		);
+
+		expect(screen.getByText("Connecting to Spotify")).toBeInTheDocument();
+
+		rerender(
+			<SpotifyComponent token={null}>
+				<div data-testid="entries" />
+			</SpotifyComponent>,
+		);
+
+		await testEntriesRenderedAndPlayer(container);
+	});
+
+	it("Renders loading screens, entries, and creates player with token from localStorage", async () => {
+		setAtoms([[spotifyTokenAtom, "testToken"]]);
+
+		const { container } = render(
+			<SpotifyComponent token={null}>
+				<div data-testid="entries" />
+			</SpotifyComponent>,
+			{ wrapper },
+		);
+
+		await testEntriesRenderedAndPlayer(container);
+	});
+
+	it("Only creates a single player after remounting", async () => {
+		setAtoms([[spotifyTokenAtom, "testToken"]]);
+
+		const { unmount } = render(
+			<SpotifyComponent token={null}>
+				<div data-testid="entries" />
+			</SpotifyComponent>,
+			{ wrapper },
+		);
+
+		unmount();
+
+		const { container } = render(
+			<SpotifyComponent token={null}>
+				<div data-testid="entries" />
+			</SpotifyComponent>,
+			{ wrapper },
+		);
+
+		window.onSpotifyWebPlaybackSDKReady();
+
+		await expectOnly(container, () =>
+			screen.getByText(
+				`Please connect to the "Choreo Player" device in the Spotify player.`,
+			),
+		);
+
+		expect(Spotify.Player).toHaveBeenCalledOnce();
 	});
 });

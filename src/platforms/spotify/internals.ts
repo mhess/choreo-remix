@@ -70,15 +70,15 @@ export const atoms = getPlatformAtoms({
 
 export const useSpotifyPlayer = (tokenFromParams: string | null) => {
 	const [token, setToken] = useAtom(spotifyTokenAtom);
-	const [, setPlayer] = useAtom(playerAtom);
+	const [player, setPlayer] = useAtom(playerAtom);
 	const [status, setStatus] = useAtom(statusAtom);
 	const [, setState] = useAtom(writePlayerStateAtom);
 
 	useEffect(() => {
-		if (token) return;
-		if (tokenFromParams) {
-			setToken(tokenFromParams);
-			getSpotifyPlayer(tokenFromParams, setState, setStatus).then(setPlayer);
+		if (tokenFromParams) setToken(tokenFromParams);
+		else if (token) {
+			if (player?.authToken === token) return;
+			getSpotifyPlayer(token, setState, setStatus).then(setPlayer);
 		} else setStatus(SpotifyPlayerStatus.LOGGED_OUT);
 	}, [token, tokenFromParams, setStatus, setToken, setPlayer, setState]);
 
@@ -127,6 +127,8 @@ const getSpotifyPlayer = async (
 			player.addListener("ready", () =>
 				setStatus(SpotifyPlayerStatus.NOT_CONNECTED),
 			);
+
+			await new Promise((res) => setTimeout(res, 500));
 
 			resolve(new SpotifyPlayer(player, token, setState, setStatus));
 		};

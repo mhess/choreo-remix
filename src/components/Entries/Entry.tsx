@@ -80,6 +80,7 @@ export default function Entry({ entry }: { entry: AtomicEntry }) {
 								className={classes.fillBtn}
 								viewBox="2 4 20 16"
 								role="button"
+								aria-label="Fill in the rest of entry counts"
 								onClick={openFillModal}
 							/>
 						</Tooltip>

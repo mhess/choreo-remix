@@ -43,8 +43,6 @@ describe("Entries", () => {
 
 	const { wrapper, getAtoms, setAtoms } = withStore();
 
-	let atoms: ReturnType<typeof getAtoms>;
-
 	beforeEach(() => {
 		vi.clearAllMocks();
 
@@ -58,8 +56,8 @@ describe("Entries", () => {
 			removeOnTick: vi.fn(),
 		} as unknown as PlatformPlayer;
 
-		atoms = getAtoms("spotify");
-		setAtoms([[atoms.playerAtom, player]]);
+		const { playerAtom } = getAtoms("spotify");
+		setAtoms([[playerAtom, player]]);
 	});
 
 	const getEntryValues = () =>
@@ -94,6 +92,7 @@ describe("Entries", () => {
 	});
 
 	it("Renders the controls which control playback", async () => {
+		const { pausedAtom } = getAtoms("spotify");
 		render(<Entries />, { wrapper });
 
 		const controlsRegion = screen.getByRole("toolbar", { name: "Controls" });
@@ -110,7 +109,7 @@ describe("Entries", () => {
 
 		expect(player.play).toHaveBeenCalledOnce();
 
-		await act(() => setAtoms([[atoms.pausedAtom, false]]));
+		await act(() => setAtoms([[pausedAtom, false]]));
 
 		expect(
 			inControls.getByRole("button", { name: "Pause" }),
@@ -139,8 +138,9 @@ describe("Entries", () => {
 	});
 
 	it("Highlights the current entry and updates the time display as the player is ticking", async () => {
+		const { entriesAtom } = getAtoms("spotify");
 		setAtoms([
-			[atoms.entriesAtom, [{ timeMs: 0 }, { timeMs: 1000 }, { timeMs: 2000 }]],
+			[entriesAtom, [{ timeMs: 0 }, { timeMs: 1000 }, { timeMs: 2000 }]],
 		]);
 		render(<Entries />, { wrapper });
 
@@ -192,9 +192,8 @@ describe("Entries", () => {
 	});
 
 	it("Fills in new count if previous two entries have counts", async () => {
-		setAtoms([
-			[atoms.entriesAtom, [{ timeMs: 0 }, { timeMs: 1000, count: 4 }]],
-		]);
+		const { entriesAtom } = getAtoms("spotify");
+		setAtoms([[entriesAtom, [{ timeMs: 0 }, { timeMs: 1000, count: 4 }]]]);
 
 		(player.getCurrentTime as Mock).mockReturnValue(Promise.resolve(1492));
 
@@ -258,4 +257,6 @@ describe("Entries", () => {
 			'Unable to find role="tooltip" and name `/^First time/`',
 		);
 	});
+
+	it.todo("Fills in counts of remaining entries after clicking fill button");
 });
