@@ -1,5 +1,6 @@
 import { useMantineTheme } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
+import { createContext, useContext } from "react";
 
 export const displayMs = (totalMs: number) => {
 	const ms = (totalMs % 1000).toString().slice(0, 2).padStart(2, "0");
@@ -8,12 +9,6 @@ export const displayMs = (totalMs: number) => {
 	const seconds = (totalSeconds % 60).toString().padStart(2, "0");
 
 	return `${minutes}:${seconds}.${ms}`;
-};
-
-export const useMobileBreakpoint = () => {
-	const { mobile } = useMantineTheme().breakpoints;
-
-	return useMediaQuery(`(max-width: ${mobile})`);
 };
 
 // biome-ignore lint/suspicious/noExplicitAny: need to be able to use any
@@ -25,3 +20,18 @@ export const debounced = (fn: (...rest: any[]) => void, timeMs: number) => {
 		timeoutId = window.setTimeout(() => fn(...args), timeMs);
 	};
 };
+
+export const IsMobileContext = createContext(false);
+
+export const BreakpointProvider = ({ children }: React.PropsWithChildren) => {
+	const { mobile } = useMantineTheme().breakpoints;
+	const isMobile = !!useMediaQuery(`(max-width: ${mobile})`);
+
+	return (
+		<IsMobileContext.Provider value={isMobile}>
+			{children}
+		</IsMobileContext.Provider>
+	);
+};
+
+export const useIsMobile = () => useContext(IsMobileContext);

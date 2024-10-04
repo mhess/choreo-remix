@@ -8,7 +8,7 @@ import {
 import { useAtom } from "jotai";
 import { IconMoon, IconSun } from "@tabler/icons-react";
 
-import { useMobileBreakpoint } from "~/lib/utils";
+import { useIsMobile } from "~/lib/utils";
 import { platformAtom, playerAtom, trackNameAtom } from "~/lib/platformAtoms";
 import { spotifyAuthAtom } from "~/platforms/spotify";
 import { videoIdAtom } from "~/platforms/youtube";
@@ -36,7 +36,7 @@ export default function MenuDropdown() {
 	const [player] = useAtom(playerAtom);
 	const { toggleColorScheme } = useMantineColorScheme();
 	const isLight = useComputedColorScheme() === "light";
-	const isMobile = useMobileBreakpoint();
+	const isMobile = useIsMobile();
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	const handleSaveCSV = () => {

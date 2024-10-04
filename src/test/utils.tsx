@@ -8,6 +8,7 @@ import {
 	platformAtom,
 } from "~/lib/platformAtoms";
 import { entryAtomsForPlatformAtom } from "~/lib/entries";
+import { IsMobileContext } from "~/lib/utils";
 
 // See https://github.com/pmndrs/jotai/discussions/2650 for more info on the typing here
 
@@ -24,10 +25,15 @@ export const withStore = () => {
 		store = createStore();
 	});
 
-	const wrapper = ({ children }: PropsWithChildren) => (
-		<Provider store={store}>
-			<MantineProvider theme={createTheme({})}>{children}</MantineProvider>
-		</Provider>
+	const wrapper = ({
+		children,
+		isMobile = false,
+	}: PropsWithChildren<{ isMobile?: boolean }>) => (
+		<IsMobileContext.Provider value={isMobile}>
+			<Provider store={store}>
+				<MantineProvider theme={createTheme({})}>{children}</MantineProvider>
+			</Provider>
+		</IsMobileContext.Provider>
 	);
 
 	const setPlatform = (platform: Platform) => store.set(platformAtom, platform);

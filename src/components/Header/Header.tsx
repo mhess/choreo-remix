@@ -22,7 +22,7 @@ import {
 } from "~/lib/platformAtoms";
 import { spotifyAuthAtom } from "~/platforms/spotify";
 import { videoIdAtom } from "~/platforms/youtube";
-import { useMobileBreakpoint } from "~/lib/utils";
+import { useIsMobile } from "~/lib/utils";
 
 import TooltipWithClick from "~/components/TooltipWithClick";
 import SelectPlatformButton from "./SelectPlatformButton";
@@ -35,7 +35,7 @@ export default function Header() {
 	const [ytVideoId] = useAtom(videoIdAtom);
 	const [isLoggedIn] = useAtom(spotifyAuthAtom);
 	const [player] = useAtom(playerAtom);
-	const isMobile = useMobileBreakpoint();
+	const isMobile = useIsMobile();
 
 	const isSpotify = platform === "spotify";
 	const shouldShowActions =

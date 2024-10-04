@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Container, Stack, Text, Box } from "@mantine/core";
 import { IconCornerLeftUp, IconPlaylistAdd } from "@tabler/icons-react";
 
-import { useMobileBreakpoint } from "~/lib/utils";
+import { useIsMobile } from "~/lib/utils";
 
 import classes from "./Help.module.css";
 
@@ -24,7 +24,7 @@ export default function Help({
 	scrollerRef,
 	containerRef,
 }: { scrollerRef: ElementRef; containerRef: ElementRef }) {
-	const isMobile = useMobileBreakpoint();
+	const isMobile = useIsMobile();
 	const [entryHeight, setEntryHeight] = useState(0);
 
 	useEffect(() => {
@@ -32,7 +32,7 @@ export default function Help({
 		const { lastChild } = containerRef.current;
 		$scroller.scrollTo(0, lastChild.offsetTop);
 		setEntryHeight(lastChild?.clientHeight || 0);
-	}, []);
+	}, [scrollerRef.current, containerRef.current]);
 
 	return (
 		<Stack className={classes.help} h={`calc(100% - ${entryHeight}px)`}>

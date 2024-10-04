@@ -12,7 +12,7 @@ import {
 } from "@tabler/icons-react";
 
 import type { OnTickCallback } from "~/lib/player";
-import { displayMs, useMobileBreakpoint } from "~/lib/utils";
+import { displayMs, useIsMobile } from "~/lib/utils";
 import { playerPausedAtom, useEstablishedPlayer } from "~/lib/platformAtoms";
 import { entryAtomsForPlatformAtom } from "~/lib/entries";
 
@@ -23,7 +23,7 @@ import classes from "./Controls.module.css";
 type Help = { isShowing: boolean; toggle: () => void };
 
 export default function Controls({ help }: { help: Help }) {
-	const isMobile = useMobileBreakpoint();
+	const isMobile = useIsMobile();
 	const [{ addAtom }] = useAtom(entryAtomsForPlatformAtom);
 	const [, addEntry] = useAtom(addAtom);
 	const player = useEstablishedPlayer();
@@ -114,7 +114,7 @@ const HelpButton = ({ help }: { help: Help }) => {
 };
 
 const PlaybackButtons = (props: PolymorphicComponentProps<"div", BoxProps>) => {
-	const isMobile = useMobileBreakpoint();
+	const isMobile = useIsMobile();
 	const player = useEstablishedPlayer();
 	const [paused] = useAtom(playerPausedAtom);
 

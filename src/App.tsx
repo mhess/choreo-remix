@@ -5,6 +5,7 @@ import "@mantine/core/styles.css";
 
 import classes from "./App.module.css";
 
+import { BreakpointProvider } from "~/lib/utils";
 import { breakpoints } from "../shared";
 
 import PlatformRouter from "~/components/PlatformRouter";
@@ -38,8 +39,10 @@ export default function App() {
 	return (
 		<MantineProvider theme={theme}>
 			<JotaiProvider>
-				<Header />
-				<PlatformRouter />
+				<BreakpointProvider>
+					<Header />
+					<PlatformRouter />
+				</BreakpointProvider>
 			</JotaiProvider>
 		</MantineProvider>
 	);
