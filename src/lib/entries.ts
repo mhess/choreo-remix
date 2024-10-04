@@ -58,7 +58,7 @@ export const entryAtomsForPlatformAtom = atom(
 	(get) => entryAtomsByPlatform[get(platformAtom)],
 );
 
-const createPlatformEntryAtoms = () => {
+const createPlatformEntryAtoms = (): PlatformEntryAtoms => {
 	type EntryByTime = Record<number, AtomicEntry>;
 
 	const entryByTimeAtom = atom<EntryByTime>() as WritableAtom<
@@ -193,7 +193,6 @@ const createPlatformEntryAtoms = () => {
 		currentIndexAtom,
 		saveToCSVAtom,
 		loadFromCSVAtom,
-		makeAtomicEntry,
 	};
 };
 

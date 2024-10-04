@@ -44,7 +44,10 @@ export default function Entry({ entry }: { entry: AtomicEntry }) {
 			className={`${classes.entry}${isCurrent ? ` ${classes.highlight}` : ""}`}
 		>
 			<Modal
-				aria-label="Fill in the rest?"
+				title="Fill in the rest?"
+				styles={{
+					title: { fontSize: "var(--mantine-font-size-xl)", fontWeight: 700 },
+				}}
 				opened={opened}
 				onClose={closeFillModal}
 				withCloseButton={false}
@@ -53,7 +56,7 @@ export default function Entry({ entry }: { entry: AtomicEntry }) {
 				<Stack>
 					<Text>
 						Do you want to use the count of this entry and the previous entry to
-						fill in the rest?
+						fill in the rest of the counts?
 					</Text>
 					<Group justify="right" gap="xs">
 						{/* TODO: Maybe use app purple color? */}
