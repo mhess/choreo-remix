@@ -60,7 +60,7 @@ describe("Entries", () => {
 		setAtoms([[playerAtom, player]]);
 	});
 
-	const getEntryValues = () =>
+	const getRenderedEntryValues = () =>
 		screen
 			.getAllByTestId("entry")
 			.map((e) => JSON.parse(e.textContent as string));
@@ -82,7 +82,7 @@ describe("Entries", () => {
 			expect(headers[index]).toHaveTextContent(title),
 		);
 
-		expect(getEntryValues()).toEqual([
+		expect(getRenderedEntryValues()).toEqual([
 			{
 				timeMs: 0,
 				count: 0,
@@ -173,11 +173,23 @@ describe("Entries", () => {
 	it("Adds a new entry correctly", async () => {
 		render(<Entries />, { wrapper });
 
+		(player.getCurrentTime as Mock).mockReturnValue(Promise.resolve(0));
+
+		await user.click(screen.getByRole("button", { name: "Add Entry" }));
+
+		expect(getRenderedEntryValues()).toEqual([
+			{
+				count: 0,
+				isCurrent: true,
+				timeMs: 0,
+			},
+		]);
+
 		(player.getCurrentTime as Mock).mockReturnValue(Promise.resolve(1234));
 
 		await user.click(screen.getByRole("button", { name: "Add Entry" }));
 
-		expect(getEntryValues()).toEqual([
+		expect(getRenderedEntryValues()).toEqual([
 			{
 				count: 0,
 				isCurrent: false,
@@ -201,7 +213,7 @@ describe("Entries", () => {
 
 		await user.click(screen.getByRole("button", { name: "Add Entry" }));
 
-		expect(getEntryValues()).toEqual([
+		expect(getRenderedEntryValues()).toEqual([
 			{
 				count: 0,
 				isCurrent: false,
@@ -257,6 +269,4 @@ describe("Entries", () => {
 			'Unable to find role="tooltip" and name `/^First time/`',
 		);
 	});
-
-	it.todo("Fills in counts of remaining entries after clicking fill button");
 });

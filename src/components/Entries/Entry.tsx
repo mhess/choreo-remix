@@ -19,7 +19,10 @@ import TextInputWithAtom from "~/components/TextInputWithAtom";
 
 import classes from "./Entry.module.css";
 
-export default function Entry({ entry }: { entry: AtomicEntry }) {
+export default function Entry({
+	entry,
+	index,
+}: { entry: AtomicEntry; index: number }) {
 	const player = useEstablishedPlayer();
 	const [opened, { open: openFillModal, close: closeFillModal }] =
 		useDisclosure();
@@ -112,7 +115,7 @@ export default function Entry({ entry }: { entry: AtomicEntry }) {
 			/>
 			<CloseButton
 				aria-label="Delete Entry"
-				onClick={() => removeEntry(timeMs)}
+				onClick={() => removeEntry(index)}
 			/>
 		</Group>
 	);

@@ -36,7 +36,7 @@ export default function Entries() {
 			player.removeOnTick(setCurrentIndexForTime);
 			player.pause();
 		};
-	}, [player]);
+	}, [player, setCallback, setCurrentIndexForTime]);
 
 	return (
 		<>
@@ -50,8 +50,8 @@ export default function Entries() {
 			>
 				{!isHelpOpen && <EntryHeader />}
 				<Box ref={containerRef}>
-					{entries.map((entry) => (
-						<Entry key={entry.timeMs} entry={entry} />
+					{entries.map((entry, index) => (
+						<Entry key={entry.timeMs} entry={entry} index={index} />
 					))}
 				</Box>
 				{isHelpOpen && (

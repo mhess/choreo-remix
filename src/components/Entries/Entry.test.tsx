@@ -48,21 +48,18 @@ describe("Entry", () => {
 	const getEntryValues = () => {
 		const store = getStore();
 
-		return store.get(atoms.entriesAtom).map((e) =>
-			(
-				["countAtom", "countFillAtom", "timeMs"] as (keyof AtomicEntry)[]
-			).reduce(
+		return store.get(atoms.entriesAtom).map((atomicEntry) => {
+			const { timeMs, ...rest } = atomicEntry;
+			return (Object.getOwnPropertyNames(rest) as (keyof AtomicEntry)[]).reduce(
 				(values, atomName) => {
-					if (atomName === "timeMs") values[atomName] = e[atomName];
-					else
-						values[atomName.slice(0, -4)] = store.get(
-							e[atomName] as Atom<boolean | number>,
-						);
+					values[atomName.slice(0, -4)] = store.get(
+						atomicEntry[atomName] as Atom<boolean | number>,
+					);
 					return values;
 				},
-				{} as Record<string, boolean | number>,
-			),
-		);
+				{ timeMs } as Record<string, boolean | number>,
+			);
+		});
 	};
 
 	const wrapper = ({ children }: React.PropsWithChildren) => (
@@ -72,7 +69,7 @@ describe("Entry", () => {
 	);
 
 	it("It displays the correct count, timestamp, and note", () => {
-		render(<Entry entry={entry} />, { wrapper });
+		render(<Entry entry={entry} index={0} />, { wrapper });
 
 		expect(screen.getByLabelText("count")).toHaveValue("5");
 
@@ -90,7 +87,7 @@ describe("Entry", () => {
 	});
 
 	it("Is highlighted when current", async () => {
-		render(<Entry entry={entry} />, { wrapper });
+		render(<Entry entry={entry} index={0} />, { wrapper });
 
 		expect(screen.getByRole("row")).not.toHaveClass(classes.highlight);
 
@@ -99,8 +96,8 @@ describe("Entry", () => {
 		expect(screen.getByRole("row")).toHaveClass(classes.highlight);
 	});
 
-	it("Shows the new count when the count is modified", async () => {
-		render(<Entry entry={entry} />, { wrapper });
+	it("Correctly modifies the count", async () => {
+		render(<Entry entry={entry} index={0} />, { wrapper });
 
 		const countInput = screen.getByLabelText("count");
 
@@ -108,10 +105,19 @@ describe("Entry", () => {
 		await user.type(countInput, "10");
 
 		expect(countInput).toHaveValue("10");
+		expect(getEntryValues()).toEqual([
+			{
+				count: 10,
+				countFill: false,
+				isCurrent: false,
+				note: "Note",
+				timeMs: 12340,
+			},
+		]);
 	});
 
 	it("Seeks player to correct time when timestamp is clicked", async () => {
-		render(<Entry entry={entry} />, { wrapper });
+		render(<Entry entry={entry} index={0} />, { wrapper });
 
 		await user.click(screen.getByRole("button", { name: "Seek to 0:12.34" }));
 
@@ -119,8 +125,8 @@ describe("Entry", () => {
 		expect(player.seekTo).toHaveBeenCalledWith(12340);
 	});
 
-	it("Shows the new note when the note is modified", async () => {
-		render(<Entry entry={entry} />, { wrapper });
+	it("Correctly modifies the note", async () => {
+		render(<Entry entry={entry} index={0} />, { wrapper });
 
 		const newValue = "New note";
 		const noteInput = screen.getByLabelText("note");
@@ -128,33 +134,98 @@ describe("Entry", () => {
 		await user.type(noteInput, newValue);
 
 		expect(noteInput).toHaveValue(newValue);
+
+		expect(getEntryValues()).toEqual([
+			{
+				count: 5,
+				countFill: false,
+				isCurrent: false,
+				note: "New note",
+				timeMs: 12340,
+			},
+		]);
 	});
 
-	it("Writes to the correct atom when the delete button is clicked", async () => {
-		setAtoms([[atoms.entriesAtom, [initialEntry, { timeMs: 23450 }]]]);
+	it("Updates entries when the delete button is clicked", async () => {
+		setAtoms([
+			[
+				atoms.entriesAtom,
+				[{ timeMs: 0 }, initialEntry, { timeMs: 23450 }, { timeMs: 30000 }],
+			],
+		]);
 		const store = getStore();
 
-		render(<Entry entry={entry} />, { wrapper });
+		render(<Entry entry={entry} index={1} />, { wrapper });
 
-		expect(store.get(atoms.entriesAtom).map((e) => e.timeMs)).toEqual([
-			12340, 23450,
+		expect(getEntryValues()).toEqual([
+			{
+				count: 0,
+				countFill: false,
+				isCurrent: false,
+				note: "",
+				timeMs: 0,
+			},
+			{
+				count: 5,
+				countFill: false,
+				isCurrent: false,
+				note: "Note",
+				timeMs: 12340,
+			},
+			{
+				count: 0,
+				countFill: false,
+				isCurrent: false,
+				note: "",
+				timeMs: 23450,
+			},
+			{
+				count: 0,
+				countFill: false,
+				isCurrent: false,
+				note: "",
+				timeMs: 30000,
+			},
 		]);
 
 		await user.click(screen.getByRole("button", { name: "Delete Entry" }));
 
-		expect(store.get(atoms.entriesAtom).map((e) => e.timeMs)).toEqual([23450]);
+		expect(getEntryValues()).toEqual([
+			{
+				count: 0,
+				countFill: false,
+				isCurrent: false,
+				note: "",
+				timeMs: 0,
+			},
+			{
+				count: 0,
+				countFill: false,
+				isCurrent: false,
+				note: "",
+				timeMs: 23450,
+			},
+			{
+				count: 0,
+				countFill: false,
+				isCurrent: false,
+				note: "",
+				timeMs: 30000,
+			},
+		]);
 	});
 
 	it("Renders count fill button when the count for current and previous entry are filled", async () => {
+		const entryIndex = 1;
 		setAtoms([
 			[
 				atoms.entriesAtom,
 				[{ timeMs: 0, count: 1 }, { timeMs: 995, count: 0 }, { timeMs: 2020 }],
 			],
 		]);
-		const entry = getStore().get(atoms.entriesAtom)[1];
+		const entry = getStore().get(atoms.entriesAtom)[entryIndex];
 
-		render(<Entry entry={entry} />, { wrapper });
+		render(<Entry entry={entry} index={entryIndex} />, { wrapper });
 
 		expect(
 			screen.queryByRole("button", {
@@ -179,16 +250,22 @@ describe("Entry", () => {
 		expect(getEntryValues()).toEqual([
 			{
 				count: 1,
+				note: "",
+				isCurrent: false,
 				countFill: false,
 				timeMs: 0,
 			},
 			{
 				count: 2,
+				note: "",
+				isCurrent: false,
 				countFill: true,
 				timeMs: 995,
 			},
 			{
 				count: 0,
+				note: "",
+				isCurrent: false,
 				countFill: false,
 				timeMs: 2020,
 			},
@@ -215,17 +292,23 @@ describe("Entry", () => {
 		expect(getEntryValues()).toEqual([
 			{
 				count: 1,
+				note: "",
 				countFill: false,
+				isCurrent: false,
 				timeMs: 0,
 			},
 			{
 				count: 2,
+				note: "",
 				countFill: false,
+				isCurrent: false,
 				timeMs: 995,
 			},
 			{
 				count: 3,
+				note: "",
 				countFill: false,
+				isCurrent: false,
 				timeMs: 2020,
 			},
 		]);
