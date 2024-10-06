@@ -175,7 +175,7 @@ export const useYouTubePlayer = () => {
 		if (!window.ytPlayerPromise)
 			window.ytPlayerPromise = getYouTubePlayer(setPaused, setStatus);
 		window.ytPlayerPromise.then(setPlayer);
-	}, [setPlayer]);
+	}, [setPlayer, setPaused, setStatus]);
 
 	useEffect(() => {
 		if (videoId && player) {
