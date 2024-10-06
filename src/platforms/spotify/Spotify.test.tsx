@@ -14,6 +14,7 @@ import { withStore } from "~/test/utils";
 import { FakeSpotifyPlayer } from "./fakePlayer";
 import { PlatformPlayer } from "~/lib/player";
 import { spotifyTokenAtom } from "./internals";
+import { spotifyTokenParam } from "~/../shared";
 
 import SpotifyComponent from "./Spotify";
 
@@ -299,6 +300,10 @@ describe("Spotify", () => {
 			<SpotifyComponent token={null}>
 				<div data-testid="entries" />
 			</SpotifyComponent>,
+		);
+
+		expect(localStorage.getItem(spotifyTokenParam)).toEqual(
+			JSON.stringify("testToken"),
 		);
 
 		await testEntriesRenderedAndPlayer(container);
