@@ -31,8 +31,6 @@ type PlatformEntryAtoms = {
 	loadFromCSVAtom: WritableAtom<null, [File], Promise<void>>;
 };
 
-type WritableBoolAtom = WritableAtom<boolean, [boolean], void>;
-
 type ScrollCallback = (currentIndex: number) => void;
 
 // Function is wrapped in array here bc jotai doesn't support functions as values
@@ -193,7 +191,7 @@ const createPlatformEntryAtoms = (platform: Platform): PlatformEntryAtoms => {
 	};
 };
 
-type EntryInput = Partial<Omit<Entry, "timeMs">> & {
+export type EntryInput = Partial<Omit<Entry, "timeMs">> & {
 	timeMs: number;
 	isCurrent?: boolean;
 };
@@ -201,7 +199,7 @@ type EntryInput = Partial<Omit<Entry, "timeMs">> & {
 const getAtomicEntryMaker =
 	(
 		entriesAtom: Atom<AtomicEntry[]>,
-		currentCountFillAtom: PrimitiveAtom<CountFillAtom>,
+		currentCountFillAtomAtom: PrimitiveAtom<CountFillAtom>,
 	) =>
 	(entry: EntryInput, index: number): AtomicEntry => {
 		const countSrcAtom = atom(entry.count || 0);
@@ -213,9 +211,9 @@ const getAtomicEntryMaker =
 
 				if (getDoCountsAlign(get, entriesAtom, index)) return;
 
-				set(get(currentCountFillAtom) as WritableBoolAtom, false);
+				set(get(currentCountFillAtomAtom), false);
 				set(countFillAtom, true);
-				set(currentCountFillAtom, countFillAtom);
+				set(currentCountFillAtomAtom, countFillAtom);
 			},
 		);
 

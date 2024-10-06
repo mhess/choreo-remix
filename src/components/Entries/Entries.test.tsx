@@ -159,6 +159,11 @@ describe("Entries", () => {
 		expect(getHighlights()).toEqual([true, false, false]);
 		expect(getTimeDisplay()).toHaveTextContent("0:00.00");
 
+		await tickToTime(123);
+
+		expect(getHighlights()).toEqual([true, false, false]);
+		expect(getTimeDisplay()).toHaveTextContent("0:00.12");
+
 		await tickToTime(1500);
 
 		expect(getHighlights()).toEqual([false, true, false]);
@@ -239,8 +244,8 @@ describe("Entries", () => {
 
 		expect(screen.queryByTestId("help")).not.toBeInTheDocument();
 
-		// Using this less efficient query to validate same query used to assert
-		// element not rendered.
+		// Using this less efficient query bc it's the same used to assert element
+		// not rendered.
 		const findTooltip = () =>
 			waitFor(() => screen.getByRole("tooltip", { name: /^First time/ }), {
 				interval: 10,

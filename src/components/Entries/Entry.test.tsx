@@ -4,24 +4,29 @@ import userEvent from "@testing-library/user-event";
 import type { UserEvent } from "@testing-library/user-event";
 import type { Atom } from "jotai";
 
-import type { AtomicEntry } from "~/lib/entries";
+import type { AtomicEntry, EntryInput } from "~/lib/entries";
+import type { Platform } from "~/lib/platformAtoms";
+import { withStore } from "~/test/utils";
+import type { PlatformPlayer } from "~/lib/player";
 
 import Entry from "./Entry";
 import classes from "./Entry.module.css";
 
-import { withStore } from "~/test/utils";
-import type { PlatformPlayer } from "~/lib/player";
-
 describe("Entry", () => {
+	const platform: Platform = "spotify";
 	let user: UserEvent;
-	let player: PlatformPlayer;
-	let entry: AtomicEntry;
 
-	const { wrapper: Wrapper, getAtoms, setAtoms, getStore } = withStore();
+	const {
+		wrapper: Wrapper,
+		getAtoms,
+		setAtoms,
+		getStore,
+		setPlatform,
+	} = withStore();
 
 	let atoms: ReturnType<typeof getAtoms>;
 
-	const initialEntry = {
+	const exampleEntry = {
 		timeMs: 12340,
 		count: 5,
 		note: "Note",
@@ -33,22 +38,14 @@ describe("Entry", () => {
 
 		user = userEvent.setup();
 
-		player = { seekTo: vi.fn() } as unknown as PlatformPlayer;
-
-		atoms = getAtoms("spotify");
-
-		setAtoms([
-			[atoms.playerAtom, player],
-			[atoms.entriesAtom, [initialEntry]],
-		]);
-
-		entry = getStore().get(atoms.entriesAtom)[0];
+		setPlatform(platform);
 	});
 
 	const getEntryValues = () => {
+		const { entriesAtom } = getAtoms(platform);
 		const store = getStore();
 
-		return store.get(atoms.entriesAtom).map((atomicEntry) => {
+		return store.get(entriesAtom).map((atomicEntry) => {
 			const { timeMs, ...rest } = atomicEntry;
 			return (Object.getOwnPropertyNames(rest) as (keyof AtomicEntry)[]).reduce(
 				(values, atomName) => {
@@ -68,8 +65,18 @@ describe("Entry", () => {
 		</Wrapper>
 	);
 
+	const arrange = (entryInputs: EntryInput[], index: number) => {
+		const { entriesAtom } = getAtoms(platform);
+		setAtoms([[entriesAtom, entryInputs]]);
+		const entry = getStore().get(entriesAtom)[index];
+
+		const result = render(<Entry entry={entry} index={index} />, { wrapper });
+
+		return { entry, result };
+	};
+
 	it("It displays the correct count, timestamp, and note", () => {
-		render(<Entry entry={entry} index={0} />, { wrapper });
+		arrange([exampleEntry], 0);
 
 		expect(screen.getByLabelText("count")).toHaveValue("5");
 
@@ -87,7 +94,7 @@ describe("Entry", () => {
 	});
 
 	it("Is highlighted when current", async () => {
-		render(<Entry entry={entry} index={0} />, { wrapper });
+		const { entry } = arrange([exampleEntry], 0);
 
 		expect(screen.getByRole("row")).not.toHaveClass(classes.highlight);
 
@@ -97,7 +104,7 @@ describe("Entry", () => {
 	});
 
 	it("Correctly modifies the count", async () => {
-		render(<Entry entry={entry} index={0} />, { wrapper });
+		arrange([exampleEntry], 0);
 
 		const countInput = screen.getByLabelText("count");
 
@@ -117,7 +124,11 @@ describe("Entry", () => {
 	});
 
 	it("Seeks player to correct time when timestamp is clicked", async () => {
-		render(<Entry entry={entry} index={0} />, { wrapper });
+		const player = { seekTo: vi.fn() } as unknown as PlatformPlayer;
+		const { playerAtom } = getAtoms("spotify");
+		setAtoms([[playerAtom, player]]);
+
+		arrange([exampleEntry], 0);
 
 		await user.click(screen.getByRole("button", { name: "Seek to 0:12.34" }));
 
@@ -126,7 +137,7 @@ describe("Entry", () => {
 	});
 
 	it("Correctly modifies the note", async () => {
-		render(<Entry entry={entry} index={0} />, { wrapper });
+		arrange([exampleEntry], 0);
 
 		const newValue = "New note";
 		const noteInput = screen.getByLabelText("note");
@@ -146,16 +157,11 @@ describe("Entry", () => {
 		]);
 	});
 
-	it("Updates entries when the delete button is clicked", async () => {
-		setAtoms([
-			[
-				atoms.entriesAtom,
-				[{ timeMs: 0 }, initialEntry, { timeMs: 23450 }, { timeMs: 30000 }],
-			],
-		]);
-		const store = getStore();
-
-		render(<Entry entry={entry} index={1} />, { wrapper });
+	it("Updates entries when the remove button is clicked", async () => {
+		arrange(
+			[{ timeMs: 0 }, exampleEntry, { timeMs: 23450 }, { timeMs: 30000 }],
+			1,
+		);
 
 		expect(getEntryValues()).toEqual([
 			{
@@ -215,17 +221,27 @@ describe("Entry", () => {
 		]);
 	});
 
-	it("Renders count fill button when the count for current and previous entry are filled", async () => {
-		const entryIndex = 1;
-		setAtoms([
-			[
-				atoms.entriesAtom,
-				[{ timeMs: 0, count: 1 }, { timeMs: 995, count: 0 }, { timeMs: 2020 }],
-			],
-		]);
-		const entry = getStore().get(atoms.entriesAtom)[entryIndex];
+	it("Replaces entry with initial entry when removing only entry", async () => {
+		arrange([exampleEntry], 0);
 
-		render(<Entry entry={entry} index={entryIndex} />, { wrapper });
+		await user.click(screen.getByRole("button", { name: "Delete Entry" }));
+
+		expect(getEntryValues()).toEqual([
+			{
+				count: 0,
+				countFill: false,
+				isCurrent: true,
+				note: "Start",
+				timeMs: 0,
+			},
+		]);
+	});
+
+	it("Renders count fill button when the count for current and previous entry are filled", async () => {
+		arrange(
+			[{ timeMs: 0, count: 1 }, { timeMs: 995, count: 0 }, { timeMs: 2020 }],
+			1,
+		);
 
 		expect(
 			screen.queryByRole("button", {
