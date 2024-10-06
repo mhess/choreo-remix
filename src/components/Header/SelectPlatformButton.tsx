@@ -14,7 +14,7 @@ export default function SelectPlatformButton() {
 	return (
 		<Menu trigger="hover">
 			<Menu.Target>
-				<Button visibleFrom="mobile" variant="outline">
+				<Button variant="outline">
 					<Group gap="0.25rem">
 						{logoByPlatform[platform]}
 						{labelByPlatform[platform]}

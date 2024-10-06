@@ -83,8 +83,8 @@ export default function Header() {
 				)}
 			</Group>
 			<Group gap="xs">
-				<SelectPlatformButton />
-				<ToggleColorScheme />
+				{!isMobile && <SelectPlatformButton />}
+				{!isMobile && <ToggleColorScheme />}
 				{isMobile && <BurgerMenu />}
 			</Group>
 		</Group>
@@ -133,7 +133,7 @@ const BurgerMenu = () => {
 	return (
 		<Menu onClose={close}>
 			<Menu.Target>
-				<Burger opened={opened} onClick={toggle} />
+				<Burger opened={opened} aria-label="Toggle menu" onClick={toggle} />
 			</Menu.Target>
 			<MenuDropdown />
 		</Menu>
@@ -154,7 +154,7 @@ const ToggleColorScheme = () => {
 	return (
 		<Tooltip label="Toggle light/dark mode" w={173}>
 			<Button
-				visibleFrom="mobile"
+				aria-label="Toggle light/dark mode"
 				variant="outline"
 				onClick={toggleColorScheme}
 			>

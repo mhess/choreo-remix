@@ -74,7 +74,7 @@ export default function MenuDropdown() {
 
 	const spotifyLogoutGroup = isSpotifyLoggedIn && platform === "spotify" && (
 		<Menu.Item key="log-out" onClick={logoutSpotify}>
-			Log Out of Spotify
+			Log out of Spotify
 		</Menu.Item>
 	);
 
@@ -87,7 +87,7 @@ export default function MenuDropdown() {
 	const lightDarkGroup = isMobile && (
 		<Menu.Item key="color-scheme" onClick={toggleColorScheme}>
 			<Group gap="0.25rem">
-				{createElement(isLight ? IconSun : IconMoon, { size: "1.25rem" })}{" "}
+				{createElement(isLight ? IconSun : IconMoon, { size: "1.25rem" })}
 				Toggle light/dark
 			</Group>
 		</Menu.Item>
