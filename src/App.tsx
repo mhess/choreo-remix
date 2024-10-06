@@ -1,5 +1,14 @@
-import { Button, MantineProvider, createTheme } from "@mantine/core";
-import { Provider as JotaiProvider } from "jotai";
+import {
+	Button,
+	Container,
+	MantineProvider,
+	TextInput,
+	Tooltip,
+	createTheme,
+} from "@mantine/core";
+import { createStore, Provider as JotaiProvider } from "jotai";
+import { DevTools } from "jotai-devtools";
+import "jotai-devtools/styles.css";
 
 import "@mantine/core/styles.css";
 
@@ -14,10 +23,10 @@ import Header from "~/components/Header";
 const theme = createTheme({
 	breakpoints,
 	components: {
-		TextInput: {
+		TextInput: TextInput.extend({
 			defaultProps: { size: "xs" },
 			classNames: { input: classes.textInput },
-		},
+		}),
 		Button: Button.extend({
 			defaultProps: { size: "compact-sm", variant: "default" },
 			classNames: (_, props) => {
@@ -30,15 +39,26 @@ const theme = createTheme({
 				return { root, ...classNames };
 			},
 		}),
-		Tooltip: { defaultProps: { withArrow: true } },
-		Container: { defaultProps: { size: "xs" } },
+		Tooltip: Tooltip.extend({ defaultProps: { withArrow: true } }),
+		Container: Container.extend({ defaultProps: { size: "xs" } }),
 	},
 });
+
+const store = createStore();
+
+declare global {
+	interface Window {
+		store: typeof store;
+	}
+}
+
+window.store = store;
 
 export default function App() {
 	return (
 		<MantineProvider theme={theme}>
-			<JotaiProvider>
+			<JotaiProvider store={store}>
+				<DevTools store={store} />
 				<BreakpointProvider>
 					<Header />
 					<PlatformRouter />
