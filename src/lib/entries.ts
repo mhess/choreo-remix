@@ -40,14 +40,14 @@ export const setOnIndexChangeAtom = atom(null, (_, set, cb: ScrollCallback) =>
 );
 
 export const useInitializedEntries = () => {
-	const [entryAtoms] = useAtom(entryAtomsForPlatformAtom);
-	const [, initializeEntries] = useAtom(entryAtoms.entriesAtom);
+	const [platformEntryAtoms] = useAtom(entryAtomsForPlatformAtom);
+	const [, initializeEntries] = useAtom(platformEntryAtoms.entriesAtom);
 
 	useLayoutEffect(() => {
 		initializeEntries();
 	}, [initializeEntries]);
 
-	return entryAtoms;
+	return platformEntryAtoms;
 };
 
 // Can't easily export contained atoms because most are WritableAtom's
@@ -70,6 +70,7 @@ window.atoms = {} as Window["atoms"];
 
 const createPlatformEntryAtoms = (platform: Platform): PlatformEntryAtoms => {
 	const currentCountFillAtomAtom = atom(atom(false) as CountFillAtom);
+	const currentIsCurrentAtomAtom = atom(atom(false) as PrimitiveAtom<boolean>);
 
 	// For debugging
 	window.atoms[platform] = { currentCountFillAtomAtom };
@@ -84,14 +85,14 @@ const createPlatformEntryAtoms = (platform: Platform): PlatformEntryAtoms => {
 	const entriesAtom = atom(
 		(get) => get(entriesSrcAtom),
 		(get, set, entryInputs?: EntryInput[] | false) => {
-			let newInput: EntryInput[];
+			let newInputs: EntryInput[];
 
-			if (!entryInputs) {
+			if (!entryInputs || !entryInputs.length) {
 				if (entryInputs === undefined && get(entriesSrcAtom).length) return;
-				newInput = [{ timeMs: 0, note: "Start", isCurrent: true }];
-			} else newInput = entryInputs;
+				newInputs = [{ timeMs: 0, note: "Start", isCurrent: true }];
+			} else newInputs = entryInputs;
 
-			const newEntries = newInput.map(makeAtomicEntry);
+			const newEntries = newInputs.map(makeAtomicEntry);
 
 			set(entriesSrcAtom, newEntries);
 			set(currentCountFillAtomAtom, newEntries[0].countFillAtom);
@@ -147,21 +148,17 @@ const createPlatformEntryAtoms = (platform: Platform): PlatformEntryAtoms => {
 		null,
 		(get: Getter, set: Setter, timeMs: number) => {
 			const entries = get(entriesAtom);
+			const index = findHighlightIndex(entries, timeMs);
 
-			let foundNext = false;
-			for (let i = entries.length - 1; i > -1; i--) {
-				const entry = entries[i];
-				const entryTime = entry.timeMs;
+			const nextEntry = entries[index];
+			const currentIsCurrentAtom = get(currentIsCurrentAtomAtom);
 
-				if (!foundNext && entryTime <= timeMs) {
-					set(entry.isCurrentAtom, true);
-					const cb = get(onIndexChangeAtom);
-					cb?.[0](i);
-					foundNext = true;
-				} else {
-					set(entry.isCurrentAtom, false);
-				}
-			}
+			if (nextEntry.isCurrentAtom === currentIsCurrentAtom) return;
+
+			(get(onIndexChangeAtom) as [ScrollCallback])[0](index);
+			set(currentIsCurrentAtom, false);
+			set(nextEntry.isCurrentAtom, true);
+			set(currentIsCurrentAtomAtom, nextEntry.isCurrentAtom);
 		},
 	);
 
@@ -272,19 +269,40 @@ const getDoCountsAlign = (
 const findEntryIndex = (
 	entries: { timeMs: number }[],
 	timeMs: number,
-	start = 0,
-	end = -1,
 ): number => {
-	let s = start;
-	let e = end > -1 ? end : entries.length;
+	let s = 0;
+	let e = entries.length;
 
 	while (s !== e) {
 		const pivot = ((e - s) >> 1) + s;
-		if (entries[pivot].timeMs >= timeMs) e = pivot;
+		const pivotTime = entries[pivot].timeMs;
+		if (pivotTime === timeMs) return pivot;
+		if (timeMs < pivotTime) e = pivot;
 		else s = pivot + 1;
 	}
 
 	return s;
+};
+
+const findHighlightIndex = (
+	entries: { timeMs: number }[],
+	timeMs: number,
+): number => {
+	let s = 0;
+	let e = entries.length;
+	const lastIndex = e - 1;
+
+	if (timeMs > entries[lastIndex].timeMs) return lastIndex;
+
+	while (s !== e) {
+		const pivot = ((e - s) >> 1) + s;
+		const pivotTime = entries[pivot]?.timeMs;
+		if (timeMs === pivotTime) return pivot;
+		if (timeMs < pivotTime) e = pivot - 1;
+		else s = pivot;
+	}
+
+	return e;
 };
 
 const guessCountForIndex = (

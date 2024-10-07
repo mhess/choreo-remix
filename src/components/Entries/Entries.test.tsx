@@ -12,7 +12,7 @@ import type { UserEvent } from "@testing-library/user-event";
 import type { Mock } from "vitest";
 import { useAtom } from "jotai";
 
-import type { AtomicEntry } from "~/lib/entries";
+import type { AtomicEntry, EntryInput } from "~/lib/entries";
 import type { PlatformPlayer } from "~/lib/player";
 import { withStore } from "~/test/utils";
 
@@ -20,14 +20,14 @@ import Entries from "./Entries";
 import Help from "./Help";
 
 vi.mock("./Entry", () => ({
-	default: ({ entry }: { entry: AtomicEntry }) => {
+	default: ({ entry, index }: { entry: AtomicEntry; index: number }) => {
 		const { timeMs, isCurrentAtom, countAtom } = entry;
 		const [[isCurrent], [count]] = [isCurrentAtom, countAtom].map((a) =>
 			useAtom(a),
 		);
 		return (
 			<div data-testid="entry">
-				{JSON.stringify({ timeMs, isCurrent, count })}
+				{JSON.stringify({ timeMs, isCurrent, count, index })}
 			</div>
 		);
 	},
@@ -38,6 +38,7 @@ vi.mock("./Help", () => ({
 }));
 
 describe("Entries", () => {
+	const platform = "spotify";
 	let user: UserEvent;
 	let player: PlatformPlayer;
 
@@ -56,7 +57,7 @@ describe("Entries", () => {
 			removeOnTick: vi.fn(),
 		} as unknown as PlatformPlayer;
 
-		const { playerAtom } = getAtoms("spotify");
+		const { playerAtom } = getAtoms(platform);
 		setAtoms([[playerAtom, player]]);
 	});
 
@@ -67,9 +68,17 @@ describe("Entries", () => {
 
 	const tickToTime = (timeMs: number) =>
 		act(async () => {
+			(player.getCurrentTime as Mock).mockReturnValue(Promise.resolve(timeMs));
 			for (const call of (player.addOnTick as Mock).mock.calls)
 				await call[0](timeMs);
 		});
+
+	const arrange = (entryInputs = [] as EntryInput[]) => {
+		const { entriesAtom } = getAtoms(platform);
+		setAtoms([[entriesAtom, entryInputs]]);
+
+		return render(<Entries />, { wrapper });
+	};
 
 	it("Renders the initial entry with column headers", () => {
 		render(<Entries />, { wrapper });
@@ -87,13 +96,14 @@ describe("Entries", () => {
 				timeMs: 0,
 				count: 0,
 				isCurrent: true,
+				index: 0,
 			},
 		]);
 	});
 
 	it("Renders the controls which control playback", async () => {
-		const { pausedAtom } = getAtoms("spotify");
-		render(<Entries />, { wrapper });
+		const { pausedAtom } = getAtoms(platform);
+		arrange();
 
 		const controlsRegion = screen.getByRole("toolbar", { name: "Controls" });
 
@@ -138,11 +148,7 @@ describe("Entries", () => {
 	});
 
 	it("Highlights the current entry and updates the time display as the player is ticking", async () => {
-		const { entriesAtom } = getAtoms("spotify");
-		setAtoms([
-			[entriesAtom, [{ timeMs: 0 }, { timeMs: 1000 }, { timeMs: 2000 }]],
-		]);
-		render(<Entries />, { wrapper });
+		arrange([{ timeMs: 0 }, { timeMs: 1000 }, { timeMs: 2000 }]);
 
 		const getHighlights = () =>
 			screen
@@ -159,15 +165,25 @@ describe("Entries", () => {
 		expect(getHighlights()).toEqual([true, false, false]);
 		expect(getTimeDisplay()).toHaveTextContent("0:00.00");
 
-		await tickToTime(123);
+		await tickToTime(500);
 
 		expect(getHighlights()).toEqual([true, false, false]);
-		expect(getTimeDisplay()).toHaveTextContent("0:00.12");
+		expect(getTimeDisplay()).toHaveTextContent("0:00.50");
+
+		await tickToTime(1000);
+
+		expect(getHighlights()).toEqual([false, true, false]);
+		expect(getTimeDisplay()).toHaveTextContent("0:01.00");
 
 		await tickToTime(1500);
 
 		expect(getHighlights()).toEqual([false, true, false]);
 		expect(getTimeDisplay()).toHaveTextContent("0:01.50");
+
+		await tickToTime(2000);
+
+		expect(getHighlights()).toEqual([false, false, true]);
+		expect(getTimeDisplay()).toHaveTextContent("0:02.00");
 
 		await tickToTime(3500);
 
@@ -176,9 +192,10 @@ describe("Entries", () => {
 	});
 
 	it("Adds a new entry correctly", async () => {
-		render(<Entries />, { wrapper });
+		const initialEntries = [{ timeMs: 0 }, { timeMs: 1000 }, { timeMs: 2000 }];
+		arrange(initialEntries);
 
-		(player.getCurrentTime as Mock).mockReturnValue(Promise.resolve(0));
+		await tickToTime(0);
 
 		await user.click(screen.getByRole("button", { name: "Add Entry" }));
 
@@ -187,10 +204,23 @@ describe("Entries", () => {
 				count: 0,
 				isCurrent: true,
 				timeMs: 0,
+				index: 0,
+			},
+			{
+				count: 0,
+				isCurrent: false,
+				timeMs: 1000,
+				index: 1,
+			},
+			{
+				count: 0,
+				isCurrent: false,
+				timeMs: 2000,
+				index: 2,
 			},
 		]);
 
-		(player.getCurrentTime as Mock).mockReturnValue(Promise.resolve(1234));
+		await tickToTime(500);
 
 		await user.click(screen.getByRole("button", { name: "Add Entry" }));
 
@@ -199,17 +229,125 @@ describe("Entries", () => {
 				count: 0,
 				isCurrent: false,
 				timeMs: 0,
+				index: 0,
 			},
 			{
 				count: 0,
 				isCurrent: true,
-				timeMs: 1234,
+				timeMs: 500,
+				index: 1,
+			},
+			{
+				count: 0,
+				isCurrent: false,
+				timeMs: 1000,
+				index: 2,
+			},
+			{
+				count: 0,
+				isCurrent: false,
+				timeMs: 2000,
+				index: 3,
+			},
+		]);
+
+		const { entriesAtom } = getAtoms(platform);
+		setAtoms([[entriesAtom, initialEntries]]);
+
+		await tickToTime(1000);
+
+		await user.click(screen.getByRole("button", { name: "Add Entry" }));
+
+		expect(getRenderedEntryValues()).toEqual([
+			{
+				count: 0,
+				isCurrent: false,
+				timeMs: 0,
+				index: 0,
+			},
+			{
+				count: 0,
+				isCurrent: true,
+				timeMs: 1000,
+				index: 1,
+			},
+			{
+				count: 0,
+				isCurrent: false,
+				timeMs: 2000,
+				index: 2,
+			},
+		]);
+
+		setAtoms([[entriesAtom, initialEntries]]);
+
+		await tickToTime(1500);
+
+		await user.click(screen.getByRole("button", { name: "Add Entry" }));
+
+		expect(getRenderedEntryValues()).toEqual([
+			{
+				count: 0,
+				isCurrent: false,
+				timeMs: 0,
+				index: 0,
+			},
+			{
+				count: 0,
+				isCurrent: false,
+				timeMs: 1000,
+				index: 1,
+			},
+			{
+				count: 0,
+				isCurrent: true,
+				timeMs: 1500,
+				index: 2,
+			},
+			{
+				count: 0,
+				isCurrent: false,
+				timeMs: 2000,
+				index: 3,
+			},
+		]);
+
+		setAtoms([[entriesAtom, initialEntries]]);
+
+		await tickToTime(3000);
+
+		await user.click(screen.getByRole("button", { name: "Add Entry" }));
+
+		expect(getRenderedEntryValues()).toEqual([
+			{
+				count: 0,
+				isCurrent: false,
+				timeMs: 0,
+				index: 0,
+			},
+			{
+				count: 0,
+				isCurrent: false,
+				timeMs: 1000,
+				index: 1,
+			},
+			{
+				count: 0,
+				isCurrent: false,
+				timeMs: 2000,
+				index: 2,
+			},
+			{
+				count: 0,
+				isCurrent: true,
+				timeMs: 3000,
+				index: 3,
 			},
 		]);
 	});
 
 	it("Fills in new count if previous two entries have counts", async () => {
-		const { entriesAtom } = getAtoms("spotify");
+		const { entriesAtom } = getAtoms(platform);
 		setAtoms([[entriesAtom, [{ timeMs: 0 }, { timeMs: 1000, count: 4 }]]]);
 
 		(player.getCurrentTime as Mock).mockReturnValue(Promise.resolve(1492));
@@ -223,16 +361,19 @@ describe("Entries", () => {
 				count: 0,
 				isCurrent: false,
 				timeMs: 0,
+				index: 0,
 			},
 			{
 				count: 4,
 				isCurrent: false,
 				timeMs: 1000,
+				index: 1,
 			},
 			{
 				count: 6,
 				isCurrent: true,
 				timeMs: 1492,
+				index: 2,
 			},
 		]);
 	});
