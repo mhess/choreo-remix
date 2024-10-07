@@ -115,6 +115,7 @@ export default function Entry({
 			/>
 			<CloseButton
 				aria-label="Delete Entry"
+				disabled={!index}
 				onClick={() => removeEntry(index)}
 			/>
 		</Group>

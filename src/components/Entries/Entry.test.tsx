@@ -160,41 +160,7 @@ describe("Entry", () => {
 	it("Does not allow deleting entry at time 0", async () => {
 		arrange([{ timeMs: 0 }, { timeMs: 1000 }], 0);
 
-		expect(getEntryValues()).toEqual([
-			{
-				count: 0,
-				countFill: false,
-				isCurrent: false,
-				note: "",
-				timeMs: 0,
-			},
-			{
-				count: 0,
-				countFill: false,
-				isCurrent: false,
-				note: "",
-				timeMs: 1000,
-			},
-		]);
-
-		await user.click(screen.getByRole("button", { name: "Delete Entry" }));
-
-		expect(getEntryValues()).toEqual([
-			{
-				count: 0,
-				countFill: false,
-				isCurrent: false,
-				note: "",
-				timeMs: 0,
-			},
-			{
-				count: 0,
-				countFill: false,
-				isCurrent: false,
-				note: "",
-				timeMs: 1000,
-			},
-		]);
+		expect(screen.getByRole("button", { name: "Delete Entry" })).toBeDisabled();
 	});
 
 	it("Updates entries when the delete button is clicked", async () => {
