@@ -157,7 +157,47 @@ describe("Entry", () => {
 		]);
 	});
 
-	it("Updates entries when the remove button is clicked", async () => {
+	it("Does not allow deleting entry at time 0", async () => {
+		arrange([{ timeMs: 0 }, { timeMs: 1000 }], 0);
+
+		expect(getEntryValues()).toEqual([
+			{
+				count: 0,
+				countFill: false,
+				isCurrent: false,
+				note: "",
+				timeMs: 0,
+			},
+			{
+				count: 0,
+				countFill: false,
+				isCurrent: false,
+				note: "",
+				timeMs: 1000,
+			},
+		]);
+
+		await user.click(screen.getByRole("button", { name: "Delete Entry" }));
+
+		expect(getEntryValues()).toEqual([
+			{
+				count: 0,
+				countFill: false,
+				isCurrent: false,
+				note: "",
+				timeMs: 0,
+			},
+			{
+				count: 0,
+				countFill: false,
+				isCurrent: false,
+				note: "",
+				timeMs: 1000,
+			},
+		]);
+	});
+
+	it("Updates entries when the delete button is clicked", async () => {
 		arrange(
 			[{ timeMs: 0 }, exampleEntry, { timeMs: 23450 }, { timeMs: 30000 }],
 			1,
@@ -217,22 +257,6 @@ describe("Entry", () => {
 				isCurrent: false,
 				note: "",
 				timeMs: 30000,
-			},
-		]);
-	});
-
-	it("Replaces entry with initial entry when removing only entry", async () => {
-		arrange([exampleEntry], 0);
-
-		await user.click(screen.getByRole("button", { name: "Delete Entry" }));
-
-		expect(getEntryValues()).toEqual([
-			{
-				count: 0,
-				countFill: false,
-				isCurrent: true,
-				note: "Start",
-				timeMs: 0,
 			},
 		]);
 	});

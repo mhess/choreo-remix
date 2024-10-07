@@ -130,14 +130,10 @@ const createPlatformEntryAtoms = (platform: Platform): PlatformEntryAtoms => {
 		const entries = get(entriesAtom);
 		let removed: AtomicEntry;
 
-		if (entries.length === 1) {
-			if (!entries[0].timeMs) return;
-			set(entriesAtom, false);
-		} else {
-			const newEntries = [...entries];
-			newEntries.splice(index, 1)[0];
-			set(entriesSrcAtom, newEntries);
-		}
+		if (!index) return;
+		const newEntries = [...entries];
+		newEntries.splice(index, 1)[0];
+		set(entriesSrcAtom, newEntries);
 	});
 
 	const clearAtom = atom(null, (_: Getter, set: Setter) => {
@@ -276,8 +272,7 @@ const findEntryIndex = (
 	while (s !== e) {
 		const pivot = ((e - s) >> 1) + s;
 		const pivotTime = entries[pivot].timeMs;
-		if (pivotTime === timeMs) return pivot;
-		if (timeMs < pivotTime) e = pivot;
+		if (timeMs <= pivotTime) e = pivot;
 		else s = pivot + 1;
 	}
 
@@ -294,15 +289,16 @@ const findHighlightIndex = (
 
 	if (timeMs > entries[lastIndex].timeMs) return lastIndex;
 
-	while (s !== e) {
-		const pivot = ((e - s) >> 1) + s;
-		const pivotTime = entries[pivot]?.timeMs;
-		if (timeMs === pivotTime) return pivot;
-		if (timeMs < pivotTime) e = pivot - 1;
+	let diff: number;
+	do {
+		diff = e - s;
+		const pivot = (diff >> 1) + s;
+		const pivotTime = entries[pivot].timeMs;
+		if (timeMs < pivotTime) e = pivot;
 		else s = pivot;
-	}
+	} while (diff > 1);
 
-	return e;
+	return s;
 };
 
 const guessCountForIndex = (

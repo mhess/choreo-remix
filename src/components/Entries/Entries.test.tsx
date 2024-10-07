@@ -148,7 +148,12 @@ describe("Entries", () => {
 	});
 
 	it("Highlights the current entry and updates the time display as the player is ticking", async () => {
-		arrange([{ timeMs: 0 }, { timeMs: 1000 }, { timeMs: 2000 }]);
+		arrange([
+			{ timeMs: 0 },
+			{ timeMs: 1000 },
+			{ timeMs: 2000 },
+			{ timeMs: 3000 },
+		]);
 
 		const getHighlights = () =>
 			screen
@@ -162,32 +167,32 @@ describe("Entries", () => {
 
 		await tickToTime(0);
 
-		expect(getHighlights()).toEqual([true, false, false]);
+		expect(getHighlights()).toEqual([true, false, false, false]);
 		expect(getTimeDisplay()).toHaveTextContent("0:00.00");
 
 		await tickToTime(500);
 
-		expect(getHighlights()).toEqual([true, false, false]);
+		expect(getHighlights()).toEqual([true, false, false, false]);
 		expect(getTimeDisplay()).toHaveTextContent("0:00.50");
 
 		await tickToTime(1000);
 
-		expect(getHighlights()).toEqual([false, true, false]);
+		expect(getHighlights()).toEqual([false, true, false, false]);
 		expect(getTimeDisplay()).toHaveTextContent("0:01.00");
 
 		await tickToTime(1500);
 
-		expect(getHighlights()).toEqual([false, true, false]);
+		expect(getHighlights()).toEqual([false, true, false, false]);
 		expect(getTimeDisplay()).toHaveTextContent("0:01.50");
 
 		await tickToTime(2000);
 
-		expect(getHighlights()).toEqual([false, false, true]);
+		expect(getHighlights()).toEqual([false, false, true, false]);
 		expect(getTimeDisplay()).toHaveTextContent("0:02.00");
 
 		await tickToTime(3500);
 
-		expect(getHighlights()).toEqual([false, false, true]);
+		expect(getHighlights()).toEqual([false, false, false, true]);
 		expect(getTimeDisplay()).toHaveTextContent("0:03.50");
 	});
 
@@ -196,6 +201,27 @@ describe("Entries", () => {
 		arrange(initialEntries);
 
 		await tickToTime(0);
+
+		expect(getRenderedEntryValues()).toEqual([
+			{
+				count: 0,
+				isCurrent: true,
+				timeMs: 0,
+				index: 0,
+			},
+			{
+				count: 0,
+				isCurrent: false,
+				timeMs: 1000,
+				index: 1,
+			},
+			{
+				count: 0,
+				isCurrent: false,
+				timeMs: 2000,
+				index: 2,
+			},
+		]);
 
 		await user.click(screen.getByRole("button", { name: "Add Entry" }));
 
