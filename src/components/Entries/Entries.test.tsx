@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 import {
 	act,
 	render,
@@ -9,7 +9,6 @@ import {
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { UserEvent } from "@testing-library/user-event";
-import type { Mock } from "vitest";
 import { useAtom } from "jotai";
 
 import type { AtomicEntry, EntryInput } from "~/lib/entries";
@@ -49,12 +48,9 @@ describe("Entries", () => {
 
 		user = userEvent.setup();
 		player = {
-			play: vi.fn(),
-			pause: vi.fn(),
-			getCurrentTime: vi.fn(async () => 0),
-			seekTo: vi.fn(),
 			addOnTick: vi.fn(),
 			removeOnTick: vi.fn(),
+			pause: vi.fn(),
 		} as unknown as PlatformPlayer;
 
 		const { playerAtom } = getAtoms(platform);
@@ -69,6 +65,7 @@ describe("Entries", () => {
 	const tickToTime = (timeMs: number) =>
 		act(async () => {
 			(player.getCurrentTime as Mock).mockReturnValue(Promise.resolve(timeMs));
+
 			for (const call of (player.addOnTick as Mock).mock.calls)
 				await call[0](timeMs);
 		});
@@ -102,6 +99,7 @@ describe("Entries", () => {
 	});
 
 	it("Renders the controls which control playback", async () => {
+		player.play = vi.fn();
 		const { pausedAtom } = getAtoms(platform);
 		arrange();
 
@@ -129,6 +127,13 @@ describe("Entries", () => {
 			inControls.queryByRole("button", { name: "Play" }),
 		).not.toBeInTheDocument();
 
+		await user.click(inControls.getByRole("button", { name: "Pause" }));
+
+		expect(player.pause).toHaveBeenCalledOnce();
+
+		player.seekTo = vi.fn();
+		player.getCurrentTime = vi.fn();
+
 		expect(player.seekTo).not.toHaveBeenCalled();
 		(player.getCurrentTime as Mock).mockReturnValue(Promise.resolve(12345));
 
@@ -139,8 +144,6 @@ describe("Entries", () => {
 		expect(player.seekTo).toHaveBeenCalledOnce();
 		expect(player.seekTo).toHaveBeenCalledWith(17345);
 
-		expect(player.seekTo).toHaveBeenCalledOnce();
-
 		await user.click(inControls.getByRole("button", { name: "Rewind 5 sec" }));
 
 		expect(player.seekTo).toHaveBeenCalledTimes(2);
@@ -148,6 +151,8 @@ describe("Entries", () => {
 	});
 
 	it("Highlights the current entry and updates the time display as the player is ticking", async () => {
+		player.getCurrentTime = vi.fn();
+
 		arrange([
 			{ timeMs: 0 },
 			{ timeMs: 1000 },
@@ -197,6 +202,8 @@ describe("Entries", () => {
 	});
 
 	it("Adds a new entry correctly", async () => {
+		player.getCurrentTime = vi.fn();
+
 		const initialEntries = [{ timeMs: 0 }, { timeMs: 1000 }, { timeMs: 2000 }];
 		arrange(initialEntries);
 
@@ -373,10 +380,12 @@ describe("Entries", () => {
 	});
 
 	it("Fills in new count if previous two entries have counts", async () => {
+		player.getCurrentTime = vi.fn();
+
 		const { entriesAtom } = getAtoms(platform);
 		setAtoms([[entriesAtom, [{ timeMs: 0 }, { timeMs: 1000, count: 4 }]]]);
 
-		(player.getCurrentTime as Mock).mockReturnValue(Promise.resolve(1492));
+		(player.getCurrentTime as Mock).mockReturnValue(Promise.resolve(1495));
 
 		render(<Entries />, { wrapper });
 
@@ -398,7 +407,7 @@ describe("Entries", () => {
 			{
 				count: 6,
 				isCurrent: true,
-				timeMs: 1492,
+				timeMs: 1495,
 				index: 2,
 			},
 		]);
@@ -440,5 +449,15 @@ describe("Entries", () => {
 		await expect(findTooltip).rejects.toThrow(
 			'Unable to find role="tooltip" and name `/^First time/`',
 		);
+	});
+
+	it("Pauses the player when unmounted", async () => {
+		const { unmount } = arrange();
+
+		expect(player.pause).not.toHaveBeenCalled();
+
+		await act(unmount);
+
+		expect(player.pause).toHaveBeenCalledOnce();
 	});
 });
