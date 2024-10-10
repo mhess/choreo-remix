@@ -22,7 +22,8 @@ export type AtomicEntry = {
 };
 
 type PlatformEntryAtoms = {
-	entriesAtom: WritableAtom<AtomicEntry[], [initial?: EntryInput[]], void>;
+	initEntriesAtom: WritableAtom<null, [], void>;
+	entriesAtom: WritableAtom<AtomicEntry[], [EntryInput[]?], void>;
 	addAtom: WritableAtom<null, [number], void>;
 	removeAtom: WritableAtom<null, [number], void>;
 	clearAtom: WritableAtom<null, [], void>;
@@ -39,13 +40,13 @@ export const setOnIndexChangeAtom = atom(null, (_, set, cb: ScrollCallback) =>
 	set(onIndexChangeAtom, [cb]),
 );
 
-export const useInitializedEntries = () => {
+export const useEntryAtoms = () => {
 	const [platformEntryAtoms] = useAtom(entryAtomsForPlatformAtom);
-	const [, initializeEntries] = useAtom(platformEntryAtoms.entriesAtom);
+	const [, initEntries] = useAtom(platformEntryAtoms.initEntriesAtom);
 
 	useLayoutEffect(() => {
-		initializeEntries();
-	}, [initializeEntries]);
+		initEntries();
+	}, [initEntries]);
 
 	return platformEntryAtoms;
 };
@@ -61,7 +62,10 @@ declare global {
 	interface Window {
 		atoms: Record<
 			Platform,
-			{ currentCountFillAtomAtom: PrimitiveAtom<CountFillAtom> }
+			{
+				currentCountFillAtomAtom: PrimitiveAtom<CountFillAtom>;
+				currentIsCurrentAtomAtom: PrimitiveAtom<PrimitiveAtom<boolean>>;
+			}
 		>;
 	}
 }
@@ -72,8 +76,12 @@ const createPlatformEntryAtoms = (platform: Platform): PlatformEntryAtoms => {
 	const currentCountFillAtomAtom = atom(atom(false) as CountFillAtom);
 	const currentIsCurrentAtomAtom = atom(atom(false) as PrimitiveAtom<boolean>);
 
-	// For debugging
-	window.atoms[platform] = { currentCountFillAtomAtom };
+	// For debugging. Since these atoms are never passed to the useAtom() hook,
+	// the only way to see their values is to put them on the window.
+	window.atoms[platform] = {
+		currentCountFillAtomAtom,
+		currentIsCurrentAtomAtom,
+	};
 
 	const entriesSrcAtom = atom<AtomicEntry[]>([]);
 
@@ -84,20 +92,20 @@ const createPlatformEntryAtoms = (platform: Platform): PlatformEntryAtoms => {
 
 	const entriesAtom = atom(
 		(get) => get(entriesSrcAtom),
-		(get, set, entryInputs?: EntryInput[] | false) => {
-			let newInputs: EntryInput[];
-
-			if (!entryInputs || !entryInputs.length) {
-				if (entryInputs === undefined && get(entriesSrcAtom).length) return;
-				newInputs = [{ timeMs: 0, note: "Start", isCurrent: true }];
-			} else newInputs = entryInputs;
+		(_, set, entryInputs: EntryInput[] = []) => {
+			const newInputs = entryInputs.length
+				? entryInputs
+				: [{ timeMs: 0, note: "Start", isCurrent: true }];
 
 			const newEntries = newInputs.map(makeAtomicEntry);
-
 			set(entriesSrcAtom, newEntries);
 			set(currentCountFillAtomAtom, newEntries[0].countFillAtom);
 		},
-	) as WritableAtom<AtomicEntry[], [initial?: EntryInput[] | false], void>;
+	);
+
+	const initEntriesAtom = atom(null, (get, set) => {
+		!get(entriesAtom).length && set(entriesAtom);
+	});
 
 	const addAtom = atom(null, (get: Getter, set: Setter, timeMs: number) => {
 		const entries = get(entriesSrcAtom);
@@ -137,7 +145,7 @@ const createPlatformEntryAtoms = (platform: Platform): PlatformEntryAtoms => {
 	});
 
 	const clearAtom = atom(null, (_: Getter, set: Setter) => {
-		set(entriesAtom, false);
+		set(entriesAtom);
 	});
 
 	const currentIndexAtom = atom(
@@ -174,6 +182,7 @@ const createPlatformEntryAtoms = (platform: Platform): PlatformEntryAtoms => {
 	});
 
 	return {
+		initEntriesAtom,
 		entriesAtom,
 		addAtom,
 		removeAtom,

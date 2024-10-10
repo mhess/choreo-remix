@@ -4,7 +4,7 @@ import { Box, Group, Text } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 
 import { useEstablishedPlayer } from "~/lib/platformAtoms";
-import { setOnIndexChangeAtom, useInitializedEntries } from "~/lib/entries";
+import { setOnIndexChangeAtom, useEntryAtoms } from "~/lib/entries";
 
 import Help from "./Help";
 import Controls from "./Controls";
@@ -18,7 +18,7 @@ export default function Entries() {
 	const scrollerRef = useRef<HTMLDivElement>(null);
 	const containerRef = useRef<HTMLDivElement>(null);
 
-	const { entriesAtom, currentIndexAtom } = useInitializedEntries();
+	const { entriesAtom, currentIndexAtom } = useEntryAtoms();
 	const [, setCallback] = useAtom(setOnIndexChangeAtom);
 	const [, setCurrentIndexForTime] = useAtom(currentIndexAtom);
 	const [entries] = useAtom(entriesAtom);

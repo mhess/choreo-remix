@@ -460,4 +460,21 @@ describe("Entries", () => {
 
 		expect(player.pause).toHaveBeenCalledOnce();
 	});
+
+	it("Preserves the existing entries when remounted", () => {
+		const { unmount } = arrange([{ timeMs: 0, count: 1 }]);
+
+		unmount();
+
+		render(<Entries />, { wrapper });
+
+		expect(getRenderedEntryValues()).toEqual([
+			{
+				timeMs: 0,
+				count: 1,
+				index: 0,
+				isCurrent: false,
+			},
+		]);
+	});
 });
